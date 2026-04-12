@@ -1,0 +1,12 @@
+let str value = "dwwdeewd";
+let int v1 = 90;
+let double v2 = 90;
+
+
+func -> int name_f(int, str) {
+    return 10;
+}
+
+
+let arr array:int = [1,2,3];
+
