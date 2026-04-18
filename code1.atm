@@ -1,0 +1,445 @@
+# ============================================================
+# ATM Language — Clean Syntax with Braces
+# ============================================================
+
+# ---------------------- ПЕРЕМЕННЫЕ ----------------------
+make x = 5;
+make name = "John";
+make flag = true;
+
+# Переназначение
+x = 10;
+x = "hello";
+
+# Множественное присваивание
+make a, b, c = 1, 2, 3;
+
+# ---------------------- АРИФМЕТИКА ----------------------
+make sum = 5 + 3;
+make diff = 10 - 4;
+make prod = 6 * 7;
+make quot = 15 / 3;
+make s = 10 // 3;
+make power = 2 ^ 3;
+make mod = 17 % 5;
+
+# Инкремент и декремент
+make i = 0;
+i++;                 # i = 1
+++i;                 # i = 2
+i--;                 # i = 1
+
+# Присваивание с операцией
+make x = 5;
+x += 3;              # x = 8
+x -= 2;              # x = 6
+x *= 4;              # x = 24
+x /= 2;              # x = 12
+x ^= 2;              # x = 144 (12^2)
+x %= 3;              
+x //= 3;              
+
+# ---------------------- СРАВНЕНИЯ ----------------------
+make eq = x == y;
+make ne = x != y;
+make lt = x < y;
+make gt = x > y;
+make le = x <= y;
+make ge = x >= y;
+
+# ---------------------- ЛОГИКА ----------------------
+make and = a & b; //and
+make or = a | b;  //or
+make not = !a;    //not
+
+# ---------------------- УСЛОВИЯ ----------------------
+if (x > 10) {
+    print("больше");
+} elif (x > 5) {
+    print("средний");
+} else {
+    print("маленький");
+}
+
+# Тернарный оператор
+make status = (age >= 18) ? "взрослый" : "ребёнок";
+
+# ---------------------- ЦИКЛЫ ----------------------
+make i = 0;
+while (i < 10) {
+    print(i);
+    i = i + 1;
+}
+
+for (i in 0..10) {
+    print(i);
+}
+
+for (i in 0..100 step 10) {
+    print(i);
+}
+
+for (i in 0..var step var2) {}
+
+for (item in items) {
+    print(item);
+}
+
+do {
+    print("хотя бы раз");
+} while (false);
+
+while (true) {
+    if (condition) { break; }
+    if (skip) { continue; }
+}
+
+# ---------------------- ФУНКЦИИ ----------------------
+func add(a, b) -> a + b;
+
+func multiply(a, b) -> int {
+    return a * b;
+}
+
+func greet(name, greeting = "Hello") {
+    return greeting + ", " + name;
+}
+
+func sum(...args) {
+    make total = 0;
+    for (n in args) { total = total + n; }
+    return total;
+}
+
+make square = |x| x * x;
+make result = square(5);
+
+
+# Guard clauses
+func divide(a, b) when (b != 0) {
+    return a / b;
+}
+
+func sqrt_num(x) when (x >= 0) {
+    return sqrt(x);
+}
+
+# ---------------------- КОММЕНТАРИИ ----------------------
+# Однострочный
+
+/*
+   Многострочный
+   комментарий
+*/
+
+# TODO: сделать что-то
+# FIXME: исправить баг
+
+# ---------------------- ВСТРОЕННЫЕ ФУНКЦИИ ----------------------
+print("text");
+println("text");
+input("prompt");
+
+type(123);
+type("hello");
+type([1,2,3]);
+
+int("123");
+string(456);
+bool(0);
+bool(1);
+
+# ---------------------- МАТЕМАТИЧЕСКИЕ ФУНКЦИИ ----------------------
+
+# Корни и степени
+make sqrt4 = sqrt(16);          # 4
+make cbrt8 = cbrt(27);          # 3 (кубический корень)
+make hypot5 = hypot(3, 4);      # 5 (гипотенуза: sqrt(a^2 + b^2))
+
+# Абсолютные значения
+make abs1 = abs(-5);            # 5
+make abs2 = fabs(-3.14);        # 3.14 (для чисел с плавающей точкой)
+
+# Округление
+make floor1 = floor(3.7);       # 3
+make floor2 = floor(-3.7);      # -4
+make ceil1 = ceil(3.2);         # 4
+make ceil2 = ceil(-3.2);        # -3
+make round1 = round(3.5);       # 4 (стандартное округление)
+make round2 = round(3.4);       # 3
+make trunc1 = trunc(3.7);       # 3 (отбрасывание дробной части)
+make trunc2 = trunc(-3.7);      # -3
+
+# Факториал
+make fact5 = 5!;                # 120
+make fact0 = 0!;                # 1
+make fact7 = 7!;                # 5040
+
+# Логарифмы
+make log10 = log10(100);        # 2 (десятичный логарифм)
+make ln = ln(2.71828);          # 1 (натуральный логарифм)
+make log2 = log2(8);            # 3 (логарифм по основанию 2)
+make logn = log(2.71828, 10);   # ~0.434 (логарифм по произвольному основанию)
+
+# ---------------------- ТРИГОНОМЕТРИЯ (полный стек) ----------------------
+
+# Базовые тригонометрические функции
+make sin90 = sin(pi / 2);       # 1
+make cos0 = cos(0);             # 1
+make tan45 = tan(pi / 4);       # 1
+
+# Обратные тригонометрические функции
+make asin1 = asin(1);           # π/2 (90°)
+make acos0 = acos(0);           # π/2 (90°)
+make atan1 = atan(1);           # π/4 (45°)
+make atan2_xy = atan2(1, 1);    # π/4 (45°) — угол между осью X и точкой (1,1)
+
+# Гиперболические функции
+make sinh1 = sinh(1);           # гиперболический синус
+make cosh1 = cosh(1);           # гиперболический косинус
+make tanh1 = tanh(1);           # гиперболический тангенс
+
+# Обратные гиперболические функции
+make asinh1 = asinh(1);         # ареа-синус
+make acosh1 = acosh(1);         # ареа-косинус
+make atanh05 = atanh(0.5);      # ареа-тангенс
+
+# Секансы и косекансы
+make sec0 = sec(0);             # 1 (1/cos)
+make csc90 = csc(pi / 2);       # 1 (1/sin)
+make cot45 = cot(pi / 4);       # 1 (1/tan)
+
+# Обратные секансы
+make asec1 = asec(1);           # 0
+make acsc1 = acsc(1);           # π/2
+make acot1 = acot(1);           # π/4
+
+# Гиперболические секансы
+make sech0 = sech(0);           # 1
+make csch1 = csch(1);           # гиперболический косеканс
+make coth1 = coth(1);           # гиперболический котангенс
+
+# ---------------------- КОНСТАНТЫ ----------------------
+make pi_val = pi;               # 3.141592653589793
+make e_val = e;                 # 2.718281828459045
+make tau_val = tau;             # 6.283185307179586 (2π)
+make phi_val = phi;             # 1.618033988749895 (золотое сечение)
+
+# ---------------------- ПРЕОБРАЗОВАНИЕ ГРАДУСОВ И РАДИАНОВ ----------------------
+make rad = radians(180);        # 3.14159 (π радиан)
+make deg = degrees(pi);         # 180
+
+# ---------------------- МИНИМУМ, МАКСИМУМ, КЛИППИНГ ----------------------
+make min_val = min(10, 20);     # 10
+make max_val = max(10, 20);     # 20
+make min3 = min(5, 2, 8, 1);    # 1 (много аргументов)
+make max3 = max(5, 2, 8, 1);    # 8
+make clamp1 = clamp(15, 0, 10); # 10 (ограничение сверху)
+make clamp2 = clamp(-5, 0, 10); # 0 (ограничение снизу)
+make clamp3 = clamp(5, 0, 10);  # 5 (внутри диапазона)
+
+# ---------------------- ПРОВЕРКИ ----------------------
+make is_nan = isnan(0/0);       # true
+make is_inf = isinf(1/0);       # true
+make is_finite = isfinite(42);  # true
+
+# ---------------------- ГЕНЕРАЦИЯ СЛУЧАЙНЫХ ЧИСЕЛ ----------------------
+make rand1 = random();          # 0.0 .. 1.0
+make rand2 = random(10);        # 0 .. 9
+make rand3 = random(5, 15);     # 5 .. 14
+make seed = srandom(42);        # установить seed
+
+# ---------------------- ОШИБКИ ----------------------
+try {
+    make x = risky();
+} catch (err) {
+    print("Error: " + err);
+} finally {
+    print("always");
+}
+
+# ---------------------- ИМПОРТЫ ----------------------
+use "math.atm";
+use { sin, cos, pi } from "math.atm";
+use "math.atm" as m;
+
+# ---------------------- КЛАССЫ ----------------------
+class Person {
+    name;
+    age;
+    
+    new(name, age) {
+        this.name = name;
+        this.age = age;
+    }
+    
+    greet() -> str {
+        return "Hello, I'm " + this.name;
+    }
+    
+    birthday() {
+        this.age = this.age + 1;
+    }
+}
+
+make john = Person("John", 25);
+make jane = Person("Jane", 30);
+print(john.greet());
+jane.birthday();
+print(jane.age);
+
+# Наследование
+class Animal {
+    name;
+    
+    new(name) {
+        this.name = name;
+    }
+    
+    speak() {
+        return this.name + " makes a sound";
+    }
+}
+
+class Dog extends Animal {
+    breed;
+    
+    new(name, breed) {
+        super(name);
+        this.breed = breed;
+    }
+    
+    speak() {
+        return this.name + " barks: Woof!";
+    }
+    
+    fetch() {
+        return this.name + " fetches the ball";
+    }
+}
+
+make rex = Dog("Rex", "German Shepherd");
+print(rex.speak());
+print(rex.fetch());
+
+# Полиморфизм
+func make_speak(animal) {
+    print(animal.speak());
+}
+
+make animals = [Dog("Rex"), Cat("Whiskers")];
+for (animal in animals) {
+    make_speak(animal);
+}
+
+# Инкапсуляция
+class BankAccount {
+    private balance;
+    public owner;
+    protected account_id;
+    
+    new(owner, initial) {
+        this.owner = owner;
+        this.balance = initial;
+        this.account_id = generate_id();
+    }
+    
+    get_balance() {
+        return this.balance;
+    }
+    
+    deposit(amount) {
+        if (amount > 0) {
+            this.balance = this.balance + amount;
+            return true;
+        }
+        return false;
+    }
+    
+    private log_transaction(amount) {
+        print("Transaction: " + amount);
+    }
+}
+
+# Статика
+class MathUtils {
+    static pi = 3.14159;
+    static e = 2.71828;
+    
+    static square(x) {
+        return x * x;
+    }
+    
+    static cube(x) {
+        return x * x * x;
+    }
+}
+
+make area = MathUtils.pi * MathUtils.square(5);
+
+# Геттеры/сеттеры
+class Circle {
+    private _radius;
+    
+    new(radius) {
+        this._radius = radius;
+    }
+    
+    getter radius() {
+        return this._radius;
+    }
+    
+    setter radius(value) {
+        if (value > 0) {
+            this._radius = value;
+        }
+    }
+    
+    getter area() {
+        return 3.14159 * this._radius * this._radius;
+    }
+}
+
+make circle = Circle(5);
+print(circle.radius);
+circle.radius = 10;
+print(circle.area);
+
+# ---------------------- PATTERN MATCHING ----------------------
+match (value) {
+    case 0: { print("zero"); }
+    case 1..9: { print("digit"); }
+    case "hello": { print("greeting"); }
+    default: { print("other"); }
+}
+
+# ---------------------- RANGE ----------------------
+make numbers = 1..10;
+if (x in 1..100) {
+    print("in range");
+}
+
+# ---------------------- PIPE ----------------------
+make result = read("data.txt")
+    |> parse_json()
+    |> get("users")
+    |> filter(|u| u.age > 18)
+    |> map(|u| u.name);
+
+# ---------------------- ELVIS ----------------------
+make name = input("Name: ") ?: "Anonymous";
+make port = config.port ?: 8080;
+
+# ---------------------- БЕЗОПАСНАЯ НАВИГАЦИЯ ----------------------
+make city = user?.address?.city ?: "Unknown";
+
+# ---------------------- ТЕСТЫ ----------------------
+test add_works {
+    assert add(2, 2) == 4;
+    assert add(-1, 1) == 0;
+}
+add_works.run();
+
+test string_concat {
+    assert "hello" + "world" == "helloworld";
+}

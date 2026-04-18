@@ -1,0 +1,64 @@
+
+# Основные примитивные типы в языке
+int       # Число
+make x = 10;
+
+double    # Число с плавающей точкой
+make x = 10.9;
+
+str       # Строка  
+make x = "string";
+
+bool      # Булевое выражение
+make x = true;
+
+null      # Ничего
+make x;
+
+
+
+# Переменные
+
+# Обычные
+make name_var0;
+make name_var1 = 999;
+
+# Константные
+const make a;
+a = 0; # error
+
+# Множественное присваивание
+make a, b, c = 1, 2, 3;
+
+# Переназначение переменной
+make x1 = 8.9;
+x = 10;
+x = "hello";
+
+
+
+# Область видимости
+{make a = 0;}
+print(a); # error
+
+make a = 0;
+{print(a);} # 0
+
+{
+    make a = 1;
+    {
+        make a = 0;
+        print(a); # 0
+    }
+}
+
+
+
+# Встроенные функции
+
+## Функции потоков
+print("eee");        # Вывод в поток stdout
+println("eee");      # Вывод в поток stdout с \n
+printerr("eee");     # Вывод в поток stderr
+printerrln("eee");   # Вывод в поток stderr с \n
+input("eee");        # Ввод из потока stdin
