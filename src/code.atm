@@ -1,64 +1,248 @@
-
-# Основные примитивные типы в языке
-int       # Число
+# ----- ПРИМИТИВНЫЕ ТИПЫ И ПЕРЕМЕННЫЕ -----
+Int;
 make x = 10;
+Double;
+make y = 10.9;
+Str;
+make name = "string";
+Bool;
+make flag = true;
+Null;
+make empty;
+make nothing = null;
 
-double    # Число с плавающей точкой
-make x = 10.9;
-
-str       # Строка  
-make x = "string";
-
-bool      # Булевое выражение
-make x = true;
-
-null      # Ничего
-make x;
-
-
-
-# Переменные
-
-# Обычные
+# ----- ОБЫЧНЫЕ ПЕРЕМЕННЫЕ -----
 make name_var0;
 make name_var1 = 999;
 
-# Константные
+# ----- КОНСТАНТНЫЕ ПЕРЕМЕННЫЕ -----
 const make a;
-a = 0; # error
+# a = 0; # error
 
-# Множественное присваивание
+# ----- МНОЖЕСТВЕННОЕ ПРИСВАИВАНИЕ -----
 make a, b, c = 1, 2, 3;
 
-# Переназначение переменной
+# ----- СОСТАВНОЕ ПРИСВАИВАНИЕ -----
+make x = 5;
+x += 3;
+x -= 2;
+x *= 4;
+x /= 2;
+x ^= 2;
+x %= 3;
+x //= 2;
+
+# ----- ПЕРЕНАЗНАЧЕНИЕ ПЕРЕМЕННОЙ -----
 make x1 = 8.9;
-x = 10;
-x = "hello";
+x1 = 10;
+x1 = "hello";
 
-
-
-# Область видимости
-{make a = 0;}
-print(a); # error
+# ----- ОБЛАСТЬ ВИДИМОСТИ -----
+{
+    make a = 0;
+}
+# print(a); # error
 
 make a = 0;
-{print(a);} # 0
+{
+    print(a);
+}
 
 {
     make a = 1;
     {
         make a = 0;
-        print(a); # 0
+        print(a);
     }
 }
 
+# ----- ВСТРОЕННЫЕ ФУНКЦИИ -----
+print("eee");
+println("eee");
+printerr("eee");
+printerrln("eee");
+input("eee");
 
+# ----- ВСТРОЕННЫЕ ФУНКЦИИ НАД ТИПАМИ -----
+make x = 9;
+make c = str(x);
+make cq = double(x);
+print(type(c));
+print(int(c));
 
-# Встроенные функции
+# ----- УСЛОВНЫЕ КОНСТРУКЦИИ -----
+if (x > 10) {
+    print("больше");
+} elif (x > 5) {
+    print("средний");
+} else {
+    print("маленький");
+}
 
-## Функции потоков
-print("eee");        # Вывод в поток stdout
-println("eee");      # Вывод в поток stdout с \n
-printerr("eee");     # Вывод в поток stderr
-printerrln("eee");   # Вывод в поток stderr с \n
-input("eee");        # Ввод из потока stdin
+# ----- ТЕРНАРНЫЙ ОПЕРАТОР -----
+make status = (age >= 18) ? "взрослый" : "ребёнок";
+
+# ----- АРИФМЕТИЧЕСКИЕ ОПЕРАТОРЫ -----
+make result = 3 * 4 / 2 + 4 - 8 ^ 6 % 5;
+
+# ----- ОПЕРАТОРЫ СРАВНЕНИЯ -----
+make cmp = 3 == 4 != 2 > 4 < 5 <= 9 >= 0;
+
+# ----- ЛОГИЧЕСКИЕ ОПЕРАТОРЫ -----
+make logic = a & b | !c;
+
+# ----- ЦИКЛЫ -----
+make i = 0;
+while (i < 10) {
+    print(i);
+    i = i + 1;
+}
+
+do {
+    print("хотя бы раз");
+} while (false);
+
+for (i in 0..10) {
+    print(i);
+}
+
+for (i in 0..100 step 10) {
+    print(i);
+}
+
+for (item in items) {
+    print(item);
+}
+
+break;
+continue;
+
+# ----- ФУНКЦИИ -----
+func add(a, b) -> a + b;
+
+func multiply(a, b) -> Int {
+    return a * b;
+}
+
+func greet(name, greeting = "Hello") {
+    return greeting + ", " + name;
+}
+
+func sum(...args) {
+    make total = 0;
+    for (n in args) {
+        total = total + n;
+    }
+    return total;
+}
+
+func divide(a, b) when (b != 0) {
+    return a / b;
+}
+
+# ----- ОБРАБОТКА ОШИБОК -----
+try {
+    make x = risky();
+} catch (err) {
+    print("Error: " + err);
+} finally {
+    print("always");
+}
+
+# ----- ИМПОРТЫ -----
+use "math.atm";
+use { sin, cos, pi } from "math.atm";
+use "math.atm" as m;
+
+# ----- КЛАССЫ И ООП -----
+class Person {
+    private name;
+    public age;
+    protected id;
+    
+    new(name, age) {
+        this.name = name;
+        this.age = age;
+    }
+    
+    getter name() {
+        return this.name;
+    }
+    
+    setter name(value) {
+        this.name = value;
+    }
+    
+    greet() -> "Hello, I'm " + this.name;
+}
+
+class Student extends Person {
+    private static studentCount = 0;
+    
+    new(name, age) {
+        super(name, age);
+        studentCount = studentCount + 1;
+    }
+}
+
+make john = Person("John", 25);
+make jane = Student("Jane", 20);
+
+# ----- СПЕЦИАЛЬНЫЕ ОПЕРАТОРЫ -----
+# Оператор доступа к полям
+john.name;
+
+# Безопасная навигация
+make city = user?.address?.city ?: "Unknown";
+
+# Pipe оператор
+make result = read("data.txt")
+    |> parse_json()
+    |> get("users")
+    |> filter(|u| u.age > 18)
+    |> map(|u| u.name);
+
+# Диапазоны
+make numbers = 1..10;
+make range = 0..100 step 5;
+
+# Многоточие
+func print_all(...items) {
+    for (item in items) {
+        print(item);
+    }
+}
+
+# ----- PATTERN MATCHING -----
+match (value) {
+    case 0: {
+        print("zero");
+    }
+    case 1..9: {
+        print("digit");
+    }
+    case "hello": {
+        print("greeting");
+    }
+    default: {
+        print("other");
+    }
+}
+
+# ----- ТЕСТЫ -----
+test "add works" {
+    assert add(2, 2) == 4;
+    assert add(-1, 1) == 0;
+}
+
+test "string concat" {
+    assert "hello" + "world" == "helloworld";
+}
+
+# ----- КОММЕНТАРИИ -----
+# Однострочный комментарий
+
+/*
+   Многострочный
+   комментарий
+*/

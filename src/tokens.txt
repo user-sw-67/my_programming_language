@@ -1,139 +1,827 @@
-Primitive : INT : 'int' 3:1
-SpecialWords : MAKE : 'make' 4:1
-Special : IDENTIFIER : 'x' 4:6
-Assignment : SIMPLE : '=' 4:8
-Literals : INT : '10' 4:10
-Symbols : SEMICOLON : ';' 4:12
-Primitive : DOUBLE : 'double' 6:1
+DataType Primitive : INT : 'Int' 2:1
+Symbols : SEMICOLON : ';' 2:4
+SpecialWords : MAKE : 'make' 3:1
+Special : IDENTIFIER : 'x' 3:6
+Operator Assignment : SIMPLE : '=' 3:8
+Literals : INT : '10' 3:10
+Symbols : SEMICOLON : ';' 3:12
+DataType Primitive : DOUBLE : 'Double' 4:1
+Symbols : SEMICOLON : ';' 4:7
+SpecialWords : MAKE : 'make' 5:1
+Special : IDENTIFIER : 'y' 5:6
+Operator Assignment : SIMPLE : '=' 5:8
+Literals : DOUBLE : '10.9' 5:10
+Symbols : SEMICOLON : ';' 5:14
+DataType Primitive : STR : 'Str' 6:1
+Symbols : SEMICOLON : ';' 6:4
 SpecialWords : MAKE : 'make' 7:1
-Special : IDENTIFIER : 'x' 7:6
-Assignment : SIMPLE : '=' 7:8
-Literals : DOUBLE : '10.9' 7:10
-Symbols : SEMICOLON : ';' 7:14
-Primitive : STR : 'str' 9:1
-SpecialWords : MAKE : 'make' 10:1
-Special : IDENTIFIER : 'x' 10:6
-Assignment : SIMPLE : '=' 10:8
-Literals : STR : 'string' 10:11
-Symbols : SEMICOLON : ';' 10:18
-Primitive : BOOL : 'bool' 12:1
-SpecialWords : MAKE : 'make' 13:1
-Special : IDENTIFIER : 'x' 13:6
-Assignment : SIMPLE : '=' 13:8
-Literals : BOOL : 'true' 13:10
-Symbols : SEMICOLON : ';' 13:14
-Literals : NULL : 'null' 15:1
+Special : IDENTIFIER : 'name' 7:6
+Operator Assignment : SIMPLE : '=' 7:11
+Literals : STR : 'string' 7:14
+Symbols : SEMICOLON : ';' 7:21
+DataType Primitive : BOOL : 'Bool' 8:1
+Symbols : SEMICOLON : ';' 8:5
+SpecialWords : MAKE : 'make' 9:1
+Special : IDENTIFIER : 'flag' 9:6
+Operator Assignment : SIMPLE : '=' 9:11
+Literals : BOOL : 'true' 9:13
+Symbols : SEMICOLON : ';' 9:17
+DataType Primitive : NULL : 'Null' 10:1
+Symbols : SEMICOLON : ';' 10:5
+SpecialWords : MAKE : 'make' 11:1
+Special : IDENTIFIER : 'empty' 11:6
+Symbols : SEMICOLON : ';' 11:11
+SpecialWords : MAKE : 'make' 12:1
+Special : IDENTIFIER : 'nothing' 12:6
+Operator Assignment : SIMPLE : '=' 12:14
+Literals : NULL : 'null' 12:16
+Symbols : SEMICOLON : ';' 12:20
+SpecialWords : MAKE : 'make' 15:1
+Special : IDENTIFIER : 'name_var0' 15:6
+Symbols : SEMICOLON : ';' 15:15
 SpecialWords : MAKE : 'make' 16:1
-Special : IDENTIFIER : 'x' 16:6
-Symbols : SEMICOLON : ';' 16:7
+Special : IDENTIFIER : 'name_var1' 16:6
+Operator Assignment : SIMPLE : '=' 16:16
+Literals : INT : '999' 16:18
+Symbols : SEMICOLON : ';' 16:21
+SpecialWords : CONST : 'const' 19:1
+SpecialWords : MAKE : 'make' 19:7
+Special : IDENTIFIER : 'a' 19:12
+Symbols : SEMICOLON : ';' 19:13
 SpecialWords : MAKE : 'make' 23:1
-Special : IDENTIFIER : 'name_var0' 23:6
-Symbols : SEMICOLON : ';' 23:15
-SpecialWords : MAKE : 'make' 24:1
-Special : IDENTIFIER : 'name_var1' 24:6
-Assignment : SIMPLE : '=' 24:16
-Literals : INT : '999' 24:18
-Symbols : SEMICOLON : ';' 24:21
-SpecialWords : CONST : 'const' 27:1
-SpecialWords : MAKE : 'make' 27:7
-Special : IDENTIFIER : 'a' 27:12
-Symbols : SEMICOLON : ';' 27:13
-Special : IDENTIFIER : 'a' 28:1
-Assignment : SIMPLE : '=' 28:3
-Literals : INT : '0' 28:5
-Symbols : SEMICOLON : ';' 28:6
-SpecialWords : MAKE : 'make' 31:1
-Special : IDENTIFIER : 'a' 31:6
-Symbols : COMMA : ',' 31:7
-Special : IDENTIFIER : 'b' 31:9
-Symbols : COMMA : ',' 31:10
-Special : IDENTIFIER : 'c' 31:12
-Assignment : SIMPLE : '=' 31:14
-Literals : INT : '1' 31:16
-Symbols : COMMA : ',' 31:17
-Literals : INT : '2' 31:19
-Symbols : COMMA : ',' 31:20
-Literals : INT : '3' 31:22
-Symbols : SEMICOLON : ';' 31:23
-SpecialWords : MAKE : 'make' 34:1
-Special : IDENTIFIER : 'x1' 34:6
-Assignment : SIMPLE : '=' 34:9
-Literals : DOUBLE : '8.9' 34:11
-Symbols : SEMICOLON : ';' 34:14
-Special : IDENTIFIER : 'x' 35:1
-Assignment : SIMPLE : '=' 35:3
-Literals : INT : '10' 35:5
-Symbols : SEMICOLON : ';' 35:7
-Special : IDENTIFIER : 'x' 36:1
-Assignment : SIMPLE : '=' 36:3
-Literals : STR : 'hello' 36:6
-Symbols : SEMICOLON : ';' 36:12
+Special : IDENTIFIER : 'a' 23:6
+Symbols : COMMA : ',' 23:7
+Special : IDENTIFIER : 'b' 23:9
+Symbols : COMMA : ',' 23:10
+Special : IDENTIFIER : 'c' 23:12
+Operator Assignment : SIMPLE : '=' 23:14
+Literals : INT : '1' 23:16
+Symbols : COMMA : ',' 23:17
+Literals : INT : '2' 23:19
+Symbols : COMMA : ',' 23:20
+Literals : INT : '3' 23:22
+Symbols : SEMICOLON : ';' 23:23
+SpecialWords : MAKE : 'make' 26:1
+Special : IDENTIFIER : 'x' 26:6
+Operator Assignment : SIMPLE : '=' 26:8
+Literals : INT : '5' 26:10
+Symbols : SEMICOLON : ';' 26:11
+Special : IDENTIFIER : 'x' 27:1
+Operator Assignment : PLUS_ASSIGN : '+=' 27:3
+Literals : INT : '3' 27:6
+Symbols : SEMICOLON : ';' 27:7
+Special : IDENTIFIER : 'x' 28:1
+Operator Assignment : MINUS_ASSIGN : '-=' 28:3
+Literals : INT : '2' 28:6
+Symbols : SEMICOLON : ';' 28:7
+Special : IDENTIFIER : 'x' 29:1
+Operator Assignment : MULTIPLY_ASSIGN : '*=' 29:3
+Literals : INT : '4' 29:6
+Symbols : SEMICOLON : ';' 29:7
+Special : IDENTIFIER : 'x' 30:1
+Operator Assignment : DIVIDE_ASSIGN : '/=' 30:3
+Literals : INT : '2' 30:6
+Symbols : SEMICOLON : ';' 30:7
+Special : IDENTIFIER : 'x' 31:1
+Operator Assignment : POWER_ASSIGN : '^=' 31:3
+Literals : INT : '2' 31:6
+Symbols : SEMICOLON : ';' 31:7
+Special : IDENTIFIER : 'x' 32:1
+Operator Assignment : MOD_ASSIGN : '%=' 32:3
+Literals : INT : '3' 32:6
+Symbols : SEMICOLON : ';' 32:7
+Special : IDENTIFIER : 'x' 33:1
+Operator Assignment : INT_DIVIDE_ASSIGN : '//=' 33:3
+Literals : INT : '2' 33:7
+Symbols : SEMICOLON : ';' 33:8
+SpecialWords : MAKE : 'make' 36:1
+Special : IDENTIFIER : 'x1' 36:6
+Operator Assignment : SIMPLE : '=' 36:9
+Literals : DOUBLE : '8.9' 36:11
+Symbols : SEMICOLON : ';' 36:14
+Special : IDENTIFIER : 'x1' 37:1
+Operator Assignment : SIMPLE : '=' 37:4
+Literals : INT : '10' 37:6
+Symbols : SEMICOLON : ';' 37:8
+Special : IDENTIFIER : 'x1' 38:1
+Operator Assignment : SIMPLE : '=' 38:4
+Literals : STR : 'hello' 38:7
+Symbols : SEMICOLON : ';' 38:13
 Brackets : BRACE_L : '{' 41:1
-SpecialWords : MAKE : 'make' 41:2
-Special : IDENTIFIER : 'a' 41:7
-Assignment : SIMPLE : '=' 41:9
-Literals : INT : '0' 41:11
-Symbols : SEMICOLON : ';' 41:12
-Brackets : BRACE_R : '}' 41:13
-StandardStreams : PRINT : 'print' 42:1
-Brackets : PARENTHESIS_L : '(' 42:6
-Special : IDENTIFIER : 'a' 42:7
-Brackets : PARENTHESIS_R : ')' 42:8
-Symbols : SEMICOLON : ';' 42:9
-SpecialWords : MAKE : 'make' 44:1
-Special : IDENTIFIER : 'a' 44:6
-Assignment : SIMPLE : '=' 44:8
-Literals : INT : '0' 44:10
-Symbols : SEMICOLON : ';' 44:11
-Brackets : BRACE_L : '{' 45:1
-StandardStreams : PRINT : 'print' 45:2
-Brackets : PARENTHESIS_L : '(' 45:7
-Special : IDENTIFIER : 'a' 45:8
-Brackets : PARENTHESIS_R : ')' 45:9
-Symbols : SEMICOLON : ';' 45:10
-Brackets : BRACE_R : '}' 45:11
+SpecialWords : MAKE : 'make' 42:5
+Special : IDENTIFIER : 'a' 42:10
+Operator Assignment : SIMPLE : '=' 42:12
+Literals : INT : '0' 42:14
+Symbols : SEMICOLON : ';' 42:15
+Brackets : BRACE_R : '}' 43:1
+SpecialWords : MAKE : 'make' 46:1
+Special : IDENTIFIER : 'a' 46:6
+Operator Assignment : SIMPLE : '=' 46:8
+Literals : INT : '0' 46:10
+Symbols : SEMICOLON : ';' 46:11
 Brackets : BRACE_L : '{' 47:1
-SpecialWords : MAKE : 'make' 48:5
-Special : IDENTIFIER : 'a' 48:10
-Assignment : SIMPLE : '=' 48:12
-Literals : INT : '1' 48:14
-Symbols : SEMICOLON : ';' 48:15
-Brackets : BRACE_L : '{' 49:5
-SpecialWords : MAKE : 'make' 50:9
-Special : IDENTIFIER : 'a' 50:14
-Assignment : SIMPLE : '=' 50:16
-Literals : INT : '0' 50:18
-Symbols : SEMICOLON : ';' 50:19
-StandardStreams : PRINT : 'print' 51:9
-Brackets : PARENTHESIS_L : '(' 51:14
-Special : IDENTIFIER : 'a' 51:15
-Brackets : PARENTHESIS_R : ')' 51:16
-Symbols : SEMICOLON : ';' 51:17
-Brackets : BRACE_R : '}' 52:5
-Brackets : BRACE_R : '}' 53:1
-StandardStreams : PRINT : 'print' 60:1
+Function StandardStreams : PRINT : 'print' 48:5
+Brackets : PARENTHESIS_L : '(' 48:10
+Special : IDENTIFIER : 'a' 48:11
+Brackets : PARENTHESIS_R : ')' 48:12
+Symbols : SEMICOLON : ';' 48:13
+Brackets : BRACE_R : '}' 49:1
+Brackets : BRACE_L : '{' 51:1
+SpecialWords : MAKE : 'make' 52:5
+Special : IDENTIFIER : 'a' 52:10
+Operator Assignment : SIMPLE : '=' 52:12
+Literals : INT : '1' 52:14
+Symbols : SEMICOLON : ';' 52:15
+Brackets : BRACE_L : '{' 53:5
+SpecialWords : MAKE : 'make' 54:9
+Special : IDENTIFIER : 'a' 54:14
+Operator Assignment : SIMPLE : '=' 54:16
+Literals : INT : '0' 54:18
+Symbols : SEMICOLON : ';' 54:19
+Function StandardStreams : PRINT : 'print' 55:9
+Brackets : PARENTHESIS_L : '(' 55:14
+Special : IDENTIFIER : 'a' 55:15
+Brackets : PARENTHESIS_R : ')' 55:16
+Symbols : SEMICOLON : ';' 55:17
+Brackets : BRACE_R : '}' 56:5
+Brackets : BRACE_R : '}' 57:1
+Function StandardStreams : PRINT : 'print' 60:1
 Brackets : PARENTHESIS_L : '(' 60:6
 Literals : STR : 'eee' 60:8
 Brackets : PARENTHESIS_R : ')' 60:12
 Symbols : SEMICOLON : ';' 60:13
-StandardStreams : PRINTLN : 'println' 61:1
+Function StandardStreams : PRINTLN : 'println' 61:1
 Brackets : PARENTHESIS_L : '(' 61:8
 Literals : STR : 'eee' 61:10
 Brackets : PARENTHESIS_R : ')' 61:14
 Symbols : SEMICOLON : ';' 61:15
-StandardStreams : PRINTERR : 'printerr' 62:1
+Function StandardStreams : PRINTERR : 'printerr' 62:1
 Brackets : PARENTHESIS_L : '(' 62:9
 Literals : STR : 'eee' 62:11
 Brackets : PARENTHESIS_R : ')' 62:15
 Symbols : SEMICOLON : ';' 62:16
-StandardStreams : PRINTERRLN : 'printerrln' 63:1
+Function StandardStreams : PRINTERRLN : 'printerrln' 63:1
 Brackets : PARENTHESIS_L : '(' 63:11
 Literals : STR : 'eee' 63:13
 Brackets : PARENTHESIS_R : ')' 63:17
 Symbols : SEMICOLON : ';' 63:18
-StandardStreams : INPUT : 'input' 64:1
+Function StandardStreams : INPUT : 'input' 64:1
 Brackets : PARENTHESIS_L : '(' 64:6
 Literals : STR : 'eee' 64:8
 Brackets : PARENTHESIS_R : ')' 64:12
 Symbols : SEMICOLON : ';' 64:13
-Special : END_OF_FILE : '' 0:0
+SpecialWords : MAKE : 'make' 67:1
+Special : IDENTIFIER : 'x' 67:6
+Operator Assignment : SIMPLE : '=' 67:8
+Literals : INT : '9' 67:10
+Symbols : SEMICOLON : ';' 67:11
+SpecialWords : MAKE : 'make' 68:1
+Special : IDENTIFIER : 'c' 68:6
+Operator Assignment : SIMPLE : '=' 68:8
+Function OverTypes : STR : 'str' 68:10
+Brackets : PARENTHESIS_L : '(' 68:13
+Special : IDENTIFIER : 'x' 68:14
+Brackets : PARENTHESIS_R : ')' 68:15
+Symbols : SEMICOLON : ';' 68:16
+SpecialWords : MAKE : 'make' 69:1
+Special : IDENTIFIER : 'cq' 69:6
+Operator Assignment : SIMPLE : '=' 69:9
+Function OverTypes : DOUBLE : 'double' 69:11
+Brackets : PARENTHESIS_L : '(' 69:17
+Special : IDENTIFIER : 'x' 69:18
+Brackets : PARENTHESIS_R : ')' 69:19
+Symbols : SEMICOLON : ';' 69:20
+Function StandardStreams : PRINT : 'print' 70:1
+Brackets : PARENTHESIS_L : '(' 70:6
+Function OverTypes : TYPE : 'type' 70:7
+Brackets : PARENTHESIS_L : '(' 70:11
+Special : IDENTIFIER : 'c' 70:12
+Brackets : PARENTHESIS_R : ')' 70:13
+Brackets : PARENTHESIS_R : ')' 70:14
+Symbols : SEMICOLON : ';' 70:15
+Function StandardStreams : PRINT : 'print' 71:1
+Brackets : PARENTHESIS_L : '(' 71:6
+Function OverTypes : INT : 'int' 71:7
+Brackets : PARENTHESIS_L : '(' 71:10
+Special : IDENTIFIER : 'c' 71:11
+Brackets : PARENTHESIS_R : ')' 71:12
+Brackets : PARENTHESIS_R : ')' 71:13
+Symbols : SEMICOLON : ';' 71:14
+SpecialWords : IF : 'if' 74:1
+Brackets : PARENTHESIS_L : '(' 74:4
+Special : IDENTIFIER : 'x' 74:5
+Operator Comparison : GREATER : '>' 74:7
+Literals : INT : '10' 74:9
+Brackets : PARENTHESIS_R : ')' 74:11
+Brackets : BRACE_L : '{' 74:13
+Function StandardStreams : PRINT : 'print' 75:5
+Brackets : PARENTHESIS_L : '(' 75:10
+Literals : STR : 'больше' 75:12
+Brackets : PARENTHESIS_R : ')' 75:25
+Symbols : SEMICOLON : ';' 75:26
+Brackets : BRACE_R : '}' 76:1
+SpecialWords : ELIF : 'elif' 76:3
+Brackets : PARENTHESIS_L : '(' 76:8
+Special : IDENTIFIER : 'x' 76:9
+Operator Comparison : GREATER : '>' 76:11
+Literals : INT : '5' 76:13
+Brackets : PARENTHESIS_R : ')' 76:14
+Brackets : BRACE_L : '{' 76:16
+Function StandardStreams : PRINT : 'print' 77:5
+Brackets : PARENTHESIS_L : '(' 77:10
+Literals : STR : 'средний' 77:12
+Brackets : PARENTHESIS_R : ')' 77:27
+Symbols : SEMICOLON : ';' 77:28
+Brackets : BRACE_R : '}' 78:1
+SpecialWords : ELSE : 'else' 78:3
+Brackets : BRACE_L : '{' 78:8
+Function StandardStreams : PRINT : 'print' 79:5
+Brackets : PARENTHESIS_L : '(' 79:10
+Literals : STR : 'маленький' 79:12
+Brackets : PARENTHESIS_R : ')' 79:31
+Symbols : SEMICOLON : ';' 79:32
+Brackets : BRACE_R : '}' 80:1
+SpecialWords : MAKE : 'make' 83:1
+Special : IDENTIFIER : 'status' 83:6
+Operator Assignment : SIMPLE : '=' 83:13
+Brackets : PARENTHESIS_L : '(' 83:15
+Special : IDENTIFIER : 'age' 83:16
+Operator Comparison : GREATER_EQUAL : '>=' 83:20
+Literals : INT : '18' 83:23
+Brackets : PARENTHESIS_R : ')' 83:25
+Operator Special : TERNARY_QUESTION : '?' 83:27
+Literals : STR : 'взрослый' 83:30
+Operator Special : TERNARY_COLON : ':' 83:48
+Literals : STR : 'ребёнок' 83:51
+Symbols : SEMICOLON : ';' 83:66
+SpecialWords : MAKE : 'make' 86:1
+Special : IDENTIFIER : 'result' 86:6
+Operator Assignment : SIMPLE : '=' 86:13
+Literals : INT : '3' 86:15
+Operator Assignment : MULTIPLY : '*' 86:17
+Literals : INT : '4' 86:19
+Operator Assignment : DIVIDE : '/' 86:21
+Literals : INT : '2' 86:23
+Operator Assignment : PLUS : '+' 86:25
+Literals : INT : '4' 86:27
+Operator Assignment : MINUS : '-' 86:29
+Literals : INT : '8' 86:31
+Operator Assignment : POWER : '^' 86:33
+Literals : INT : '6' 86:35
+Operator Assignment : MOD : '%' 86:37
+Literals : INT : '5' 86:39
+Symbols : SEMICOLON : ';' 86:40
+SpecialWords : MAKE : 'make' 89:1
+Special : IDENTIFIER : 'cmp' 89:6
+Operator Assignment : SIMPLE : '=' 89:10
+Literals : INT : '3' 89:12
+Operator Comparison : EQUAL : '==' 89:14
+Literals : INT : '4' 89:17
+Operator Comparison : NOT_EQUAL : '!=' 89:19
+Literals : INT : '2' 89:22
+Operator Comparison : GREATER : '>' 89:24
+Literals : INT : '4' 89:26
+Operator Comparison : LESS : '<' 89:28
+Literals : INT : '5' 89:30
+Operator Comparison : LESS_EQUAL : '<=' 89:32
+Literals : INT : '9' 89:35
+Operator Comparison : GREATER_EQUAL : '>=' 89:37
+Literals : INT : '0' 89:40
+Symbols : SEMICOLON : ';' 89:41
+SpecialWords : MAKE : 'make' 92:1
+Special : IDENTIFIER : 'logic' 92:6
+Operator Assignment : SIMPLE : '=' 92:12
+Special : IDENTIFIER : 'a' 92:14
+Operator Logical : AND : '&' 92:16
+Special : IDENTIFIER : 'b' 92:18
+Operator Logical : OR : '|' 92:20
+Operator Logical : NOT : '!' 92:22
+Special : IDENTIFIER : 'c' 92:23
+Symbols : SEMICOLON : ';' 92:24
+SpecialWords : MAKE : 'make' 95:1
+Special : IDENTIFIER : 'i' 95:6
+Operator Assignment : SIMPLE : '=' 95:8
+Literals : INT : '0' 95:10
+Symbols : SEMICOLON : ';' 95:11
+SpecialWords : WHILE : 'while' 96:1
+Brackets : PARENTHESIS_L : '(' 96:7
+Special : IDENTIFIER : 'i' 96:8
+Operator Comparison : LESS : '<' 96:10
+Literals : INT : '10' 96:12
+Brackets : PARENTHESIS_R : ')' 96:14
+Brackets : BRACE_L : '{' 96:16
+Function StandardStreams : PRINT : 'print' 97:5
+Brackets : PARENTHESIS_L : '(' 97:10
+Special : IDENTIFIER : 'i' 97:11
+Brackets : PARENTHESIS_R : ')' 97:12
+Symbols : SEMICOLON : ';' 97:13
+Special : IDENTIFIER : 'i' 98:5
+Operator Assignment : SIMPLE : '=' 98:7
+Special : IDENTIFIER : 'i' 98:9
+Operator Assignment : PLUS : '+' 98:11
+Literals : INT : '1' 98:13
+Symbols : SEMICOLON : ';' 98:14
+Brackets : BRACE_R : '}' 99:1
+SpecialWords : DO : 'do' 101:1
+Brackets : BRACE_L : '{' 101:4
+Function StandardStreams : PRINT : 'print' 102:5
+Brackets : PARENTHESIS_L : '(' 102:10
+Literals : STR : 'хотя бы раз' 102:12
+Brackets : PARENTHESIS_R : ')' 102:33
+Symbols : SEMICOLON : ';' 102:34
+Brackets : BRACE_R : '}' 103:1
+SpecialWords : WHILE : 'while' 103:3
+Brackets : PARENTHESIS_L : '(' 103:9
+Literals : BOOL : 'false' 103:10
+Brackets : PARENTHESIS_R : ')' 103:15
+Symbols : SEMICOLON : ';' 103:16
+SpecialWords : FOR : 'for' 105:1
+Brackets : PARENTHESIS_L : '(' 105:5
+Special : IDENTIFIER : 'i' 105:6
+SpecialWords : IN : 'in' 105:8
+Literals : INT : '0' 105:11
+Operator Special : RANGE : '..' 105:12
+Literals : INT : '10' 105:14
+Brackets : PARENTHESIS_R : ')' 105:16
+Brackets : BRACE_L : '{' 105:18
+Function StandardStreams : PRINT : 'print' 106:5
+Brackets : PARENTHESIS_L : '(' 106:10
+Special : IDENTIFIER : 'i' 106:11
+Brackets : PARENTHESIS_R : ')' 106:12
+Symbols : SEMICOLON : ';' 106:13
+Brackets : BRACE_R : '}' 107:1
+SpecialWords : FOR : 'for' 109:1
+Brackets : PARENTHESIS_L : '(' 109:5
+Special : IDENTIFIER : 'i' 109:6
+SpecialWords : IN : 'in' 109:8
+Literals : INT : '0' 109:11
+Operator Special : RANGE : '..' 109:12
+Literals : INT : '100' 109:14
+SpecialWords : STEP : 'step' 109:18
+Literals : INT : '10' 109:23
+Brackets : PARENTHESIS_R : ')' 109:25
+Brackets : BRACE_L : '{' 109:27
+Function StandardStreams : PRINT : 'print' 110:5
+Brackets : PARENTHESIS_L : '(' 110:10
+Special : IDENTIFIER : 'i' 110:11
+Brackets : PARENTHESIS_R : ')' 110:12
+Symbols : SEMICOLON : ';' 110:13
+Brackets : BRACE_R : '}' 111:1
+SpecialWords : FOR : 'for' 113:1
+Brackets : PARENTHESIS_L : '(' 113:5
+Special : IDENTIFIER : 'item' 113:6
+SpecialWords : IN : 'in' 113:11
+Special : IDENTIFIER : 'items' 113:14
+Brackets : PARENTHESIS_R : ')' 113:19
+Brackets : BRACE_L : '{' 113:21
+Function StandardStreams : PRINT : 'print' 114:5
+Brackets : PARENTHESIS_L : '(' 114:10
+Special : IDENTIFIER : 'item' 114:11
+Brackets : PARENTHESIS_R : ')' 114:15
+Symbols : SEMICOLON : ';' 114:16
+Brackets : BRACE_R : '}' 115:1
+SpecialWords : BREAK : 'break' 117:1
+Symbols : SEMICOLON : ';' 117:6
+SpecialWords : CONTINUE : 'continue' 118:1
+Symbols : SEMICOLON : ';' 118:9
+SpecialWords : FUNC : 'func' 121:1
+Special : IDENTIFIER : 'add' 121:6
+Brackets : PARENTHESIS_L : '(' 121:9
+Special : IDENTIFIER : 'a' 121:10
+Symbols : COMMA : ',' 121:11
+Special : IDENTIFIER : 'b' 121:13
+Brackets : PARENTHESIS_R : ')' 121:14
+Operator Special : ARROW : '->' 121:16
+Special : IDENTIFIER : 'a' 121:19
+Operator Assignment : PLUS : '+' 121:21
+Special : IDENTIFIER : 'b' 121:23
+Symbols : SEMICOLON : ';' 121:24
+SpecialWords : FUNC : 'func' 123:1
+Special : IDENTIFIER : 'multiply' 123:6
+Brackets : PARENTHESIS_L : '(' 123:14
+Special : IDENTIFIER : 'a' 123:15
+Symbols : COMMA : ',' 123:16
+Special : IDENTIFIER : 'b' 123:18
+Brackets : PARENTHESIS_R : ')' 123:19
+Operator Special : ARROW : '->' 123:21
+DataType Primitive : INT : 'Int' 123:24
+Brackets : BRACE_L : '{' 123:28
+SpecialWords : RETURN : 'return' 124:5
+Special : IDENTIFIER : 'a' 124:12
+Operator Assignment : MULTIPLY : '*' 124:14
+Special : IDENTIFIER : 'b' 124:16
+Symbols : SEMICOLON : ';' 124:17
+Brackets : BRACE_R : '}' 125:1
+SpecialWords : FUNC : 'func' 127:1
+Special : IDENTIFIER : 'greet' 127:6
+Brackets : PARENTHESIS_L : '(' 127:11
+Special : IDENTIFIER : 'name' 127:12
+Symbols : COMMA : ',' 127:16
+Special : IDENTIFIER : 'greeting' 127:18
+Operator Assignment : SIMPLE : '=' 127:27
+Literals : STR : 'Hello' 127:30
+Brackets : PARENTHESIS_R : ')' 127:36
+Brackets : BRACE_L : '{' 127:38
+SpecialWords : RETURN : 'return' 128:5
+Special : IDENTIFIER : 'greeting' 128:12
+Operator Assignment : PLUS : '+' 128:21
+Literals : STR : ', ' 128:24
+Operator Assignment : PLUS : '+' 128:28
+Special : IDENTIFIER : 'name' 128:30
+Symbols : SEMICOLON : ';' 128:34
+Brackets : BRACE_R : '}' 129:1
+SpecialWords : FUNC : 'func' 131:1
+Special : IDENTIFIER : 'sum' 131:6
+Brackets : PARENTHESIS_L : '(' 131:9
+Operator Special : ELLIPSIS : '...' 131:10
+Special : IDENTIFIER : 'args' 131:13
+Brackets : PARENTHESIS_R : ')' 131:17
+Brackets : BRACE_L : '{' 131:19
+SpecialWords : MAKE : 'make' 132:5
+Special : IDENTIFIER : 'total' 132:10
+Operator Assignment : SIMPLE : '=' 132:16
+Literals : INT : '0' 132:18
+Symbols : SEMICOLON : ';' 132:19
+SpecialWords : FOR : 'for' 133:5
+Brackets : PARENTHESIS_L : '(' 133:9
+Special : IDENTIFIER : 'n' 133:10
+SpecialWords : IN : 'in' 133:12
+Special : IDENTIFIER : 'args' 133:15
+Brackets : PARENTHESIS_R : ')' 133:19
+Brackets : BRACE_L : '{' 133:21
+Special : IDENTIFIER : 'total' 134:9
+Operator Assignment : SIMPLE : '=' 134:15
+Special : IDENTIFIER : 'total' 134:17
+Operator Assignment : PLUS : '+' 134:23
+Special : IDENTIFIER : 'n' 134:25
+Symbols : SEMICOLON : ';' 134:26
+Brackets : BRACE_R : '}' 135:5
+SpecialWords : RETURN : 'return' 136:5
+Special : IDENTIFIER : 'total' 136:12
+Symbols : SEMICOLON : ';' 136:17
+Brackets : BRACE_R : '}' 137:1
+SpecialWords : FUNC : 'func' 139:1
+Special : IDENTIFIER : 'divide' 139:6
+Brackets : PARENTHESIS_L : '(' 139:12
+Special : IDENTIFIER : 'a' 139:13
+Symbols : COMMA : ',' 139:14
+Special : IDENTIFIER : 'b' 139:16
+Brackets : PARENTHESIS_R : ')' 139:17
+SpecialWords : WHEN : 'when' 139:19
+Brackets : PARENTHESIS_L : '(' 139:24
+Special : IDENTIFIER : 'b' 139:25
+Operator Comparison : NOT_EQUAL : '!=' 139:27
+Literals : INT : '0' 139:30
+Brackets : PARENTHESIS_R : ')' 139:31
+Brackets : BRACE_L : '{' 139:33
+SpecialWords : RETURN : 'return' 140:5
+Special : IDENTIFIER : 'a' 140:12
+Operator Assignment : DIVIDE : '/' 140:14
+Special : IDENTIFIER : 'b' 140:16
+Symbols : SEMICOLON : ';' 140:17
+Brackets : BRACE_R : '}' 141:1
+SpecialWords : TRY : 'try' 144:1
+Brackets : BRACE_L : '{' 144:5
+SpecialWords : MAKE : 'make' 145:5
+Special : IDENTIFIER : 'x' 145:10
+Operator Assignment : SIMPLE : '=' 145:12
+Special : IDENTIFIER : 'risky' 145:14
+Brackets : PARENTHESIS_L : '(' 145:19
+Brackets : PARENTHESIS_R : ')' 145:20
+Symbols : SEMICOLON : ';' 145:21
+Brackets : BRACE_R : '}' 146:1
+SpecialWords : CATCH : 'catch' 146:3
+Brackets : PARENTHESIS_L : '(' 146:9
+Special : IDENTIFIER : 'err' 146:10
+Brackets : PARENTHESIS_R : ')' 146:13
+Brackets : BRACE_L : '{' 146:15
+Function StandardStreams : PRINT : 'print' 147:5
+Brackets : PARENTHESIS_L : '(' 147:10
+Literals : STR : 'Error: ' 147:12
+Operator Assignment : PLUS : '+' 147:21
+Special : IDENTIFIER : 'err' 147:23
+Brackets : PARENTHESIS_R : ')' 147:26
+Symbols : SEMICOLON : ';' 147:27
+Brackets : BRACE_R : '}' 148:1
+SpecialWords : FINALLY : 'finally' 148:3
+Brackets : BRACE_L : '{' 148:11
+Function StandardStreams : PRINT : 'print' 149:5
+Brackets : PARENTHESIS_L : '(' 149:10
+Literals : STR : 'always' 149:12
+Brackets : PARENTHESIS_R : ')' 149:19
+Symbols : SEMICOLON : ';' 149:20
+Brackets : BRACE_R : '}' 150:1
+SpecialWords : USE : 'use' 153:1
+Literals : STR : 'math.atm' 153:6
+Symbols : SEMICOLON : ';' 153:15
+SpecialWords : USE : 'use' 154:1
+Brackets : BRACE_L : '{' 154:5
+Special : IDENTIFIER : 'sin' 154:7
+Symbols : COMMA : ',' 154:10
+Special : IDENTIFIER : 'cos' 154:12
+Symbols : COMMA : ',' 154:15
+Special : IDENTIFIER : 'pi' 154:17
+Brackets : BRACE_R : '}' 154:20
+SpecialWords : FROM : 'from' 154:22
+Literals : STR : 'math.atm' 154:28
+Symbols : SEMICOLON : ';' 154:37
+SpecialWords : USE : 'use' 155:1
+Literals : STR : 'math.atm' 155:6
+SpecialWords : AS : 'as' 155:16
+Special : IDENTIFIER : 'm' 155:19
+Symbols : SEMICOLON : ';' 155:20
+SpecialWords : CLASS : 'class' 158:1
+Special : IDENTIFIER : 'Person' 158:7
+Brackets : BRACE_L : '{' 158:14
+SpecialWords : PRIVATE : 'private' 159:5
+Special : IDENTIFIER : 'name' 159:13
+Symbols : SEMICOLON : ';' 159:17
+SpecialWords : PUBLIC : 'public' 160:5
+Special : IDENTIFIER : 'age' 160:12
+Symbols : SEMICOLON : ';' 160:15
+SpecialWords : PROTECTED : 'protected' 161:5
+Special : IDENTIFIER : 'id' 161:15
+Symbols : SEMICOLON : ';' 161:17
+Function Class : NEW : 'new' 163:5
+Brackets : PARENTHESIS_L : '(' 163:8
+Special : IDENTIFIER : 'name' 163:9
+Symbols : COMMA : ',' 163:13
+Special : IDENTIFIER : 'age' 163:15
+Brackets : PARENTHESIS_R : ')' 163:18
+Brackets : BRACE_L : '{' 163:20
+SpecialWords : THIS : 'this' 164:9
+Operator Special : DOT : '.' 164:13
+Special : IDENTIFIER : 'name' 164:14
+Operator Assignment : SIMPLE : '=' 164:19
+Special : IDENTIFIER : 'name' 164:21
+Symbols : SEMICOLON : ';' 164:25
+SpecialWords : THIS : 'this' 165:9
+Operator Special : DOT : '.' 165:13
+Special : IDENTIFIER : 'age' 165:14
+Operator Assignment : SIMPLE : '=' 165:18
+Special : IDENTIFIER : 'age' 165:20
+Symbols : SEMICOLON : ';' 165:23
+Brackets : BRACE_R : '}' 166:5
+SpecialWords : GETTER : 'getter' 168:5
+Special : IDENTIFIER : 'name' 168:12
+Brackets : PARENTHESIS_L : '(' 168:16
+Brackets : PARENTHESIS_R : ')' 168:17
+Brackets : BRACE_L : '{' 168:19
+SpecialWords : RETURN : 'return' 169:9
+SpecialWords : THIS : 'this' 169:16
+Operator Special : DOT : '.' 169:20
+Special : IDENTIFIER : 'name' 169:21
+Symbols : SEMICOLON : ';' 169:25
+Brackets : BRACE_R : '}' 170:5
+SpecialWords : SETTER : 'setter' 172:5
+Special : IDENTIFIER : 'name' 172:12
+Brackets : PARENTHESIS_L : '(' 172:16
+Special : IDENTIFIER : 'value' 172:17
+Brackets : PARENTHESIS_R : ')' 172:22
+Brackets : BRACE_L : '{' 172:24
+SpecialWords : THIS : 'this' 173:9
+Operator Special : DOT : '.' 173:13
+Special : IDENTIFIER : 'name' 173:14
+Operator Assignment : SIMPLE : '=' 173:19
+Special : IDENTIFIER : 'value' 173:21
+Symbols : SEMICOLON : ';' 173:26
+Brackets : BRACE_R : '}' 174:5
+Special : IDENTIFIER : 'greet' 176:5
+Brackets : PARENTHESIS_L : '(' 176:10
+Brackets : PARENTHESIS_R : ')' 176:11
+Operator Special : ARROW : '->' 176:13
+Literals : STR : 'Hello, I'm ' 176:17
+Operator Assignment : PLUS : '+' 176:30
+SpecialWords : THIS : 'this' 176:32
+Operator Special : DOT : '.' 176:36
+Special : IDENTIFIER : 'name' 176:37
+Symbols : SEMICOLON : ';' 176:41
+Brackets : BRACE_R : '}' 177:1
+SpecialWords : CLASS : 'class' 179:1
+Special : IDENTIFIER : 'Student' 179:7
+SpecialWords : EXTENDS : 'extends' 179:15
+Special : IDENTIFIER : 'Person' 179:23
+Brackets : BRACE_L : '{' 179:30
+SpecialWords : PRIVATE : 'private' 180:5
+SpecialWords : STATIC : 'static' 180:13
+Special : IDENTIFIER : 'studentCount' 180:20
+Operator Assignment : SIMPLE : '=' 180:33
+Literals : INT : '0' 180:35
+Symbols : SEMICOLON : ';' 180:36
+Function Class : NEW : 'new' 182:5
+Brackets : PARENTHESIS_L : '(' 182:8
+Special : IDENTIFIER : 'name' 182:9
+Symbols : COMMA : ',' 182:13
+Special : IDENTIFIER : 'age' 182:15
+Brackets : PARENTHESIS_R : ')' 182:18
+Brackets : BRACE_L : '{' 182:20
+Function Class : SUPER : 'super' 183:9
+Brackets : PARENTHESIS_L : '(' 183:14
+Special : IDENTIFIER : 'name' 183:15
+Symbols : COMMA : ',' 183:19
+Special : IDENTIFIER : 'age' 183:21
+Brackets : PARENTHESIS_R : ')' 183:24
+Symbols : SEMICOLON : ';' 183:25
+Special : IDENTIFIER : 'studentCount' 184:9
+Operator Assignment : SIMPLE : '=' 184:22
+Special : IDENTIFIER : 'studentCount' 184:24
+Operator Assignment : PLUS : '+' 184:37
+Literals : INT : '1' 184:39
+Symbols : SEMICOLON : ';' 184:40
+Brackets : BRACE_R : '}' 185:5
+Brackets : BRACE_R : '}' 186:1
+SpecialWords : MAKE : 'make' 188:1
+Special : IDENTIFIER : 'john' 188:6
+Operator Assignment : SIMPLE : '=' 188:11
+Special : IDENTIFIER : 'Person' 188:13
+Brackets : PARENTHESIS_L : '(' 188:19
+Literals : STR : 'John' 188:21
+Symbols : COMMA : ',' 188:26
+Literals : INT : '25' 188:28
+Brackets : PARENTHESIS_R : ')' 188:30
+Symbols : SEMICOLON : ';' 188:31
+SpecialWords : MAKE : 'make' 189:1
+Special : IDENTIFIER : 'jane' 189:6
+Operator Assignment : SIMPLE : '=' 189:11
+Special : IDENTIFIER : 'Student' 189:13
+Brackets : PARENTHESIS_L : '(' 189:20
+Literals : STR : 'Jane' 189:22
+Symbols : COMMA : ',' 189:27
+Literals : INT : '20' 189:29
+Brackets : PARENTHESIS_R : ')' 189:31
+Symbols : SEMICOLON : ';' 189:32
+Special : IDENTIFIER : 'john' 193:1
+Operator Special : DOT : '.' 193:5
+Special : IDENTIFIER : 'name' 193:6
+Symbols : SEMICOLON : ';' 193:10
+SpecialWords : MAKE : 'make' 196:1
+Special : IDENTIFIER : 'city' 196:6
+Operator Assignment : SIMPLE : '=' 196:11
+Special : IDENTIFIER : 'user' 196:13
+Operator Special : SAFE_NAV : '?.' 196:17
+Special : IDENTIFIER : 'address' 196:19
+Operator Special : SAFE_NAV : '?.' 196:26
+Special : IDENTIFIER : 'city' 196:28
+Operator Special : ELVIS : '?:' 196:33
+Literals : STR : 'Unknown' 196:37
+Symbols : SEMICOLON : ';' 196:45
+SpecialWords : MAKE : 'make' 199:1
+Special : IDENTIFIER : 'result' 199:6
+Operator Assignment : SIMPLE : '=' 199:13
+Special : IDENTIFIER : 'read' 199:15
+Brackets : PARENTHESIS_L : '(' 199:19
+Literals : STR : 'data.txt' 199:21
+Brackets : PARENTHESIS_R : ')' 199:30
+Operator Special : PIPE : '|>' 200:5
+Special : IDENTIFIER : 'parse_json' 200:8
+Brackets : PARENTHESIS_L : '(' 200:18
+Brackets : PARENTHESIS_R : ')' 200:19
+Operator Special : PIPE : '|>' 201:5
+Special : IDENTIFIER : 'get' 201:8
+Brackets : PARENTHESIS_L : '(' 201:11
+Literals : STR : 'users' 201:13
+Brackets : PARENTHESIS_R : ')' 201:19
+Operator Special : PIPE : '|>' 202:5
+Special : IDENTIFIER : 'filter' 202:8
+Brackets : PARENTHESIS_L : '(' 202:14
+Operator Logical : OR : '|' 202:15
+Special : IDENTIFIER : 'u' 202:16
+Operator Logical : OR : '|' 202:17
+Special : IDENTIFIER : 'u' 202:19
+Operator Special : DOT : '.' 202:20
+Special : IDENTIFIER : 'age' 202:21
+Operator Comparison : GREATER : '>' 202:25
+Literals : INT : '18' 202:27
+Brackets : PARENTHESIS_R : ')' 202:29
+Operator Special : PIPE : '|>' 203:5
+Special : IDENTIFIER : 'map' 203:8
+Brackets : PARENTHESIS_L : '(' 203:11
+Operator Logical : OR : '|' 203:12
+Special : IDENTIFIER : 'u' 203:13
+Operator Logical : OR : '|' 203:14
+Special : IDENTIFIER : 'u' 203:16
+Operator Special : DOT : '.' 203:17
+Special : IDENTIFIER : 'name' 203:18
+Brackets : PARENTHESIS_R : ')' 203:22
+Symbols : SEMICOLON : ';' 203:23
+SpecialWords : MAKE : 'make' 206:1
+Special : IDENTIFIER : 'numbers' 206:6
+Operator Assignment : SIMPLE : '=' 206:14
+Literals : INT : '1' 206:16
+Operator Special : RANGE : '..' 206:17
+Literals : INT : '10' 206:19
+Symbols : SEMICOLON : ';' 206:21
+SpecialWords : MAKE : 'make' 207:1
+Special : IDENTIFIER : 'range' 207:6
+Operator Assignment : SIMPLE : '=' 207:12
+Literals : INT : '0' 207:14
+Operator Special : RANGE : '..' 207:15
+Literals : INT : '100' 207:17
+SpecialWords : STEP : 'step' 207:21
+Literals : INT : '5' 207:26
+Symbols : SEMICOLON : ';' 207:27
+SpecialWords : FUNC : 'func' 210:1
+Special : IDENTIFIER : 'print_all' 210:6
+Brackets : PARENTHESIS_L : '(' 210:15
+Operator Special : ELLIPSIS : '...' 210:16
+Special : IDENTIFIER : 'items' 210:19
+Brackets : PARENTHESIS_R : ')' 210:24
+Brackets : BRACE_L : '{' 210:26
+SpecialWords : FOR : 'for' 211:5
+Brackets : PARENTHESIS_L : '(' 211:9
+Special : IDENTIFIER : 'item' 211:10
+SpecialWords : IN : 'in' 211:15
+Special : IDENTIFIER : 'items' 211:18
+Brackets : PARENTHESIS_R : ')' 211:23
+Brackets : BRACE_L : '{' 211:25
+Function StandardStreams : PRINT : 'print' 212:9
+Brackets : PARENTHESIS_L : '(' 212:14
+Special : IDENTIFIER : 'item' 212:15
+Brackets : PARENTHESIS_R : ')' 212:19
+Symbols : SEMICOLON : ';' 212:20
+Brackets : BRACE_R : '}' 213:5
+Brackets : BRACE_R : '}' 214:1
+SpecialWords : MATCH : 'match' 217:1
+Brackets : PARENTHESIS_L : '(' 217:7
+Special : IDENTIFIER : 'value' 217:8
+Brackets : PARENTHESIS_R : ')' 217:13
+Brackets : BRACE_L : '{' 217:15
+SpecialWords : CASE : 'case' 218:5
+Literals : INT : '0' 218:10
+Operator Special : TERNARY_COLON : ':' 218:11
+Brackets : BRACE_L : '{' 218:13
+Function StandardStreams : PRINT : 'print' 219:9
+Brackets : PARENTHESIS_L : '(' 219:14
+Literals : STR : 'zero' 219:16
+Brackets : PARENTHESIS_R : ')' 219:21
+Symbols : SEMICOLON : ';' 219:22
+Brackets : BRACE_R : '}' 220:5
+SpecialWords : CASE : 'case' 221:5
+Literals : INT : '1' 221:10
+Operator Special : RANGE : '..' 221:11
+Literals : INT : '9' 221:13
+Operator Special : TERNARY_COLON : ':' 221:14
+Brackets : BRACE_L : '{' 221:16
+Function StandardStreams : PRINT : 'print' 222:9
+Brackets : PARENTHESIS_L : '(' 222:14
+Literals : STR : 'digit' 222:16
+Brackets : PARENTHESIS_R : ')' 222:22
+Symbols : SEMICOLON : ';' 222:23
+Brackets : BRACE_R : '}' 223:5
+SpecialWords : CASE : 'case' 224:5
+Literals : STR : 'hello' 224:11
+Operator Special : TERNARY_COLON : ':' 224:17
+Brackets : BRACE_L : '{' 224:19
+Function StandardStreams : PRINT : 'print' 225:9
+Brackets : PARENTHESIS_L : '(' 225:14
+Literals : STR : 'greeting' 225:16
+Brackets : PARENTHESIS_R : ')' 225:25
+Symbols : SEMICOLON : ';' 225:26
+Brackets : BRACE_R : '}' 226:5
+SpecialWords : DEFAULT : 'default' 227:5
+Operator Special : TERNARY_COLON : ':' 227:12
+Brackets : BRACE_L : '{' 227:14
+Function StandardStreams : PRINT : 'print' 228:9
+Brackets : PARENTHESIS_L : '(' 228:14
+Literals : STR : 'other' 228:16
+Brackets : PARENTHESIS_R : ')' 228:22
+Symbols : SEMICOLON : ';' 228:23
+Brackets : BRACE_R : '}' 229:5
+Brackets : BRACE_R : '}' 230:1
+SpecialWords : TEST : 'test' 233:1
+Literals : STR : 'add works' 233:7
+Brackets : BRACE_L : '{' 233:18
+SpecialWords : ASSERT : 'assert' 234:5
+Special : IDENTIFIER : 'add' 234:12
+Brackets : PARENTHESIS_L : '(' 234:15
+Literals : INT : '2' 234:16
+Symbols : COMMA : ',' 234:17
+Literals : INT : '2' 234:19
+Brackets : PARENTHESIS_R : ')' 234:20
+Operator Comparison : EQUAL : '==' 234:22
+Literals : INT : '4' 234:25
+Symbols : SEMICOLON : ';' 234:26
+SpecialWords : ASSERT : 'assert' 235:5
+Special : IDENTIFIER : 'add' 235:12
+Brackets : PARENTHESIS_L : '(' 235:15
+Operator Assignment : MINUS : '-' 235:16
+Literals : INT : '1' 235:17
+Symbols : COMMA : ',' 235:18
+Literals : INT : '1' 235:20
+Brackets : PARENTHESIS_R : ')' 235:21
+Operator Comparison : EQUAL : '==' 235:23
+Literals : INT : '0' 235:26
+Symbols : SEMICOLON : ';' 235:27
+Brackets : BRACE_R : '}' 236:1
+SpecialWords : TEST : 'test' 238:1
+Literals : STR : 'string concat' 238:7
+Brackets : BRACE_L : '{' 238:22
+SpecialWords : ASSERT : 'assert' 239:5
+Literals : STR : 'hello' 239:13
+Operator Assignment : PLUS : '+' 239:20
+Literals : STR : 'world' 239:23
+Operator Comparison : EQUAL : '==' 239:30
+Literals : STR : 'helloworld' 239:34
+Symbols : SEMICOLON : ';' 239:45
+Brackets : BRACE_R : '}' 240:1
+Special : END_OF_FILE : 'undefined' 248:3

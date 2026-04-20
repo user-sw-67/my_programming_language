@@ -111,10 +111,6 @@ func sum(...args) {
     return total;
 }
 
-make square = |x| x * x;
-make result = square(5);
-
-
 # Guard clauses
 func divide(a, b) when (b != 0) {
     return a / b;
@@ -257,7 +253,6 @@ try {
 } finally {
     print("always");
 }
-
 # ---------------------- ИМПОРТЫ ----------------------
 use "math.atm";
 use { sin, cos, pi } from "math.atm";
@@ -443,3 +438,5 @@ add_works.run();
 test string_concat {
     assert "hello" + "world" == "helloworld";
 }
+
+
