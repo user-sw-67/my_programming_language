@@ -110,59 +110,41 @@ namespace token_list{
         };
     }
 
-    namespace operators{
-
-        enum class Assignment{
-            SIMPLE, // =
-            PLUS_ASSIGN, // +=
-            MINUS_ASSIGN, // -=
-            MULTIPLY_ASSIGN, // *=
-            DIVIDE_ASSIGN, // /=
-            POWER_ASSIGN, // ^=
-            MOD_ASSIGN, // %=
-            INT_DIVIDE_ASSIGN, // //=
-        };
-        
-        enum class Arithmetic{
-            PLUS, // +
-            MINUS, // -
-            MULTIPLY, // *
-            DIVIDE, // /
-            POWER, // ^
-            MOD, // %
-            DIVIDE_EVENLY, // //
-        };
-
-        enum class Comparison{
-            EQUAL, // ==
-            NOT_EQUAL, // !=
-            LESS, // <
-            GREATER, // >
-            LESS_EQUAL, // <=
-            GREATER_EQUAL, // >=
-        };
-
-        enum class Logical{
-            OR, // |
-            AND, // &
-            NOT // !
-        };
-        
-        enum class Special{
-            DOT, // .
-            ELVIS, // ?:
-            SAFE_NAV, // ?.
-            PIPE, // |>
-            RANGE, // ..
-            ARROW, // ->
-            ELLIPSIS, // ...
-            TERNARY_QUESTION, // ?
-            TERNARY_COLON, // :
-        };
-
-    }
-    
-
+    enum class Operators{
+        ASSIGN, // =
+        PLUS_ASSIGN, // +=
+        MINUS_ASSIGN, // -=
+        MULTIPLY_ASSIGN, // *=
+        DIVIDE_ASSIGN, // /=
+        POWER_ASSIGN, // ^=
+        MOD_ASSIGN, // %=
+        INT_DIVIDE_ASSIGN, // //=
+        PLUS, // +
+        MINUS, // -
+        MULTIPLY, // *
+        DIVIDE, // /
+        POWER, // ^
+        MOD, // %
+        DIVIDE_EVENLY, // //
+        EQUAL, // ==
+        NOT_EQUAL, // !=
+        LESS, // <
+        GREATER, // >
+        LESS_EQUAL, // <=
+        GREATER_EQUAL, // >=
+        OR, // |
+        AND, // &
+        NOT, // !
+        DOT, // .
+        ELVIS, // ?:
+        SAFE_NAV, // ?.
+        PIPE, // |>
+        RANGE, // ..
+        ARROW, // ->
+        ELLIPSIS, // ...
+        TERNARY_QUESTION, // ?
+        TERNARY_COLON, // :
+    };
 }
 
 
@@ -174,7 +156,7 @@ enum class StateList{
     IN_NUMBER_FRACTION, // дробная часть: 123.45
     IN_STRING, // обычная строка: "hello"
     IN_IDENTIFIER, // идентификатор(любой): буквы, цифры, _
-    IN_OPERATOR, // односимвольный: = + - * /
+    IN_OPERATOR, // оператор 
     IN_COMMENT_LINE, // # до конца строки
     IN_COMMENT_BLOCK, // /* ... */
 };
@@ -191,6 +173,10 @@ inline std::string token_to_string(token_list::Brackets type,
                 return "Brackets : PARENTHESIS_L : '" + value + "'";
             case token_list::Brackets::PARENTHESIS_R: 
                 return "Brackets : PARENTHESIS_R : '" + value + "'";
+            case token_list::Brackets::BRACKET_L: 
+                return "Brackets : BRACKET_L : '" + value + "'";
+            case token_list::Brackets::BRACKET_R: 
+                return "Brackets : BRACKET_R : '" + value + "'";
             default: 
                 return "Brackets : Unknown : '" + value + "'";
         }
@@ -318,6 +304,80 @@ inline std::string token_to_string(token_list::Symbols type,
         }
 }
 
+inline std::string token_to_string(token_list::Operators type, 
+    const std::string& value = "undefined") {
+        switch (type) {
+            case token_list::Operators::ASSIGN:
+                return "Operator : ASSIGN : '" + value + "'";
+            case token_list::Operators::PLUS_ASSIGN:
+                return "Operator : PLUS_ASSIGN : '" + value + "'";
+            case token_list::Operators::MINUS_ASSIGN:
+                return "Operator : MINUS_ASSIGN : '" + value + "'";
+            case token_list::Operators::MULTIPLY_ASSIGN:
+                return "Operator : MULTIPLY_ASSIGN : '" + value + "'";
+            case token_list::Operators::DIVIDE_ASSIGN:
+                return "Operator : DIVIDE_ASSIGN : '" + value + "'";
+            case token_list::Operators::POWER_ASSIGN:
+                return "Operator : POWER_ASSIGN : '" + value + "'";
+            case token_list::Operators::MOD_ASSIGN:
+                return "Operator : MOD_ASSIGN : '" + value + "'";
+            case token_list::Operators::INT_DIVIDE_ASSIGN:
+                return "Operator : INT_DIVIDE_ASSIGN : '" + value + "'";
+            case token_list::Operators::PLUS:
+                return "Operator : PLUS : '" + value + "'";
+            case token_list::Operators::MINUS:
+                return "Operator : MINUS : '" + value + "'";
+            case token_list::Operators::MULTIPLY:
+                return "Operator : MULTIPLY : '" + value + "'";
+            case token_list::Operators::DIVIDE:
+                return "Operator : DIVIDE : '" + value + "'";
+            case token_list::Operators::DIVIDE_EVENLY:
+                return "Operator : DIVIDE_EVENLY : '" + value + "'";
+            case token_list::Operators::POWER:
+                return "Operator : POWER : '" + value + "'";
+            case token_list::Operators::MOD:
+                return "Operator : MOD : '" + value + "'";
+            case token_list::Operators::EQUAL:
+                return "Operator : EQUAL : '" + value + "'";
+            case token_list::Operators::NOT_EQUAL:
+                return "Operator : NOT_EQUAL : '" + value + "'";
+            case token_list::Operators::LESS:
+                return "Operator : LESS : '" + value + "'";
+            case token_list::Operators::GREATER:
+                return "Operator : GREATER : '" + value + "'";
+            case token_list::Operators::LESS_EQUAL:
+                return "Operator : LESS_EQUAL : '" + value + "'";
+            case token_list::Operators::GREATER_EQUAL:
+                return "Operator : GREATER_EQUAL : '" + value + "'";
+            case token_list::Operators::AND:
+                return "Operator : AND : '" + value + "'";
+            case token_list::Operators::OR:
+                return "Operator : OR : '" + value + "'";
+            case token_list::Operators::NOT:
+                return "Operator : NOT : '" + value + "'";
+            case token_list::Operators::DOT:
+                return "Operator : DOT : '" + value + "'";
+            case token_list::Operators::ELVIS:
+                return "Operator : ELVIS : '" + value + "'";
+            case token_list::Operators::SAFE_NAV:
+                return "Operator : SAFE_NAV : '" + value + "'";
+            case token_list::Operators::PIPE:
+                return "Operator : PIPE : '" + value + "'";
+            case token_list::Operators::RANGE:
+                return "Operator : RANGE : '" + value + "'";
+            case token_list::Operators::ARROW:
+                return "Operator : ARROW : '" + value + "'";
+            case token_list::Operators::ELLIPSIS:
+                return "Operator : ELLIPSIS : '" + value + "'";
+            case token_list::Operators::TERNARY_QUESTION:
+                return "Operator : TERNARY_QUESTION : '" + value + "'";
+            case token_list::Operators::TERNARY_COLON:
+                return "Operator : TERNARY_COLON : '" + value + "'";
+            default: 
+                return "Operator : Unknown : '" + value + "'";
+        }
+}
+
 inline std::string token_to_string(
     token_list::built_functions::StandardStreams type, 
         const std::string& value = "undefined") {
@@ -393,283 +453,145 @@ inline std::string token_to_string(token_list::data_types::Primitive type,
         }
 }
 
-inline std::string token_to_string(token_list::operators::Assignment type, 
-    const std::string& value = "undefined") {
-        switch (type) {
-            case token_list::operators::Assignment::SIMPLE: 
-                return "Operator Assignment : SIMPLE : '" + value + "'";
-            case token_list::operators::Assignment::PLUS_ASSIGN: 
-                return "Operator Assignment : PLUS_ASSIGN : '" + value + "'";
-            case token_list::operators::Assignment::MINUS_ASSIGN: 
-                return "Operator Assignment : MINUS_ASSIGN : '" + value + "'";
-            case token_list::operators::Assignment::MULTIPLY_ASSIGN: 
-                return "Operator Assignment : MULTIPLY_ASSIGN : '" + value + "'";
-            case token_list::operators::Assignment::DIVIDE_ASSIGN: 
-                return "Operator Assignment : DIVIDE_ASSIGN : '" + value + "'";
-            case token_list::operators::Assignment::POWER_ASSIGN: 
-                return "Operator Assignment : POWER_ASSIGN : '" + value + "'";
-            case token_list::operators::Assignment::MOD_ASSIGN: 
-                return "Operator Assignment : MOD_ASSIGN : '" + value + "'";
-            case token_list::operators::Assignment::INT_DIVIDE_ASSIGN: 
-                return "Operator Assignment : INT_DIVIDE_ASSIGN : '" + value + "'";
-            default: 
-                return "Operator Assignment : Unknown : '" + value + "'";
-        }
+
+namespace id_keyword{
+    constexpr int SpecialWords = 0;
+    constexpr int Literals = 1;
+    constexpr int DataTypePrimitive = 2;
+    constexpr int Operators = 3;
+    constexpr int Brackets = 4;
+    constexpr int Separators = 5;
+    constexpr int FunctionsStandardStreams = 6;
+    constexpr int FunctionsClass = 7;
+    constexpr int FunctionsOverTypes = 8;
 }
 
-inline std::string token_to_string(token_list::operators::Arithmetic type, 
-    const std::string& value = "undefined") {
-        switch (type) {
-            case token_list::operators::Arithmetic::PLUS: 
-                return "Operator Assignment : PLUS : '" + value + "'";
-            case token_list::operators::Arithmetic::MINUS: 
-                return "Operator Assignment : MINUS : '" + value + "'";
-            case token_list::operators::Arithmetic::MULTIPLY: 
-                return "Operator Assignment : MULTIPLY : '" + value + "'";
-            case token_list::operators::Arithmetic::DIVIDE: 
-                return "Operator Assignment : DIVIDE : '" + value + "'";
-            case token_list::operators::Arithmetic::MOD: 
-                return "Operator Assignment : MOD : '" + value + "'";
-            case token_list::operators::Arithmetic::POWER:
-                return "Operator Assignment : POWER : '" + value + "'";
-            case token_list::operators::Arithmetic::DIVIDE_EVENLY:
-                return "Operator Assignment : DIVIDE_EVENLY : '" + value + "'";
-            default: 
-                return "Operator Assignment : Unknown : '" + value + "'";
-        }
-}
-
-inline std::string token_to_string(token_list::operators::Comparison type, 
-    const std::string& value = "undefined") {
-        switch (type) {
-            case token_list::operators::Comparison::EQUAL: 
-                return "Operator Comparison : EQUAL : '" + value + "'";
-            case token_list::operators::Comparison::NOT_EQUAL: 
-                return "Operator Comparison : NOT_EQUAL : '" + value + "'";
-            case token_list::operators::Comparison::GREATER:
-                return "Operator Comparison : GREATER : '" + value + "'";
-            case token_list::operators::Comparison::GREATER_EQUAL:
-                return "Operator Comparison : GREATER_EQUAL : '" + value + "'";
-            case token_list::operators::Comparison::LESS:
-                return "Operator Comparison : LESS : '" + value + "'";
-            case token_list::operators::Comparison::LESS_EQUAL:
-                return "Operator Comparison : LESS_EQUAL : '" + value + "'";
-            default: 
-                return "Operator Comparison : Unknown : '" + value + "'";
-        }
-}
-
-inline std::string token_to_string(token_list::operators::Logical type, 
-    const std::string& value = "undefined") {
-        switch (type) {
-            case token_list::operators::Logical::OR: 
-                return "Operator Logical : OR : '" + value + "'";
-            case token_list::operators::Logical::AND: 
-                return "Operator Logical : AND : '" + value + "'";
-            case token_list::operators::Logical::NOT:
-                return "Operator Logical : NOT : '" + value + "'";
-            default: 
-                return "Operator Logical : Unknown : '" + value + "'";
-        }
-}
-
-inline std::string token_to_string(token_list::operators::Special type, 
-    const std::string& value = "undefined") {
-        switch (type) {
-            case token_list::operators::Special::DOT:
-                return "Operator Special : DOT : '" + value + "'";
-            case token_list::operators::Special::ELVIS:
-                return "Operator Special : ELVIS : '" + value + "'";
-            case token_list::operators::Special::SAFE_NAV:
-                return "Operator Special : SAFE_NAV : '" + value + "'";
-            case token_list::operators::Special::PIPE:
-                return "Operator Special : PIPE : '" + value + "'";
-            case token_list::operators::Special::RANGE:
-                return "Operator Special : RANGE : '" + value + "'";
-            case token_list::operators::Special::ARROW:
-                return "Operator Special : ARROW : '" + value + "'";
-            case token_list::operators::Special::ELLIPSIS:
-                return "Operator Special : ELLIPSIS : '" + value + "'";
-            case token_list::operators::Special::TERNARY_COLON:
-                return "Operator Special : TERNARY_COLON : '" + value + "'";
-            case token_list::operators::Special::TERNARY_QUESTION:
-                return "Operator Special : TERNARY_QUESTION : '" + value + "'";
-            default: 
-                return "Operator Special : Unknown : '" + value + "'";
-        }
-}
 
 
 static const std::unordered_map<std::string, std::pair<int, int>> 
     keyword_map = {
         // Специальные слова
-        {"make", {0, static_cast<int>(token_list::SpecialWords::MAKE)}},
-        {"const", {0, static_cast<int>(token_list::SpecialWords::CONST)}},
-        {"if", {0, static_cast<int>(token_list::SpecialWords::IF)}},
-        {"elif", {0, static_cast<int>(token_list::SpecialWords::ELIF)}},
-        {"else", {0, static_cast<int>(token_list::SpecialWords::ELSE)}},
-        {"do", {0, static_cast<int>(token_list::SpecialWords::DO)}},
-        {"while", {0, static_cast<int>(token_list::SpecialWords::WHILE)}},
-        {"for", {0, static_cast<int>(token_list::SpecialWords::FOR)}},
-        {"in", {0, static_cast<int>(token_list::SpecialWords::IN)}},
-        {"step", {0, static_cast<int>(token_list::SpecialWords::STEP)}},
-        {"break", {0, static_cast<int>(token_list::SpecialWords::BREAK)}},
-        {"continue", {0, static_cast<int>(token_list::SpecialWords::CONTINUE)}},
-        {"func", {0, static_cast<int>(token_list::SpecialWords::FUNC)}},
-        {"return", {0, static_cast<int>(token_list::SpecialWords::RETURN)}},
-        {"when", {0, static_cast<int>(token_list::SpecialWords::WHEN)}},
-        {"try", {0, static_cast<int>(token_list::SpecialWords::TRY)}},
-        {"catch", {0, static_cast<int>(token_list::SpecialWords::CATCH)}},
-        {"finally", {0, static_cast<int>(token_list::SpecialWords::FINALLY)}},
-        {"throw", {0, static_cast<int>(token_list::SpecialWords::THROW)}},
-        {"use", {0, static_cast<int>(token_list::SpecialWords::USE)}},
-        {"from", {0, static_cast<int>(token_list::SpecialWords::FROM)}},
-        {"as", {0, static_cast<int>(token_list::SpecialWords::AS)}},
-        {"class", {0, static_cast<int>(token_list::SpecialWords::CLASS)}},
-        {"extends", {0, static_cast<int>(token_list::SpecialWords::EXTENDS)}},
-        {"this", {0, static_cast<int>(token_list::SpecialWords::THIS)}},
-        {"private", {0, static_cast<int>(token_list::SpecialWords::PRIVATE)}},
-        {"public", {0, static_cast<int>(token_list::SpecialWords::PUBLIC)}},
-        {"protected", {0, static_cast<int>(
-            token_list::SpecialWords::PROTECTED)}},
-        {"static", {0, static_cast<int>(token_list::SpecialWords::STATIC)}},
-        {"getter", {0, static_cast<int>(token_list::SpecialWords::GETTER)}},
-        {"setter", {0, static_cast<int>(token_list::SpecialWords::SETTER)}},
-        {"match", {0, static_cast<int>(token_list::SpecialWords::MATCH)}},
-        {"case", {0, static_cast<int>(token_list::SpecialWords::CASE)}},
-        {"default", {0, static_cast<int>(token_list::SpecialWords::DEFAULT)}},
-        {"test", {0, static_cast<int>(token_list::SpecialWords::TEST)}},
-        {"assert", {0, static_cast<int>(token_list::SpecialWords::ASSERT)}},
-
+        {"make", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::MAKE)}},
+        {"const", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::CONST)}},
+        {"if", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::IF)}},
+        {"elif", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::ELIF)}},
+        {"else", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::ELSE)}},
+        {"do", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::DO)}},
+        {"while", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::WHILE)}},
+        {"for", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::FOR)}},
+        {"in", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::IN)}},
+        {"step", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::STEP)}},
+        {"break", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::BREAK)}},
+        {"continue", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::CONTINUE)}},
+        {"func", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::FUNC)}},
+        {"return", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::RETURN)}},
+        {"when", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::WHEN)}},
+        {"try", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::TRY)}},
+        {"catch", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::CATCH)}},
+        {"finally", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::FINALLY)}},
+        {"throw", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::THROW)}},
+        {"use", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::USE)}},
+        {"from", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::FROM)}},
+        {"as", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::AS)}},
+        {"class", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::CLASS)}},
+        {"extends", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::EXTENDS)}},
+        {"this", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::THIS)}},
+        {"private", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::PRIVATE)}},
+        {"public", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::PUBLIC)}},
+        {"protected", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::PROTECTED)}},
+        {"static", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::STATIC)}},
+        {"getter", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::GETTER)}},
+        {"setter", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::SETTER)}},
+        {"match", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::MATCH)}},
+        {"case", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::CASE)}},
+        {"default", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::DEFAULT)}},
+        {"test", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::TEST)}},
+        {"assert", {id_keyword::SpecialWords, static_cast<int>(token_list::SpecialWords::ASSERT)}},
         
         // Литералы
-        {"null", {1, static_cast<int>(token_list::Literals::NULL_VALUE)}},
-        {"true", {1, static_cast<int>(token_list::Literals::BOOL)}},
-        {"false", {1, static_cast<int>(token_list::Literals::BOOL)}},
+        {"null", {id_keyword::Literals, static_cast<int>(token_list::Literals::NULL_VALUE)}},
+        {"true", {id_keyword::Literals, static_cast<int>(token_list::Literals::BOOL)}},
+        {"false", {id_keyword::Literals, static_cast<int>(token_list::Literals::BOOL)}},
         
-        // Типы данных
-        {"Int", {2, static_cast<int>(token_list::data_types::Primitive::INT)}},
-        {"Double", {2, static_cast<int>(
-            token_list::data_types::Primitive::DOUBLE)}},
-        {"Str", {2, static_cast<int>(token_list::data_types::Primitive::STR)}},
-        {"Bool", {2, static_cast<int>(
-            token_list::data_types::Primitive::BOOL)}},
-        {"Null", {2, static_cast<int>(
-            token_list::data_types::Primitive::NULL_VALUE)}},
+        // Типы данных примитивные
+        {"Int", {id_keyword::DataTypePrimitive, static_cast<int>(token_list::data_types::Primitive::INT)}},
+        {"Double", {id_keyword::DataTypePrimitive, static_cast<int>(token_list::data_types::Primitive::DOUBLE)}},
+        {"Str", {id_keyword::DataTypePrimitive, static_cast<int>(token_list::data_types::Primitive::STR)}},
+        {"Bool", {id_keyword::DataTypePrimitive, static_cast<int>(token_list::data_types::Primitive::BOOL)}},
+        {"Null", {id_keyword::DataTypePrimitive, static_cast<int>(token_list::data_types::Primitive::NULL_VALUE)}},
 
         // Встроенные функции потока
-        {"print", {3, static_cast<int>(
-            token_list::built_functions::StandardStreams::PRINT)}},
-        {"println", {3, static_cast<int>(
-            token_list::built_functions::StandardStreams::PRINTLN)}},
-        {"printerr", {3, static_cast<int>(
-            token_list::built_functions::StandardStreams::PRINTERR)}},
-        {"printerrln", {3, static_cast<int>(
-            token_list::built_functions::StandardStreams::PRINTERRLN)}},
-        {"input", {3, static_cast<int>(
-            token_list::built_functions::StandardStreams::INPUT)}},
+        {"print", {id_keyword::FunctionsStandardStreams, static_cast<int>(token_list::built_functions::StandardStreams::PRINT)}},
+        {"println", {id_keyword::FunctionsStandardStreams, static_cast<int>(token_list::built_functions::StandardStreams::PRINTLN)}},
+        {"printerr", {id_keyword::FunctionsStandardStreams, static_cast<int>(token_list::built_functions::StandardStreams::PRINTERR)}},
+        {"printerrln", {id_keyword::FunctionsStandardStreams, static_cast<int>(token_list::built_functions::StandardStreams::PRINTERRLN)}},
+        {"input", {id_keyword::FunctionsStandardStreams, static_cast<int>(token_list::built_functions::StandardStreams::INPUT)}},
 
         // Встроенные функции класса
-        {"super", {4, static_cast<int>(
-            token_list::built_functions::Class::SUPER)}},
-        {"new", {4, static_cast<int>(
-            token_list::built_functions::Class::NEW)}},
-        {"delete", {4, static_cast<int>(
-            token_list::built_functions::Class::DELETE)}},
+        {"super", {id_keyword::FunctionsClass, static_cast<int>(token_list::built_functions::Class::SUPER)}},
+        {"new", {id_keyword::FunctionsClass, static_cast<int>(token_list::built_functions::Class::NEW)}},
+        {"delete", {id_keyword::FunctionsClass, static_cast<int>(token_list::built_functions::Class::DELETE)}},
 
         // Встроенные функции над типами
-        {"int", {5, static_cast<int>(
-            token_list::built_functions::OverTypes::INT)}},
-        {"double", {5, static_cast<int>(
-            token_list::built_functions::OverTypes::DOUBLE)}},
-        {"bool", {5, static_cast<int>(
-            token_list::built_functions::OverTypes::BOOL)}},
-        {"str", {5, static_cast<int>(
-            token_list::built_functions::OverTypes::STR)}},
-        {"type", {5, static_cast<int>(
-            token_list::built_functions::OverTypes::TYPE)}},
+        {"int", {id_keyword::FunctionsOverTypes, static_cast<int>(token_list::built_functions::OverTypes::INT)}},
+        {"double", {id_keyword::FunctionsOverTypes, static_cast<int>(token_list::built_functions::OverTypes::DOUBLE)}},
+        {"bool", {id_keyword::FunctionsOverTypes, static_cast<int>(token_list::built_functions::OverTypes::BOOL)}},
+        {"str", {id_keyword::FunctionsOverTypes, static_cast<int>(token_list::built_functions::OverTypes::STR)}},
+        {"type", {id_keyword::FunctionsOverTypes, static_cast<int>(token_list::built_functions::OverTypes::TYPE)}},
+
 };
 
 static const std::unordered_map<std::string, std::pair<int, int>> 
     operator_map = {
-        // Присваивание
-        {"=", {0, static_cast<int>(token_list::operators::Assignment::SIMPLE)}},
-        {"+=", {0, static_cast<int>(
-            token_list::operators::Assignment::PLUS_ASSIGN)}},
-        {"-=", {0, static_cast<int>(
-            token_list::operators::Assignment::MINUS_ASSIGN)}},
-        {"*=", {0, static_cast<int>(
-            token_list::operators::Assignment::MULTIPLY_ASSIGN)}},
-        {"/=", {0, static_cast<int>(
-            token_list::operators::Assignment::DIVIDE_ASSIGN)}},
-        {"^=", {0, static_cast<int>(
-            token_list::operators::Assignment::POWER_ASSIGN)}},
-        {"%=", {0, static_cast<int>(
-            token_list::operators::Assignment::MOD_ASSIGN)}},
-        {"//=", {0, static_cast<int>(
-            token_list::operators::Assignment::INT_DIVIDE_ASSIGN)}},
-
-        // Арифметика
-        {"+", {1, static_cast<int>(token_list::operators::Arithmetic::PLUS)}},
-        {"-", {1, static_cast<int>(token_list::operators::Arithmetic::MINUS)}},
-        {"*", {1, static_cast<int>(
-            token_list::operators::Arithmetic::MULTIPLY)}},
-        {"/", {1, static_cast<int>(token_list::operators::Arithmetic::DIVIDE)}},
-        {"//", {1, static_cast<int>(
-            token_list::operators::Arithmetic::DIVIDE_EVENLY)}},
-        {"^", {1, static_cast<int>(token_list::operators::Arithmetic::POWER)}},
-        {"%", {1, static_cast<int>(token_list::operators::Arithmetic::MOD)}},
-    
-        // Сравнение
-        {"==", {2, static_cast<int>(
-            token_list::operators::Comparison::EQUAL)}},
-        {"!=", {2, static_cast<int>(
-            token_list::operators::Comparison::NOT_EQUAL)}},
-        {"<", {2, static_cast<int>(
-            token_list::operators::Comparison::LESS)}},
-        {">", {2, static_cast<int>(
-            token_list::operators::Comparison::GREATER)}},
-        {"<=", {2, static_cast<int>(
-            token_list::operators::Comparison::LESS_EQUAL)}},
-        {">=", {2, static_cast<int>(
-            token_list::operators::Comparison::GREATER_EQUAL)}},
-        
-        // Логика
-        {"&", {3, static_cast<int>(token_list::operators::Logical::AND)}},
-        {"|", {3, static_cast<int>(token_list::operators::Logical::OR)}},
-        {"!", {3, static_cast<int>(token_list::operators::Logical::NOT)}},
-        
-        // Специальные
-        {".", {4, static_cast<int>(token_list::operators::Special::DOT)}},
-        {"?:", {4, static_cast<int>(token_list::operators::Special::ELVIS)}},
-        {"?.", {4, static_cast<int>(
-            token_list::operators::Special::SAFE_NAV)}},
-        {"|>", {4, static_cast<int>(token_list::operators::Special::PIPE)}},
-        {"..", {4, static_cast<int>(token_list::operators::Special::RANGE)}},
-        {"->", {4, static_cast<int>(token_list::operators::Special::ARROW)}},
-        {"...", {4, static_cast<int>(
-            token_list::operators::Special::ELLIPSIS)}},
-        {":", {4, static_cast<int>(
-            token_list::operators::Special::TERNARY_COLON)}},
-        {"?", {4, static_cast<int>(
-            token_list::operators::Special::TERNARY_QUESTION)}},
-
+         // Операторы
+        {"=", {id_keyword::Operators, static_cast<int>(token_list::Operators::ASSIGN)}},
+        {"+=", {id_keyword::Operators, static_cast<int>(token_list::Operators::PLUS_ASSIGN)}},
+        {"-=", {id_keyword::Operators, static_cast<int>(token_list::Operators::MINUS_ASSIGN)}},
+        {"*=", {id_keyword::Operators, static_cast<int>(token_list::Operators::MULTIPLY_ASSIGN)}},
+        {"/=", {id_keyword::Operators, static_cast<int>(token_list::Operators::DIVIDE_ASSIGN)}},
+        {"^=", {id_keyword::Operators, static_cast<int>(token_list::Operators::POWER_ASSIGN)}},
+        {"%=", {id_keyword::Operators, static_cast<int>(token_list::Operators::MOD_ASSIGN)}},
+        {"//=", {id_keyword::Operators, static_cast<int>(token_list::Operators::INT_DIVIDE_ASSIGN)}},
+        {"+", {id_keyword::Operators, static_cast<int>(token_list::Operators::PLUS)}},
+        {"-", {id_keyword::Operators, static_cast<int>(token_list::Operators::MINUS)}},
+        {"*", {id_keyword::Operators, static_cast<int>(token_list::Operators::MULTIPLY)}},
+        {"/", {id_keyword::Operators, static_cast<int>(token_list::Operators::DIVIDE)}},
+        {"//", {id_keyword::Operators, static_cast<int>(token_list::Operators::DIVIDE_EVENLY)}},
+        {"^", {id_keyword::Operators, static_cast<int>(token_list::Operators::POWER)}},
+        {"%", {id_keyword::Operators, static_cast<int>(token_list::Operators::MOD)}},
+        {"==", {id_keyword::Operators, static_cast<int>(token_list::Operators::EQUAL)}},
+        {"!=", {id_keyword::Operators, static_cast<int>(token_list::Operators::NOT_EQUAL)}},
+        {"<", {id_keyword::Operators, static_cast<int>(token_list::Operators::LESS)}},
+        {">", {id_keyword::Operators, static_cast<int>(token_list::Operators::GREATER)}},
+        {"<=", {id_keyword::Operators, static_cast<int>(token_list::Operators::LESS_EQUAL)}},
+        {">=", {id_keyword::Operators, static_cast<int>(token_list::Operators::GREATER_EQUAL)}},
+        {"&", {id_keyword::Operators, static_cast<int>(token_list::Operators::AND)}},
+        {"|", {id_keyword::Operators, static_cast<int>(token_list::Operators::OR)}},
+        {"!", {id_keyword::Operators, static_cast<int>(token_list::Operators::NOT)}},
+        {".", {id_keyword::Operators, static_cast<int>(token_list::Operators::DOT)}},
+        {"?:", {id_keyword::Operators, static_cast<int>(token_list::Operators::ELVIS)}},
+        {"?.", {id_keyword::Operators, static_cast<int>(token_list::Operators::SAFE_NAV)}},
+        {"|>", {id_keyword::Operators, static_cast<int>(token_list::Operators::PIPE)}},
+        {"..", {id_keyword::Operators, static_cast<int>(token_list::Operators::RANGE)}},
+        {"->", {id_keyword::Operators, static_cast<int>(token_list::Operators::ARROW)}},
+        {"...", {id_keyword::Operators, static_cast<int>(token_list::Operators::ELLIPSIS)}},
+        {"?", {id_keyword::Operators, static_cast<int>(token_list::Operators::TERNARY_QUESTION)}},
+        {":", {id_keyword::Operators, static_cast<int>(token_list::Operators::TERNARY_COLON)}},
 };
 
 static const std::unordered_map<std::string, std::pair<int, int>> 
     punctuation_map = {
         // Скобки
-        {"(", {0, static_cast<int>(token_list::Brackets::PARENTHESIS_L)}},
-        {")", {0, static_cast<int>(token_list::Brackets::PARENTHESIS_R)}},
-        {"{", {0, static_cast<int>(token_list::Brackets::BRACE_L)}},
-        {"}", {0, static_cast<int>(token_list::Brackets::BRACE_R)}},
-        {"[", {0, static_cast<int>(token_list::Brackets::BRACKET_L)}},
-        {"]", {0, static_cast<int>(token_list::Brackets::BRACKET_R)}},
-        
-        // Разделители
-        {";", {1, static_cast<int>(token_list::Symbols::SEMICOLON)}},
-        {",", {1, static_cast<int>(token_list::Symbols::COMMA)}},
-};
+        {"(", {id_keyword::Brackets, static_cast<int>(token_list::Brackets::PARENTHESIS_L)}},
+        {")", {id_keyword::Brackets, static_cast<int>(token_list::Brackets::PARENTHESIS_R)}},
+        {"{", {id_keyword::Brackets, static_cast<int>(token_list::Brackets::BRACE_L)}},
+        {"}", {id_keyword::Brackets, static_cast<int>(token_list::Brackets::BRACE_R)}},
+        {"[", {id_keyword::Brackets, static_cast<int>(token_list::Brackets::BRACKET_L)}},
+        {"]", {id_keyword::Brackets, static_cast<int>(token_list::Brackets::BRACKET_R)}},
 
+        // Разделители
+        {";", {id_keyword::Separators, static_cast<int>(token_list::Symbols::SEMICOLON)}},
+        {",", {id_keyword::Separators, static_cast<int>(token_list::Symbols::COMMA)}},
+};
 
 #endif

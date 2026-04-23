@@ -1,0 +1,30 @@
+{
+  "name": "atm-language",
+  "displayName": "ATOM Language Support",
+  "description": "Syntax highlighting and language support for ATOM (.atm) programming language",
+  "version": "0.1.0",
+  "engines": {
+    "vscode": "^1.80.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [
+      {
+        "id": "atm",
+        "aliases": ["ATOM", "atm", "ATOM Language"],
+        "extensions": [".atm"],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "atm",
+        "scopeName": "source.atm",
+        "path": "./syntaxes/atm.tmLanguage.json"
+      }
+    ],
+    "themes": []
+  }
+}

@@ -1,0 +1,79 @@
+{
+  "scopeName": "source.atm",
+  "name": "ATOM",
+  "patterns": [
+    {
+      "name": "comment.line.number-sign.atm",
+      "match": "#.*$"
+    },
+    {
+      "name": "comment.block.atm",
+      "begin": "/\\*",
+      "end": "\\*/"
+    },
+    {
+      "name": "keyword.control.atm",
+      "match": "\\b(if|elif|else|while|for|in|step|do|break|continue|return|when|match|case|default)\\b"
+    },
+    {
+      "name": "keyword.declaration.atm",
+      "match": "\\b(make|const|func|class|extends|new|super|this|use|from|as|try|catch|finally|test|assert)\\b"
+    },
+    {
+      "name": "storage.modifier.atm",
+      "match": "\\b(private|public|protected|static|getter|setter)\\b"
+    },
+    {
+      "name": "keyword.type.atm",
+      "match": "\\b(Int|Double|Str|Bool|Null)\\b"
+    },
+    {
+      "name": "constant.language.atm",
+      "match": "\\b(true|false|null)\\b"
+    },
+    {
+      "name": "constant.numeric.atm",
+      "match": "\\b\\d+(\\.\\d+)?\\b"
+    },
+    {
+      "name": "string.quoted.double.atm",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "name": "constant.character.escape.atm",
+          "match": "\\\\."
+        }
+      ]
+    },
+    {
+      "name": "keyword.operator.atm",
+      "match": "(\\+|-|\\*|/|\\^|%|//|==|!=|<|>|<=|>=|&|\\||!|=|\\+=|-=|\\*=|/=|\\^=|%=|//=|\\.|\\?\\:|\\.\\?|\\|>|\\.\\.|->|\\.\\.\\.)"
+    },
+    {
+      "name": "punctuation.bracket.atm",
+      "match": "[\\{\\}\\(\\)\\[\\]]"
+    },
+    {
+      "name": "punctuation.separator.atm",
+      "match": "[;,]"
+    },
+    {
+      "name": "entity.name.function.atm",
+      "match": "\\b([a-zA-Z_][a-zA-Z0-9_]*)\\s*(?=\\()",
+      "captures": {
+        "1": {
+          "name": "entity.name.function.atm"
+        }
+      }
+    },
+    {
+      "name": "entity.name.class.atm",
+      "match": "\\b([A-Z][a-zA-Z0-9_]*)\\b(?=\\s*(extends|\\{|\\())"
+    },
+    {
+      "name": "variable.other.atm",
+      "match": "\\b[a-z_][a-zA-Z0-9_]*\\b"
+    }
+  ]
+}

@@ -1,248 +1,434 @@
-# ----- ПРИМИТИВНЫЕ ТИПЫ И ПЕРЕМЕННЫЕ -----
-Int;
-make x = 10;
-Double;
-make y = 10.9;
-Str;
-make name = "string";
-Bool;
-make flag = true;
-Null;
-make empty;
-make nothing = null;
+# ============================================================
+# ПРОГРАММА: УПРАВЛЕНИЕ СПИСКОМ ЗАДАЧ (TODO LIST)
+# Язык: ATOM (.atm)
+# ============================================================
 
-# ----- ОБЫЧНЫЕ ПЕРЕМЕННЫЕ -----
-make name_var0;
-make name_var1 = 999;
+# ----- МОДЕЛЬ ЗАДАЧИ -----
 
-# ----- КОНСТАНТНЫЕ ПЕРЕМЕННЫЕ -----
-const make a;
-# a = 0; # error
-
-# ----- МНОЖЕСТВЕННОЕ ПРИСВАИВАНИЕ -----
-make a, b, c = 1, 2, 3;
-
-# ----- СОСТАВНОЕ ПРИСВАИВАНИЕ -----
-make x = 5;
-x += 3;
-x -= 2;
-x *= 4;
-x /= 2;
-x ^= 2;
-x %= 3;
-x //= 2;
-
-# ----- ПЕРЕНАЗНАЧЕНИЕ ПЕРЕМЕННОЙ -----
-make x1 = 8.9;
-x1 = 10;
-x1 = "hello";
-
-# ----- ОБЛАСТЬ ВИДИМОСТИ -----
-{
-    make a = 0;
-}
-# print(a); # error
-
-make a = 0;
-{
-    print(a);
-}
-
-{
-    make a = 1;
-    {
-        make a = 0;
-        print(a);
-    }
-}
-
-# ----- ВСТРОЕННЫЕ ФУНКЦИИ -----
-print("eee");
-println("eee");
-printerr("eee");
-printerrln("eee");
-input("eee");
-
-# ----- ВСТРОЕННЫЕ ФУНКЦИИ НАД ТИПАМИ -----
-make x = 9;
-make c = str(x);
-make cq = double(x);
-print(type(c));
-print(int(c));
-
-# ----- УСЛОВНЫЕ КОНСТРУКЦИИ -----
-if (x > 10) {
-    print("больше");
-} elif (x > 5) {
-    print("средний");
-} else {
-    print("маленький");
-}
-
-# ----- ТЕРНАРНЫЙ ОПЕРАТОР -----
-make status = (age >= 18) ? "взрослый" : "ребёнок";
-
-# ----- АРИФМЕТИЧЕСКИЕ ОПЕРАТОРЫ -----
-make result = 3 * 4 / 2 + 4 - 8 ^ 6 % 5;
-
-# ----- ОПЕРАТОРЫ СРАВНЕНИЯ -----
-make cmp = 3 == 4 != 2 > 4 < 5 <= 9 >= 0;
-
-# ----- ЛОГИЧЕСКИЕ ОПЕРАТОРЫ -----
-make logic = a & b | !c;
-
-# ----- ЦИКЛЫ -----
-make i = 0;
-while (i < 10) {
-    print(i);
-    i = i + 1;
-}
-
-do {
-    print("хотя бы раз");
-} while (false);
-
-for (i in 0..10) {
-    print(i);
-}
-
-for (i in 0..100 step 10) {
-    print(i);
-}
-
-for (item in items) {
-    print(item);
-}
-
-break;
-continue;
-
-# ----- ФУНКЦИИ -----
-func add(a, b) -> a + b;
-
-func multiply(a, b) -> Int {
-    return a * b;
-}
-
-func greet(name, greeting = "Hello") {
-    return greeting + ", " + name;
-}
-
-func sum(...args) {
-    make total = 0;
-    for (n in args) {
-        total = total + n;
-    }
-    return total;
-}
-
-func divide(a, b) when (b != 0) {
-    return a / b;
-}
-
-# ----- ОБРАБОТКА ОШИБОК -----
-try {
-    make x = risky();
-} catch (err) {
-    print("Error: " + err);
-} finally {
-    print("always");
-}
-
-# ----- ИМПОРТЫ -----
-use "math.atm";
-use { sin, cos, pi } from "math.atm";
-use "math.atm" as m;
-
-# ----- КЛАССЫ И ООП -----
-class Person {
-    private name;
-    public age;
-    protected id;
+class Task {
+    private id;
+    public title;
+    public description;
+    public completed;
+    public priority;
+    public createdAt;
     
-    new(name, age) {
+    new(id, title, description, priority) {
+        this.id = id;
+        this.title = title;
+        this.description = description;
+        this.priority = priority;
+        this.completed = false;
+        this.createdAt = getCurrentTime();
+    }
+    
+    getter id() {
+        return this.id;
+    }
+    
+    getter title() {
+        return this.title;
+    }
+    
+    getter description() {
+        return this.description;
+    }
+    
+    getter completed() {
+        return this.completed;
+    }
+    
+    getter priority() {
+        return this.priority;
+    }
+    
+    getter createdAt() {
+        return this.createdAt;
+    }
+    
+    markComplete() {
+        this.completed = true;
+    }
+    
+    markIncomplete() {
+        this.completed = false;
+    }
+    
+    setPriority(newPriority) {
+        this.priority = newPriority;
+    }
+    
+    toString() {
+        make status = this.completed ? "Done" : "Pending";
+        make priorityStr = "";
+        
+        if (this.priority == 1) {
+            priorityStr = "High";
+        } elif (this.priority == 2) {
+            priorityStr = "Medium";
+        } else {
+            priorityStr = "Low";
+        }
+        
+        return "[" + this.id + "] " + priorityStr + " | " + status + " | " + this.title;
+    }
+}
+
+
+# ----- МОДЕЛЬ ПОЛЬЗОВАТЕЛЯ -----
+
+class User {
+    private id;
+    public name;
+    private tasks;
+    
+    new(id, name) {
+        this.id = id;
         this.name = name;
-        this.age = age;
+        this.tasks = [];
+    }
+    
+    getter id() {
+        return this.id;
     }
     
     getter name() {
         return this.name;
     }
     
-    setter name(value) {
-        this.name = value;
+    getter tasks() {
+        return this.tasks;
     }
     
-    greet() -> "Hello, I'm " + this.name;
-}
-
-class Student extends Person {
-    private static studentCount = 0;
+    addTask(title, description, priority) {
+        make newId = len(this.tasks) + 1;
+        make task = Task(newId, title, description, priority);
+        this.tasks.push(task);
+        print("Task added: " + task.toString());
+        return task;
+    }
     
-    new(name, age) {
-        super(name, age);
-        studentCount = studentCount + 1;
+    removeTask(taskId) {
+        make newTasks = [];
+        make found = false;
+        
+        for (task in this.tasks) {
+            if (task.id() != taskId) {
+                newTasks.push(task);
+            } else {
+                found = true;
+            }
+        }
+        
+        if (found) {
+            this.tasks = newTasks;
+            print("Task " + taskId + " removed");
+            return true;
+        } else {
+            print("Task " + taskId + " not found");
+            return false;
+        }
+    }
+    
+    findTaskById(taskId) {
+        for (task in this.tasks) {
+            if (task.id() == taskId) {
+                return task;
+            }
+        }
+        return null;
+    }
+    
+    findTasksByPriority(priority) {
+        make results = [];
+        for (task in this.tasks) {
+            if (task.priority() == priority) {
+                results.push(task);
+            }
+        }
+        return results;
+    }
+    
+    findTasksByStatus(completed) {
+        make results = [];
+        for (task in this.tasks) {
+            if (task.completed() == completed) {
+                results.push(task);
+            }
+        }
+        return results;
+    }
+    
+    listAllTasks() {
+        print(" ");
+        print("=== Tasks for user: " + this.name + " ===");
+        
+        if (len(this.tasks) == 0) {
+            print("No tasks found");
+        } else {
+            for (task in this.tasks) {
+                print(task.toString());
+            }
+        }
+        
+        print("==================================");
+        print(" ");
+    }
+    
+    listPendingTasks() {
+        print(" ");
+        print("=== Pending Tasks ===");
+        
+        make count = 0;
+        for (task in this.tasks) {
+            if (!task.completed()) {
+                print(task.toString());
+                count = count + 1;
+            }
+        }
+        
+        if (count == 0) {
+            print("No pending tasks");
+        }
+        
+        print("=====================");
+        print(" ");
+    }
+    
+    listCompletedTasks() {
+        print(" ");
+        print("=== Completed Tasks ===");
+        
+        make count = 0;
+        for (task in this.tasks) {
+            if (task.completed()) {
+                print(task.toString());
+                count = count + 1;
+            }
+        }
+        
+        if (count == 0) {
+            print("No completed tasks");
+        }
+        
+        print("=======================");
+        print(" ");
+    }
+    
+    completeTask(taskId) {
+        make task = this.findTaskById(taskId);
+        
+        if (task == null) {
+            print("Task " + taskId + " not found");
+            return false;
+        }
+        
+        if (task.completed()) {
+            print("Task " + taskId + " is already completed");
+            return false;
+        }
+        
+        task.markComplete();
+        print("Task completed: " + task.title());
+        return true;
+    }
+    
+    uncompleteTask(taskId) {
+        make task = this.findTaskById(taskId);
+        
+        if (task == null) {
+            print("Task " + taskId + " not found");
+            return false;
+        }
+        
+        if (!task.completed()) {
+            print("Task " + taskId + " is not completed");
+            return false;
+        }
+        
+        task.markIncomplete();
+        print("Task reopened: " + task.title());
+        return true;
+    }
+
+    getStats() {
+        make total = len(this.tasks);
+        make completed = 0;
+        make highPriority = 0;
+        make mediumPriority = 0;
+        make lowPriority = 0;
+        
+        for (task in this.tasks) {
+            if (task.completed()) {
+                completed = completed + 1;
+            }
+            
+            if (task.priority() == 1) {
+                highPriority = highPriority + 1;
+            } elif (task.priority() == 2) {
+                mediumPriority = mediumPriority + 1;
+            } else {
+                lowPriority = lowPriority + 1;
+            }
+        }
+        
+        print(" ");
+        print("=== Statistics for " + this.name + " ===");
+        print("Total tasks: " + total);
+        print("Completed: " + completed);
+        print("Pending: " + (total - completed));
+        print("Completion rate: " + (completed * 100 / total) + " percent");
+        print(" ");
+        print("By priority:");
+        print("  High: " + highPriority);
+        print("  Medium: " + mediumPriority);
+        print("  Low: " + lowPriority);
+        print("===================================");
+        print(" ");
     }
 }
 
-make john = Person("John", 25);
-make jane = Student("Jane", 20);
 
-# ----- СПЕЦИАЛЬНЫЕ ОПЕРАТОРЫ -----
-# Оператор доступа к полям
-john.name;
+# ----- ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ -----
 
-# Безопасная навигация
-make city = user?.address?.city ?: "Unknown";
+func getCurrentTime() {
+    return "2024-01-01 00:00:00";
+}
 
-# Pipe оператор
-make result = read("data.txt")
-    |> parse_json()
-    |> get("users")
-    |> filter(|u| u.age > 18)
-    |> map(|u| u.name);
+func showMenu() {
+    print(" ");
+    print("=== TODO LIST MANAGER ===");
+    print("1. Add task");
+    print("2. List all tasks");
+    print("3. List pending tasks");
+    print("4. List completed tasks");
+    print("5. Complete a task");
+    print("6. Reopen a task");
+    print("7. Remove a task");
+    print("8. Show statistics");
+    print("9. Find tasks by priority");
+    print("10. Exit");
+    print("=========================");
+    print(" ");
+}
 
-# Диапазоны
-make numbers = 1..10;
-make range = 0..100 step 5;
 
-# Многоточие
-func print_all(...items) {
-    for (item in items) {
-        print(item);
+# ----- ГЛАВНАЯ ПРОГРАММА -----
+
+func main() {
+    print("Welcome to TODO List Manager!");
+    print(" ");
+    
+    make currentUser = User(1, "John Doe");
+    
+    make running = true;
+    
+    while (running) {
+        showMenu();
+        
+        make choice = input("Enter your choice: ");
+        make intChoice = int(choice);
+        
+        if (intChoice == 1) {
+            make title = input("Enter task title: ");
+            make description = input("Enter description: ");
+            make priorityInput = input("Enter priority (1=High, 2=Medium, 3=Low): ");
+            make priority = int(priorityInput);
+            
+            if (priority < 1 | priority > 3) {
+                print("Invalid priority. Using Medium.");
+                priority = 2;
+            }
+            
+            currentUser.addTask(title, description, priority);
+            
+        } elif (intChoice == 2) {
+            currentUser.listAllTasks();
+            
+        } elif (intChoice == 3) {
+            currentUser.listPendingTasks();
+            
+        } elif (intChoice == 4) {
+            currentUser.listCompletedTasks();
+            
+        } elif (intChoice == 5) {
+            make taskIdInput = input("Enter task ID to complete: ");
+            make taskId = int(taskIdInput);
+            currentUser.completeTask(taskId);
+            
+        } elif (intChoice == 6) {
+            make taskIdInput = input("Enter task ID to reopen: ");
+            make taskId = int(taskIdInput);
+            currentUser.uncompleteTask(taskId);
+            
+        } elif (intChoice == 7) {
+            make taskIdInput = input("Enter task ID to remove: ");
+            make taskId = int(taskIdInput);
+            currentUser.removeTask(taskId);
+            
+        } elif (intChoice == 8) {
+            currentUser.getStats();
+            
+        } elif (intChoice == 9) {
+            make priorityInput = input("Enter priority (1=High, 2=Medium, 3=Low): ");
+            make priority = int(priorityInput);
+            
+            if (priority >= 1 & priority <= 3) {
+                make tasks = currentUser.findTasksByPriority(priority);
+                
+                print(" ");
+                print("=== Tasks with priority " + priority + " ===");
+                
+                if (len(tasks) == 0) {
+                    print("No tasks found");
+                } else {
+                    for (task in tasks) {
+                        print(task.toString());
+                    }
+                }
+                
+                print("===================================");
+                print(" ");
+            } else {
+                print("Invalid priority");
+            }
+            
+        } elif (intChoice == 10) {
+            print("Goodbye!");
+            running = false;
+            
+        } else {
+            print("Invalid choice. Please try again.");
+        }
     }
 }
 
-# ----- PATTERN MATCHING -----
-match (value) {
-    case 0: {
-        print("zero");
-    }
-    case 1..9: {
-        print("digit");
-    }
-    case "hello": {
-        print("greeting");
-    }
-    default: {
-        print("other");
-    }
+
+# ----- ЗАПУСК ПРОГРАММЫ -----
+
+test "Task Manager System" {
+    make testUser = User(99, "Test User");
+    
+    testUser.addTask("Complete project", "Finish the ATM language project", 1);
+    testUser.addTask("Buy groceries", "Milk, eggs, bread", 3);
+    testUser.addTask("Read book", "Read 50 pages", 2);
+    
+    assert len(testUser.tasks()) == 3;
+    
+    testUser.completeTask(1);
+    make task = testUser.findTaskById(1);
+    assert task.completed() == true;
+    
+    testUser.uncompleteTask(1);
+    assert task.completed() == false;
+    
+    testUser.removeTask(2);
+    assert len(testUser.tasks()) == 2;
+    
+    make highPriorityTasks = testUser.findTasksByPriority(1);
+    assert len(highPriorityTasks) == 1;
+    
+    print("All tests passed!");
 }
 
-# ----- ТЕСТЫ -----
-test "add works" {
-    assert add(2, 2) == 4;
-    assert add(-1, 1) == 0;
-}
-
-test "string concat" {
-    assert "hello" + "world" == "helloworld";
-}
-
-# ----- КОММЕНТАРИИ -----
-# Однострочный комментарий
-
-/*
-   Многострочный
-   комментарий
-*/
+main();

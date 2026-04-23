@@ -106,25 +106,6 @@ protected:
                 return false;
         }
     }
-
-};
-
-
-class HandlerTokens{
-protected:
-
-    void handlerSTART() {}
-    void handlerIN_IDENTIFIER() {}
-    void handlerIN_NUMBER() {}
-    void handlerIN_NUMBER_DOT() {}
-    void handlerIN_NUMBER_FRACTION() {}
-    void handlerIN_STRING() {}
-    void handlerIN_COMMENT_LINE() {}
-    void handlerIN_COMMENT_BLOCK() {}
-    void handlerIN_OPERATOR() {}
-    void handlerEND() {}
-    void handler() {}
-
 };
 
 
@@ -236,11 +217,11 @@ private:
                     int category = it->second.first;
                     int value = it->second.second;
                     switch (category) {
-                        case 0:
+                        case id_keyword::Brackets:
                             add_token(static_cast<token_list::Brackets>(
                                 value), start_line, start_column);
                             break;
-                        case 1:
+                        case id_keyword::Separators:
                             add_token(static_cast<token_list::Symbols>(
                                 value), start_line, start_column);
                             break;
@@ -258,7 +239,12 @@ private:
                 start_column = column;
                 state = StateList::IN_OPERATOR;
                 add_simvol(c);
-        }
+            } else if (std::isspace(c)) {
+                return; 
+            } else {
+                state = StateList::ERROR;
+                error("Неизвестный символ");
+            }
     }
 
     void handlerIN_IDENTIFIER(const char& c, size_t& i, size_t& start_line, 
@@ -281,13 +267,17 @@ private:
             } else if (c == '.' && next(code, i) != '.') {
                 add_simvol(c);
                 state = StateList::IN_NUMBER_DOT;
+            } else if (std::isspace(c) || is_operator_char(c) 
+                || is_punctuation_char(c) || is_bracket_char(c)) {
+                    add_token(token_list::Literals::INT, 
+                        start_line, start_column);
+                    if (c != '\n') {
+                        --i;
+                        --column;
+                    }
             } else {
-                add_token(token_list::Literals::INT, 
-                    start_line, start_column);
-                if (c != '\n') {
-                    --i;
-                    --column;
-                }
+                state = StateList::ERROR;
+                error("Некорректное число " + buffer);
             }
         }
 
@@ -306,13 +296,17 @@ private:
         size_t& start_column, const std::string& code) {
             if (std::isdigit(c)) {
                 add_simvol(c);
+            } else if ((std::isspace(c) || is_operator_char(c) 
+                || is_punctuation_char(c) || is_bracket_char(c)) && c != '.') {
+                    add_token(token_list::Literals::DOUBLE, 
+                        start_line, start_column);
+                    if (c != '\n') {
+                        --i;
+                        --column;
+                    }
             } else {
-                add_token(token_list::Literals::DOUBLE, 
-                    start_line, start_column);
-                if (c != '\n') {
-                    --i;
-                    --column;
-                }
+                state = StateList::ERROR;
+                error("Некорректное число " + buffer);
             }
         }
 
@@ -401,35 +395,35 @@ private:
             int category = it->second.first;
             int value = it->second.second;
             switch (category) {
-                case 0:
+                case id_keyword::SpecialWords:
                     add_token(static_cast<
                         token_list::SpecialWords>(value), 
                             start_line, start_column);
                     break;
-                case 1:
+                case id_keyword::Literals:
                     add_token(static_cast<
                         token_list::Literals>(value), 
                             start_line, start_column);
                     break;
-                case 2:
+                case id_keyword::DataTypePrimitive:
                     add_token(static_cast<
                         token_list::data_types::
                             Primitive>(value), 
                                 start_line, start_column);
                     break;
-                case 3:
+                case id_keyword::FunctionsStandardStreams:
                     add_token(static_cast<
                         token_list::built_functions::
                             StandardStreams>(value), 
                                 start_line, start_column);
                     break; 
-                case 4:
+                case id_keyword::FunctionsClass:
                     add_token(static_cast<
                         token_list::built_functions::
                             Class>(value), 
                                 start_line, start_column);
                     break; 
-                case 5:
+                case id_keyword::FunctionsOverTypes:
                     add_token(static_cast<
                         token_list::built_functions::
                             OverTypes>(value), 
@@ -451,29 +445,9 @@ private:
             int category = it->second.first;
             int value = it->second.second;
             switch (category) {
-                case 0:
+                case id_keyword::Operators:
                     add_token(static_cast<
-                        token_list::operators::Assignment>(
-                            value), start_line, start_column);
-                    break;
-                case 1:
-                    add_token(static_cast<
-                        token_list::operators::Arithmetic>(
-                            value), start_line, start_column);
-                    break;
-                case 2:
-                    add_token(static_cast<
-                        token_list::operators::Comparison>(
-                            value), start_line, start_column);
-                    break;
-                case 3:
-                    add_token(static_cast<
-                        token_list::operators::Logical>(
-                            value), start_line, start_column);
-                    break;
-                case 4:
-                    add_token(static_cast<
-                        token_list::operators::Special>(
+                        token_list::Operators>(
                             value), start_line, start_column);
                     break;
                 default:
