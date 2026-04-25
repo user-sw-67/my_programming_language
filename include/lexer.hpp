@@ -40,8 +40,22 @@ public:
 
 class FiniteAutomaton{
 protected:
+
+    enum class StateList{
+        START,
+        ERROR,
+        IN_NUMBER,
+        IN_NUMBER_DOT,
+        IN_NUMBER_FRACTION,
+        IN_STRING,
+        IN_IDENTIFIER,
+        IN_OPERATOR,
+        IN_COMMENT_LINE,
+        IN_COMMENT_BLOCK,
+    };
+
     StateList state;
-    std::vector<std::unique_ptr<TokenBase>> tokens;
+    std::vector<Token> tokens;
     std::string buffer;
     size_t line;
     size_t column;
@@ -56,13 +70,11 @@ protected:
         buffer += simvol;
     }
 
-    template<typename EnumType>
-    void add_token(EnumType type, size_t start_line, size_t start_column){
+    void add_token(TokenType type, size_t start_line, size_t start_column){
         if (buffer.empty()){
             buffer = "undefined";
         }
-        tokens.push_back(std::make_unique<Token<EnumType>>(
-            type, start_line, start_column, buffer));
+        tokens.emplace_back(type, start_line, start_column, buffer);
         buffer.clear();
         state = StateList::START;
     }
@@ -118,7 +130,7 @@ public:
     Lexer(const Lexer& other) = delete;
     Lexer operator = (const Lexer& other) = delete;
 
-    std::vector<std::unique_ptr<TokenBase>> get_tokens(bool cout_tokens) {
+    std::vector<Token> get_tokens(bool cout_tokens) {
         std::stringstream ss;
         ss << file.rdbuf();
         std::string code_string = ss.str();
@@ -182,7 +194,7 @@ private:
         const std::string& filename) const {
             std::ofstream file(filename);
             for (const auto& token : tokens) {
-                file << token->to_string() << std::endl;
+                file << token.to_string() << std::endl;
             }
             std::cout << "Сохранено " << tokens.size() << " токенов в " 
                 << filename << std::endl;
@@ -214,21 +226,7 @@ private:
                 add_simvol(c);
                 auto it = punctuation_map.find(std::string(1, c));
                 if (it != punctuation_map.end()) {
-                    int category = it->second.first;
-                    int value = it->second.second;
-                    switch (category) {
-                        case id_keyword::Brackets:
-                            add_token(static_cast<token_list::Brackets>(
-                                value), start_line, start_column);
-                            break;
-                        case id_keyword::Separators:
-                            add_token(static_cast<token_list::Symbols>(
-                                value), start_line, start_column);
-                            break;
-                        default:
-                            state = StateList::ERROR;
-                            error("Неизвестная категория пунктуации");
-                    }
+                    add_token(it->second, start_line, start_column);
                 } else {
                     state = StateList::ERROR;
                     error("Неизвестный знак пунктуации: '" + 
@@ -269,8 +267,7 @@ private:
                 state = StateList::IN_NUMBER_DOT;
             } else if (std::isspace(c) || is_operator_char(c) 
                 || is_punctuation_char(c) || is_bracket_char(c)) {
-                    add_token(token_list::Literals::INT, 
-                        start_line, start_column);
+                    add_token(TokenType::LIT_INT, start_line, start_column);
                     if (c != '\n') {
                         --i;
                         --column;
@@ -298,8 +295,7 @@ private:
                 add_simvol(c);
             } else if ((std::isspace(c) || is_operator_char(c) 
                 || is_punctuation_char(c) || is_bracket_char(c)) && c != '.') {
-                    add_token(token_list::Literals::DOUBLE, 
-                        start_line, start_column);
+                    add_token(TokenType::LIT_DOUBLE, start_line, start_column);
                     if (c != '\n') {
                         --i;
                         --column;
@@ -315,8 +311,8 @@ private:
             if (c != '"') {
                 add_simvol(c);
             } else {
-                add_token(token_list::Literals::STR, 
-                    start_line, start_column);
+                add_token(TokenType::LIT_STR, start_line, start_column);
+                
             }
         }
 
@@ -355,15 +351,13 @@ private:
             case StateList::START:
                 break;
             case StateList::IN_NUMBER:
-                add_token(token_list::Literals::INT, 
-                    start_line, start_column);
+                add_token(TokenType::LIT_INT, start_line, start_column);
                 break;
             case StateList::IN_NUMBER_DOT:
                 state = StateList::START;
                 error("Незаконченная дробная часть числа в конце файла");
             case StateList::IN_NUMBER_FRACTION:
-                add_token(token_list::Literals::DOUBLE, 
-                    start_line, start_column);
+                add_token(TokenType::LIT_DOUBLE, start_line, start_column);
                 break;
             case StateList::IN_STRING:
                 state = StateList::START;
@@ -386,74 +380,23 @@ private:
                 break;
         }
         ++column;
-        add_token(token_list::Special::END_OF_FILE, line, column);
+        add_token(TokenType::END_OF_FILE, line, column);
     }
 
     void process_identifier(size_t& start_line, size_t& start_column) {
         auto it = keyword_map.find(buffer);
         if (it != keyword_map.end()){
-            int category = it->second.first;
-            int value = it->second.second;
-            switch (category) {
-                case id_keyword::SpecialWords:
-                    add_token(static_cast<
-                        token_list::SpecialWords>(value), 
-                            start_line, start_column);
-                    break;
-                case id_keyword::Literals:
-                    add_token(static_cast<
-                        token_list::Literals>(value), 
-                            start_line, start_column);
-                    break;
-                case id_keyword::DataTypePrimitive:
-                    add_token(static_cast<
-                        token_list::data_types::
-                            Primitive>(value), 
-                                start_line, start_column);
-                    break;
-                case id_keyword::FunctionsStandardStreams:
-                    add_token(static_cast<
-                        token_list::built_functions::
-                            StandardStreams>(value), 
-                                start_line, start_column);
-                    break; 
-                case id_keyword::FunctionsClass:
-                    add_token(static_cast<
-                        token_list::built_functions::
-                            Class>(value), 
-                                start_line, start_column);
-                    break; 
-                case id_keyword::FunctionsOverTypes:
-                    add_token(static_cast<
-                        token_list::built_functions::
-                            OverTypes>(value), 
-                                start_line, start_column);
-                    break; 
-                default:
-                    state = StateList::ERROR;
-                    error("Неизвестная категория ключевого слова: " + buffer);
-            }
+            add_token(it->second, start_line, start_column);
         } else {
-            add_token(token_list::Special::IDENTIFIER, 
-                start_line, start_column);
+            add_token(TokenType::IDENTIFIER, start_line, start_column);
+            
         }
     }
 
     void process_operator(size_t& start_line, size_t& start_column) {
         auto it = operator_map.find(buffer);
         if (it != operator_map.end()) {
-            int category = it->second.first;
-            int value = it->second.second;
-            switch (category) {
-                case id_keyword::Operators:
-                    add_token(static_cast<
-                        token_list::Operators>(
-                            value), start_line, start_column);
-                    break;
-                default:
-                    state = StateList::ERROR;
-                    error("Неизвестная категория оператора: " + buffer);
-            }
+            add_token(it->second, start_line, start_column);
         } else {
             state = StateList::ERROR;
             error("Неизвестный оператор: '" + buffer + "'");

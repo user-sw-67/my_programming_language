@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "../include/lexer.hpp"
+#include "../include/parser.hpp"
 
 
 int main(int argc, char const *argv[]){
@@ -26,6 +27,8 @@ int main(int argc, char const *argv[]){
     }
 
     Lexer lexer(filename);
-    std::vector<std::unique_ptr<TokenBase>> l = lexer.get_tokens(pr_tokens);
+    std::vector<Token> tokens = lexer.get_tokens(pr_tokens);
+    Parser parser(std::move(tokens));
+    std::unique_ptr<ProgramNode> d = parser.parse(pr_ast);
     return 0;
 }
