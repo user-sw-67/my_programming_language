@@ -7,6 +7,13 @@ class LiteralNodeAST;
 class IdentifierNodeAST;
 class UnaryOperationNodeAST;
 class BinaryOperationNodeAST;
+class BlockNodeAST;
+class IfElseNodeAST;
+class TernaryOperationNodeAST;
+class ExpressionStatementNodeAST;
+class FunctionNodeAST;
+class ReturnNodeAST;
+class CallOperationNodeAST;
 
 class Visitor{
 public:
@@ -18,6 +25,21 @@ public:
     virtual void visit(IdentifierNodeAST& node) = 0;
     virtual void visit(UnaryOperationNodeAST& node) = 0;
     virtual void visit(BinaryOperationNodeAST& node) = 0;
+    virtual void visit(BlockNodeAST& node) = 0;
+    virtual void visit(IfElseNodeAST& node) = 0;
+    virtual void visit(TernaryOperationNodeAST& node) = 0;
+    virtual void visit(ExpressionStatementNodeAST& node) = 0;
+    virtual void visit(FunctionNodeAST& node) = 0;
+    virtual void visit(ReturnNodeAST& node) = 0;
+    virtual void visit(CallOperationNodeAST& node) = 0;
+    // virtual void visit(& node) = 0;
+    // virtual void visit(& node) = 0;
+    // virtual void visit(& node) = 0;
+    // virtual void visit(& node) = 0;
+    // virtual void visit(& node) = 0;
+    // virtual void visit(& node) = 0;
+    // virtual void visit(& node) = 0;
+
 };
 
 #endif

@@ -7,6 +7,7 @@
 
 #include "ast.hpp"
 #include "lexer.hpp"
+#include "mermaid_visitor.hpp"
 
 
 class ParserBase{
@@ -75,21 +76,32 @@ public:
         while (!is_end()) {
             program->statements.push_back(parse_statement());
         }
-        if(cout_ast) save_ast_to_file("ast.txt");
+        if(cout_ast) save_ast_to_file("ast.md", program);
         return program;
     }
 
 private:
-    void save_ast_to_file(const std::string& filename) const {}
-
-    std::unique_ptr<StatementNodeAST> parse_statement() {
-        if(match(TokenType::KW_MAKE)) return parse_make();
-        return std::unique_ptr<StatementNodeAST>();
+    void save_ast_to_file(const std::string& filename, 
+        const std::unique_ptr<ProgramNode>& program) const {
+            std::ofstream file(filename);
+            if (!file.is_open()) {
+                std::cerr << "Ошибка: не удалось создать файл " << 
+                    filename << std::endl;
+                return;
+            }
+            file << "```mermaid\n";
+            MermaidVisitor visualizer(file);
+            visualizer.start();
+            program->visit(visualizer);
+            file << "```\n";
+            file.close();
+            std::cout << "AST дерево сохранено в " << filename << std::endl;
     }
 
     enum class Priorities {
         NONE = 0,
         ASSIGN = 10, // =, +=, -= ...
+        TERNARY = 15, // ?
         LOGICAL_OR = 20, // |
         LOGICAL_AND = 30, // &
         EQUALS = 40, // ==, !=
@@ -102,35 +114,35 @@ private:
     };
 
     int get_priority(TokenType type) const {
-        switch (type){
-            case TokenType::OP_PLUS: case TokenType::OP_MINUS:
-                return static_cast<int>(Priorities::SUM);
+        switch (type) {
+            case TokenType::OP_DOT: 
+                return static_cast<int>(Priorities::CALL);
+            case TokenType::OP_POW:
+                return static_cast<int>(Priorities::POW);
             case TokenType::OP_MUL: case TokenType::OP_DIV:
             case TokenType::OP_INT_DIV: case TokenType::OP_MOD:
-                return static_cast<int>(Priorities::PRODUCT);            
+                return static_cast<int>(Priorities::PRODUCT);
+            case TokenType::OP_PLUS: case TokenType::OP_MINUS:
+                return static_cast<int>(Priorities::SUM);
+            case TokenType::OP_LT: case TokenType::OP_GT:
+            case TokenType::OP_LE: case TokenType::OP_GE:
+                return static_cast<int>(Priorities::COMPARE);
+            case TokenType::OP_EQ: case TokenType::OP_NE:
+                return static_cast<int>(Priorities::EQUALS);
+            case TokenType::OP_AND:
+                return static_cast<int>(Priorities::LOGICAL_AND);
+            case TokenType::OP_OR:
+                return static_cast<int>(Priorities::LOGICAL_OR);
+            case TokenType::OP_QUEST:
+                return static_cast<int>(Priorities::TERNARY);
+            case TokenType::OP_ASSIGN: case TokenType::OP_PLUS_ASSIGN:
+            case TokenType::OP_MINUS_ASSIGN: case TokenType::OP_MUL_ASSIGN:
+            case TokenType::OP_DIV_ASSIGN: case TokenType::OP_INT_DIV_ASSIGN:
+            case TokenType::OP_MOD_ASSIGN:
+                return static_cast<int>(Priorities::ASSIGN);
             default:
                 return static_cast<int>(Priorities::NONE);
         }
-    };
-
-    std::unique_ptr<ExpressionNodeAST> parse_expression(int priority) {
-        auto left = get_prefix();
-        while (get_priority(current().get_type()) > priority) {
-            TokenType op = current().get_type();
-            int new_priority = get_priority(op);
-            advance();
-
-            if (op == TokenType::OP_POW || 
-                (op >= TokenType::OP_ASSIGN && 
-                    op <= TokenType::OP_INT_DIV_ASSIGN)){
-                        --new_priority;
-            }
-
-            auto right = parse_expression(new_priority);
-            left = std::make_unique<BinaryOperationNodeAST>(
-                std::move(left), op, std::move(right));
-        }
-        return left;
     }
 
     std::unique_ptr<ExpressionNodeAST> get_prefix() {
@@ -142,7 +154,21 @@ private:
                 }
 
         if(match(TokenType::IDENTIFIER)) {
-            return std::make_unique<IdentifierNodeAST>(peek(-1).get_value());
+            std::string name = peek(-1).get_value();
+            if(match(TokenType::PAREN_L)) {
+                std::vector<std::unique_ptr<ExpressionNodeAST>> args;
+                if(current().get_type() != TokenType::PAREN_R){
+                    do{
+                        auto arg = parse_expression(
+                            static_cast<int>(Priorities::NONE));
+                        args.push_back(std::move(arg));
+                    } while (match(TokenType::COMMA));
+                }
+                consume(TokenType::PAREN_R, "Ожидалась закрывающая скобка ')'");
+                return std::make_unique<CallOperationNodeAST>(
+                    name, std::move(args));
+            }
+            return std::make_unique<IdentifierNodeAST>(name);
         }
 
         if (match(TokenType::OP_NOT) || match(TokenType::OP_MINUS)) {
@@ -165,6 +191,63 @@ private:
         return nullptr;
     }
 
+    std::unique_ptr<StatementNodeAST> parse_statement() {
+        if(current().get_type() == TokenType::BRACE_L) return parse_block();
+        if(match(TokenType::KW_MAKE)) return parse_make();
+        if(match(TokenType::KW_IF)) return parse_if();
+        if(match(TokenType::KW_FUNC)) return parse_func();
+        if(match(TokenType::KW_RETURN)) return parse_return();
+
+        auto expr = parse_expression(static_cast<int>(Priorities::NONE));
+        consume(TokenType::SEMICOLON, "Ожидалась ';' после выражения");
+        return std::make_unique<ExpressionStatementNodeAST>(std::move(expr));
+    }
+
+    std::unique_ptr<ExpressionNodeAST> parse_expression(int priority) {
+        auto left = get_prefix();
+        while (get_priority(current().get_type()) > priority) {
+            TokenType op = current().get_type();
+            int new_priority = get_priority(op);
+            advance();
+
+            if (op == TokenType::OP_POW || 
+                (op >= TokenType::OP_ASSIGN && 
+                    op <= TokenType::OP_INT_DIV_ASSIGN)){
+                        --new_priority;
+            }
+
+            if (op == TokenType::OP_QUEST) {
+                auto true_expr = parse_expression(
+                    static_cast<int>(Priorities::NONE));
+                consume(TokenType::OP_COLON, 
+                    "Ожидалось ':' в тернарном операторе");
+                auto false_expr = parse_expression(
+                    static_cast<int>(Priorities::TERNARY) - 1);
+                left = std::make_unique<TernaryOperationNodeAST>(
+                    std::move(left), std::move(true_expr), std::move(false_expr)
+                );
+                continue;
+            }
+
+            auto right = parse_expression(new_priority);
+            left = std::make_unique<BinaryOperationNodeAST>(
+                std::move(left), op, std::move(right));
+        }
+        return left;
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_block() {
+        auto block = std::make_unique<BlockNodeAST>();
+        consume(TokenType::BRACE_L, "Ожидалась '{' в начале блока");
+
+        while (!is_end() && current().get_type() != TokenType::BRACE_R) {
+            block->add_statement(std::move(parse_statement()));
+        }
+
+        consume(TokenType::BRACE_R, "Ожидалась '}' в конце блока");
+        return block;
+    }
+
     std::unique_ptr<StatementNodeAST> parse_make() {
         bool is_const = match(TokenType::KW_CONST);
 
@@ -172,7 +255,7 @@ private:
         std::vector<std::string> type_names;
         do{
             names.push_back(consume(TokenType::IDENTIFIER, 
-                "Отсутствует идентификатор").get_value());
+                "Отсутствует идентификатор (имя переменной)").get_value());
             std::string type_name_current("auto");
             if(match(TokenType::OP_ARROW)) {
                 type_name_current = consume(TokenType::IDENTIFIER, 
@@ -200,6 +283,93 @@ private:
         return std::make_unique<MakeNodeAST>(
             std::move(names), std::move(type_names), 
             std::move(initializers), is_const);
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_if() {
+        consume(TokenType::PAREN_L, "Ожидается условие в '()'");
+        std::unique_ptr<ExpressionNodeAST> condition = 
+            parse_expression(static_cast<int>(Priorities::NONE));
+        consume(TokenType::PAREN_R, "Ожидается закрывающая ')'");
+
+        std::unique_ptr<StatementNodeAST> then_branch = parse_block();
+        std::unique_ptr<StatementNodeAST> else_branch = nullptr;
+        if(match(TokenType::KW_ELIF)) {
+            else_branch = parse_if();
+        } else if(match(TokenType::KW_ELSE)) {
+            else_branch = parse_block();
+        }
+
+        return std::make_unique<IfElseNodeAST>(std::move(condition), 
+            std::move(then_branch), std::move(else_branch));
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_func() {
+        std::string name = consume(
+            TokenType::IDENTIFIER, 
+                "Ожидается идентификатор (имя функции)").get_value();
+        consume(TokenType::PAREN_L, "Ожидается '(' после идентификатора");
+
+        std::vector<Parameter> parameters;
+        if(!match(TokenType::PAREN_R)) {
+            do{
+                bool is_variadic = match(TokenType::OP_ELLIPSIS);
+                std::string par_name = consume(TokenType::IDENTIFIER, 
+                    "Ожидалось имя параметра").get_value();
+                std::string par_type("auto");
+                if(match(TokenType::OP_ARROW)) {
+                    par_type = consume(TokenType::IDENTIFIER, 
+                        "Ожидался тип параметра после '->'").get_value();
+                }
+                std::unique_ptr<ExpressionNodeAST> par_default_val = nullptr;
+                if(match(TokenType::OP_ASSIGN)){
+                    par_default_val = parse_expression(
+                        static_cast<int>(Priorities::NONE));
+                }
+                parameters.emplace_back(par_name, par_type, 
+                    std::move(par_default_val), is_variadic);
+                if(is_variadic) break;
+            } while (match(TokenType::COMMA));
+            consume(TokenType::PAREN_R, "Ожидается закрывающая ')'"); 
+        }
+
+        std::string return_type("auto");
+        if(current().get_type() == TokenType::OP_ARROW && 
+            peek(1).get_type() == TokenType::IDENTIFIER && (
+                peek(2).get_type() == TokenType::BRACE_L || 
+                    peek(2).get_type() == TokenType::KW_WHEN ||
+                        peek(2).get_type() == TokenType::OP_ARROW)) {
+                            advance();
+                            return_type = advance().get_value();
+                        }
+
+        std::unique_ptr<ExpressionNodeAST> when_condition = nullptr;
+        if(match(TokenType::KW_WHEN)) {
+            consume(TokenType::PAREN_L, "Ожидалась '(' после when");
+            when_condition = parse_expression(
+                static_cast<int>(Priorities::NONE));
+            consume(TokenType::PAREN_R, "Ожидалась ')' после условия when");
+        }
+
+        std::unique_ptr<StatementNodeAST> body;
+        if(match(TokenType::OP_ARROW)){
+            auto expr = parse_expression(static_cast<int>(Priorities::NONE));
+            consume(TokenType::SEMICOLON, "Ожидалась ';' после выражения");
+            body = std::make_unique<ReturnNodeAST>(std::move(expr));
+        } else {
+            body = parse_block();
+        }
+
+        return std::make_unique<FunctionNodeAST>(name, return_type,
+            std::move(parameters), std::move(when_condition), std::move(body));            
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_return() {
+        std::unique_ptr<ExpressionNodeAST> value = nullptr;
+        if(!match(TokenType::SEMICOLON)){
+            value = parse_expression(static_cast<int>(Priorities::NONE));
+            consume(TokenType::SEMICOLON, "Ожидалась ';'");
+        }
+        return std::make_unique<ReturnNodeAST>(std::move(value));
     }
 };
 

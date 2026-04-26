@@ -28,7 +28,8 @@ int main(int argc, char const *argv[]){
 
     Lexer lexer(filename);
     std::vector<Token> tokens = lexer.get_tokens(pr_tokens);
+
     Parser parser(std::move(tokens));
-    std::unique_ptr<ProgramNode> d = parser.parse(pr_ast);
+    std::unique_ptr<ProgramNode> program = parser.parse(pr_ast);
     return 0;
 }

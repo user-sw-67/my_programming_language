@@ -1,3 +1,26 @@
-make s -> k = 10;
+make s -> Int = 10 + 4 * 8 / 9 - 2;
 make s -> Int, s1 = 9, 0;
 make const s, s;
+if(0){}else{}
+if(1){}elif(1){s = 0;}else{}
+s();
+make status = (age >= 18) ? "взрослый" : "ребёнок";
+func f() { return 42; }
+
+func f() -> 42;
+
+func add(a -> Int, b -> Int) -> Int { return a + b; }
+
+func add(a, b) -> Int -> a + b;
+
+func f(x) { return x; }
+
+func greet(name, greeting = "Hello") -> greeting + name;
+
+func sum(...args) -> 0;
+
+func complex(a -> Int = 0, ...others) {}
+
+func divide(a, b) when (b != 0) { return a / b; }
+
+func check(x) when (x > 0) -> "Positive";

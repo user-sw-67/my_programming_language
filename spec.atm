@@ -125,27 +125,27 @@ break;
 continue;
 
 # ----- ФУНКЦИИ -----
-func add(a, b) -> a + b;
 
-func multiply(a, b) -> Int {
-    return a * b;
-}
 
-func greet(name, greeting = "Hello") {
-    return greeting + ", " + name;
-}
+func f() { return 42; }
 
-func sum(...args) {
-    make total = 0;
-    for (n in args) {
-        total = total + n;
-    }
-    return total;
-}
+func f() -> 42;
 
-func divide(a, b) when (b != 0) {
-    return a / b;
-}
+func add(a -> Int, b -> Int) -> Int { return a + b; }
+
+func add(a, b) -> Int -> a + b;
+
+func f(x) { return x; }
+
+func greet(name, greeting = "Hello") -> greeting + name;
+
+func sum(...args) -> 0;
+
+func complex(a -> Int = 0, ...others) {}
+
+func divide(a, b) when (b != 0) { return a / b; }
+
+func check(x) when (x > 0) -> "Positive";
 
 # ----- ОБРАБОТКА ОШИБОК -----
 try {
