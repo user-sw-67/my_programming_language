@@ -1,10 +1,136 @@
-make s -> Int = 10 + 4 * 8 / 9 - 2;
-make s -> Int, s1 = 9, 0;
-make const s, s;
-if(0){}else{}
-if(1){}elif(1){s = 0;}else{}
-s();
+# ============================================================
+# Файл спецификации языка программирования ATOM (.atm)
+# Содержит все конструкции языка
+# ============================================================
+
+
+# ----- ПРИМИТИВНЫЕ ТИПЫ И ПЕРЕМЕННЫЕ -----
+Int;
+make x = 10;
+Double;
+make y = 10.9;
+Str;
+make name = "string";
+Bool;
+make flag = true;
+Null;
+make empty;
+make nothing = null;
+
+# ----- ОБЫЧНЫЕ ПЕРЕМЕННЫЕ -----
+make name_var0;
+make name_var1 = 999;
+
+# ----- КОНСТАНТНЫЕ ПЕРЕМЕННЫЕ -----
+make const a;
+# a = 0; # error
+
+# ----- МНОЖЕСТВЕННОЕ ПРИСВАИВАНИЕ -----
+make a, b, c = 1, 2, 3;
+make const a, b, c = 1, 2, 3;
+
+# ----- СОСТАВНОЕ ПРИСВАИВАНИЕ -----
+make x = 5;
+x += 3;
+x -= 2;
+x *= 4;
+x /= 2;
+x ^= 2;
+x %= 3;
+x //= 2;
+
+# ----- ПЕРЕНАЗНАЧЕНИЕ ПЕРЕМЕННОЙ -----
+make x1 = 8.9;
+x1 = 10;
+x1 = "hello";
+
+# ----- ОБЛАСТЬ ВИДИМОСТИ -----
+{
+    make a = 0;
+}
+# print(a); # error
+
+make a = 0;
+{
+    print(a);
+}
+
+{
+    make a = 1;
+    {
+        make a = 0;
+        print(a);
+    }
+}
+
+# ----- ВСТРОЕННЫЕ ФУНКЦИИ -----
+print("eee");
+println("eee");
+printerr("eee");
+printerrln("eee");
+input("eee");
+
+# ----- ВСТРОЕННЫЕ ФУНКЦИИ НАД ТИПАМИ -----
+make x = 9;
+make c = str(x);
+make cq = double(x);
+print(type(c));
+print(int(c));
+
+# ----- УСЛОВНЫЕ КОНСТРУКЦИИ -----
+if (x > 10) {
+    print("больше");
+} elif (x > 5) {
+    print("средний");
+} else {
+    print("маленький");
+}
+
+# ----- ТЕРНАРНЫЙ ОПЕРАТОР -----
 make status = (age >= 18) ? "взрослый" : "ребёнок";
+
+# ----- АРИФМЕТИЧЕСКИЕ ОПЕРАТОРЫ -----
+make result = 3 * 4 / 2 + 4 - 8 ^ 6 % 5;
+
+# ----- ОПЕРАТОРЫ СРАВНЕНИЯ -----
+make cmp = 3 == 4 != 2 > 4 < 5 <= 9 >= 0;
+
+# ----- ЛОГИЧЕСКИЕ ОПЕРАТОРЫ -----
+make logic = a & b | !c;
+
+# ----- ЦИКЛЫ -----
+make i = 0;
+while (i < 10) {
+    print(i);
+    i = i + 1;
+}
+
+do {
+    print("хотя бы раз");
+} while (false);
+
+for (i in 0..10) {
+    print(i);
+}
+
+for (i in 0..100 step 10) {
+    print(i);
+}
+
+for (i in 0..n step 10) {
+    print(i);
+}
+
+for (item in items) {
+    print(item);
+}
+
+break;
+continue;
+
+# ----- ФУНКЦИИ -----
+
+
 func f() { return 42; }
 
 func f() -> 42;
@@ -24,3 +150,20 @@ func complex(a -> Int = 0, ...others) {}
 func divide(a, b) when (b != 0) { return a / b; }
 
 func check(x) when (x > 0) -> "Positive";
+
+# ----- ОБРАБОТКА ОШИБОК -----
+try {
+    make x = risky();
+} catch (err) {
+    print("Error: " + err);
+} finally {
+    print("always");
+}
+
+throw Error("Error get");
+
+# ----- ИМПОРТЫ -----
+use "math.atm";
+use { sin, cos, pi } from "math.atm";
+use { sin as s, cos as c, pi as PI } from "math.atm";
+use "math.atm" as m;

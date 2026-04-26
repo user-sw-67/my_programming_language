@@ -108,6 +108,7 @@ private:
         COMPARE = 50, // <, >, <=, >=
         SUM = 60, // +, -
         PRODUCT = 70, // *, /, //, %
+        RANGE = 75, // ..
         POW = 80, // ^
         UNARY = 90, // -, ! (в префиксах)
         CALL = 100 // . (доступ)
@@ -124,6 +125,8 @@ private:
                 return static_cast<int>(Priorities::PRODUCT);
             case TokenType::OP_PLUS: case TokenType::OP_MINUS:
                 return static_cast<int>(Priorities::SUM);
+            case TokenType::OP_RANGE:
+                return static_cast<int>(Priorities::RANGE);
             case TokenType::OP_LT: case TokenType::OP_GT:
             case TokenType::OP_LE: case TokenType::OP_GE:
                 return static_cast<int>(Priorities::COMPARE);
@@ -138,7 +141,7 @@ private:
             case TokenType::OP_ASSIGN: case TokenType::OP_PLUS_ASSIGN:
             case TokenType::OP_MINUS_ASSIGN: case TokenType::OP_MUL_ASSIGN:
             case TokenType::OP_DIV_ASSIGN: case TokenType::OP_INT_DIV_ASSIGN:
-            case TokenType::OP_MOD_ASSIGN:
+            case TokenType::OP_MOD_ASSIGN: case TokenType::OP_POW_ASSIGN:
                 return static_cast<int>(Priorities::ASSIGN);
             default:
                 return static_cast<int>(Priorities::NONE);
@@ -197,6 +200,20 @@ private:
         if(match(TokenType::KW_IF)) return parse_if();
         if(match(TokenType::KW_FUNC)) return parse_func();
         if(match(TokenType::KW_RETURN)) return parse_return();
+        if(match(TokenType::KW_WHILE)) return parse_while(false);
+        if(match(TokenType::KW_DO)) return parse_while(true);
+        if(match(TokenType::KW_FOR)) return parse_for();
+        if(match(TokenType::KW_TRY)) return parse_try();
+        if(match(TokenType::KW_THROW)) return parse_throw();
+        if(match(TokenType::KW_USE)) return parse_use();
+        if (match(TokenType::KW_BREAK)) {
+            consume(TokenType::SEMICOLON, "Ожидалась ';' после break");
+            return std::make_unique<BreakNodeAST>();
+        }
+        if (match(TokenType::KW_CONTINUE)) {
+            consume(TokenType::SEMICOLON, "Ожидалась ';' после continue");
+            return std::make_unique<ContinueNodeAST>();
+        }
 
         auto expr = parse_expression(static_cast<int>(Priorities::NONE));
         consume(TokenType::SEMICOLON, "Ожидалась ';' после выражения");
@@ -214,6 +231,13 @@ private:
                 (op >= TokenType::OP_ASSIGN && 
                     op <= TokenType::OP_INT_DIV_ASSIGN)){
                         --new_priority;
+            }
+
+            if (op == TokenType::OP_RANGE) {
+                auto right = parse_expression(new_priority);
+                left = std::make_unique<RangeNodeAST>(
+                    std::move(left), std::move(right));
+                continue;
             }
 
             if (op == TokenType::OP_QUEST) {
@@ -370,6 +394,108 @@ private:
             consume(TokenType::SEMICOLON, "Ожидалась ';'");
         }
         return std::make_unique<ReturnNodeAST>(std::move(value));
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_while(bool is_do_while) {
+        std::unique_ptr<StatementNodeAST> body;
+        std::unique_ptr<ExpressionNodeAST> condition;
+
+        if(is_do_while){
+            body = parse_block();
+            consume(TokenType::KW_WHILE, "Ожидается 'while'");
+            consume(TokenType::PAREN_L, "Ожидалась '(' после while");
+            condition = parse_expression(
+                    static_cast<int>(Priorities::NONE));
+            consume(TokenType::PAREN_R, "Ожидалась ')'");
+            consume(TokenType::SEMICOLON, "Ожидалась ';'");
+        } else {
+            consume(TokenType::PAREN_L, "Ожидалась '(' после while");
+            condition = parse_expression(
+                    static_cast<int>(Priorities::NONE));
+            consume(TokenType::PAREN_R, "Ожидалась ')'");
+            body = parse_block();
+        }
+
+        return std::make_unique<WhileNodeAST>(std::move(condition), 
+            std::move(body), is_do_while);
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_for() {
+        consume(TokenType::PAREN_L, "Ожидалась '(' после for");
+        std::string name_var = consume(TokenType::IDENTIFIER, 
+            "Ожидается идентификатор").get_value();
+        consume(TokenType::KW_IN, "Ожидается 'in'");
+        auto iterable = parse_expression(static_cast<int>(Priorities::NONE));
+        std::unique_ptr<ExpressionNodeAST> step = nullptr;
+        if(match(TokenType::KW_STEP)){
+            step = parse_expression(static_cast<int>(Priorities::NONE));
+        }
+        consume(TokenType::PAREN_R, "Ожидалась ')'");
+
+        auto body = parse_block();
+        return std::make_unique<ForNodeAST>(name_var, std::move(iterable),
+            std::move(step), std::move(body));
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_try() {
+        auto try_block = parse_block();
+
+        consume(TokenType::KW_CATCH, "Необходим блок 'catch'");
+        consume(TokenType::PAREN_L, "Ожидалась '(' после catch");
+        auto catch_expr = parse_expression(static_cast<int>(Priorities::NONE));
+        consume(TokenType::PAREN_R, "Ожидалась ')'");
+        auto catch_block = parse_block();
+
+        std::unique_ptr<StatementNodeAST> finally_block = nullptr;
+        if(match(TokenType::KW_FINALLY)){
+            finally_block = parse_block();
+        }
+
+        return std::make_unique<TryNodeAST>(std::move(try_block), 
+            std::move(catch_expr), std::move(catch_block), 
+                std::move(finally_block));
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_throw() {
+        std::unique_ptr<ExpressionNodeAST> value = nullptr;
+        if(!match(TokenType::SEMICOLON)){
+            value = parse_expression(static_cast<int>(Priorities::NONE));
+            consume(TokenType::SEMICOLON, "Ожидалась ';'");
+        }
+        return std::make_unique<ThrowNodeAST>(std::move(value));
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_use() {
+        std::string path_lib;
+        std::vector<ImportObject> objects;
+        std::string as_name("");
+
+        if(match(TokenType::BRACE_L)){
+            do{
+                std::string internal_name = consume(TokenType::IDENTIFIER, 
+                    "Ожидается идентификатор объекта").get_value();
+                std::string alias("");
+                if(match(TokenType::KW_AS)){
+                    alias = consume(TokenType::IDENTIFIER, 
+                        "Ожидается новый идентификатор объекта").get_value();
+                }
+                objects.emplace_back(internal_name, alias);
+            } while (match(TokenType::COMMA));
+            consume(TokenType::BRACE_R, "Ожидалась '}'");
+            consume(TokenType::KW_FROM, "Требуется 'from'");
+            path_lib = consume(TokenType::LIT_STR, 
+                "Требуется имя файла").get_value();
+        } else {
+            path_lib = consume(TokenType::LIT_STR, 
+                "Требуется имя файла").get_value();
+            if(match(TokenType::KW_AS)){
+                as_name = consume(TokenType::IDENTIFIER, 
+                    "Ожидается новый псевдоним файла").get_value();
+            }
+        }
+        consume(TokenType::SEMICOLON, "Ожидалась ';'");
+        return std::make_unique<UseNodeAST>(
+            path_lib, std::move(objects), as_name);
     }
 };
 

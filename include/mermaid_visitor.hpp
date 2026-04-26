@@ -5,6 +5,7 @@
 #include <string>
 #include <stack>
 #include <fstream>
+#include <algorithm>
 #include <vector>
 
 #include "visitor.hpp"
@@ -190,6 +191,117 @@ public:
     void visit(IdentifierNodeAST& node) override {
         add_node(next_id(), "🔍 " + node.name, "([ ])");
     }
+
+    // --- ЦИКЛЫ И УПРАВЛЕНИЕ ---
+
+    void visit(WhileNodeAST& node) override {
+        std::string id = next_id();
+        std::string label = node.is_do_while ? "🔄 ЦИКЛ: do-while" : "🔄 ЦИКЛ: while";
+        add_node(id, label, "{{ }}");
+        out << "  class " << id << " logic_style\n";
+        
+        visit_child(*node.condition, id, "условие");
+        if (node.body) visit_child(*node.body, id, "тело_цикла");
+    }
+
+    void visit(ForNodeAST& node) override {
+        std::string id = next_id();
+        add_node(id, "♻️ ЦИКЛ: for (" + node.name_var + ")", "{{ }}");
+        out << "  class " << id << " logic_style\n";
+        
+        if (node.iterable) visit_child(*node.iterable, id, "внутри");
+        if (node.step) visit_child(*node.step, id, "шаг");
+        if (node.body) visit_child(*node.body, id, "тело_цикла");
+    }
+
+    void visit(RangeNodeAST& node) override {
+        std::string id = next_id();
+        add_node(id, "📏 ДИАПАЗОН (..)", "[ ]");
+        out << "  class " << id << " op_style\n";
+        
+        if (node.start) visit_child(*node.start, id, "от");
+        if (node.end) visit_child(*node.end, id, "до");
+    }
+
+    void visit(BreakNodeAST& node) override {
+        std::string id = next_id();
+        add_node(id, "🛑 ПРЕРВАТЬ (break)", "[[ ]]");
+        // Можно добавить отдельный стиль для управления потоком, если захочешь
+    }
+
+    void visit(ContinueNodeAST& node) override {
+        std::string id = next_id();
+        add_node(id, "⏭️ ПРОДОЛЖИТЬ (continue)", "[[ ]]");
+    }
+
+    // --- ИСКЛЮЧЕНИЯ (Try-Catch-Finally / Throw) ---
+
+    void visit(TryNodeAST& node) override {
+        std::string try_id = next_id();
+        add_node(try_id, "🛡️ ПОПРОБОВАТЬ (try)", "[ ]");
+        
+        // 1. Основной блок выполнения
+        if (node.try_block) {
+            visit_child(*node.try_block, try_id, "попытка");
+        }
+
+        // 2. Блок перехвата ошибки
+        if (node.catch_block) {
+            std::string catch_id = next_id();
+            parent_stack.push(try_id); // Временно делаем try родителем для связи
+            add_node(catch_id, "⚠️ ПОЙМАТЬ (catch)", "{ }", "ошибка");
+            parent_stack.pop();
+
+            if (node.catch_expr) visit_child(*node.catch_expr, catch_id, "аргумент");
+            visit_child(*node.catch_block, catch_id, "обработка");
+        }
+
+        // 3. Блок завершения
+        if (node.finally_block) {
+            visit_child(*node.finally_block, try_id, "в любом случае");
+        }
+    }
+
+    void visit(ThrowNodeAST& node) override {
+        std::string id = next_id();
+        add_node(id, "💥 БРОСИТЬ (throw)", "[/ /]");
+        if (node.value) {
+            visit_child(*node.value, id, "объект_ошибки");
+        }
+    }
+
+    // --- ИМПОРТЫ (use ... from ..) ---
+    void visit(UseNodeAST& node) override {
+        std::string id = next_id();
+        
+        // 1. Очистка пути (убираем кавычки, чтобы не сломать строку Mermaid)
+        std::string clean_path = node.path_lib;
+        clean_path.erase(std::remove(clean_path.begin(), clean_path.end(), '\"'), clean_path.end());
+
+        // 2. Текст заголовка (без лишних спецсимволов)
+        std::string label = "📦 IMPORT: " + clean_path;
+        if (!node.as_name.empty()) label += " as " + node.as_name;
+
+        // 3. Генерируем узел БЕЗ пробелов между кавычками и скобками.
+        // Вместо add_node(id, label, "[]") пишем напрямую, чтобы контролировать каждый пробел.
+        out << "  " << id << "[\"" << label << "\"]\n";
+        out << "  class " << id << " func_style\n"; 
+
+        // 4. Отрисовка объектов
+        for (const auto& obj : node.objects) {
+            std::string obj_id = next_id();
+            std::string obj_label = "🔹 " + obj.internal_name;
+            if (!obj.alias.empty()) obj_label += " ➜ " + obj.alias;
+
+            // Узел объекта: скругленный, без пробелов внутри ([])
+            out << "  " << obj_id << "([\"" << obj_label << "\"])\n";
+            
+            // 5. Выравнивание линий:
+            // Используем ----> (4 тире), это заставляет Mermaid выпрямлять связи.
+            out << "  " << id << " -- \" <font color='black'><b>объект</b></font> \" ----> " << obj_id << "\n";
+        }
+    }
+
 };
 
 #endif

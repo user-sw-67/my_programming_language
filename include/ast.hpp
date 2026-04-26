@@ -8,12 +8,6 @@
 #include "visitor.hpp"
 
 
-// class WhileNodeAST : public StatementNodeAST {};
-// class DoWhileNodeAST : public StatementNodeAST {};
-// class BreakNodeAST : public StatementNodeAST {};
-// class ContinueNodeAST : public StatementNodeAST {};
-// class UseNodeAST : public StatementNodeAST {};
-// class TryCatchNodeAST : public StatementNodeAST {};
 
 // class ClassNodeAST : public StatementNodeAST {};
 
@@ -45,13 +39,6 @@ public:
 
     void visit(Visitor& v) override {v.visit(*this);}
 };
-
-
-
-
-
-
-
 
 
 class BlockNodeAST : public StatementNodeAST {
@@ -185,6 +172,122 @@ public:
 };
 
 
+class WhileNodeAST : public StatementNodeAST {
+public:
+    std::unique_ptr<ExpressionNodeAST> condition;
+    std::unique_ptr<StatementNodeAST> body;
+    bool is_do_while;
+
+    WhileNodeAST(
+        std::unique_ptr<ExpressionNodeAST>&& condition, 
+        std::unique_ptr<StatementNodeAST>&& body, 
+        bool is_do_while = false) : 
+            condition(std::move(condition)), 
+            body(std::move(body)), 
+            is_do_while(is_do_while) {}
+
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
+class ForNodeAST : public StatementNodeAST {
+public:
+    std::string name_var;
+    std::unique_ptr<ExpressionNodeAST> iterable;
+    std::unique_ptr<ExpressionNodeAST> step;
+    std::unique_ptr<StatementNodeAST> body;
+
+    ForNodeAST(
+        const std::string& name_var,
+        std::unique_ptr<ExpressionNodeAST>&& iterable,
+        std::unique_ptr<ExpressionNodeAST>&& step,
+        std::unique_ptr<StatementNodeAST>&& body) :
+            name_var(name_var),
+            iterable(std::move(iterable)),
+            step(std::move(step)),
+            body(std::move(body)) {}
+
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
+class BreakNodeAST : public StatementNodeAST {
+public:
+    BreakNodeAST() = default;
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
+class ContinueNodeAST : public StatementNodeAST {
+public:
+    ContinueNodeAST() = default;
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
+class TryNodeAST : public StatementNodeAST {
+public:
+    std::unique_ptr<StatementNodeAST> try_block;
+    std::unique_ptr<ExpressionNodeAST> catch_expr;
+    std::unique_ptr<StatementNodeAST> catch_block;
+    std::unique_ptr<StatementNodeAST> finally_block;
+
+    TryNodeAST(
+        std::unique_ptr<StatementNodeAST>&& try_block,
+        std::unique_ptr<ExpressionNodeAST>&& catch_expr,
+        std::unique_ptr<StatementNodeAST>&& catch_block,
+        std::unique_ptr<StatementNodeAST>&& finally_block) :
+            try_block(std::move(try_block)),
+            catch_expr(std::move(catch_expr)),
+            catch_block(std::move(catch_block)),
+            finally_block(std::move(finally_block)) {}
+
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
+class ThrowNodeAST : public StatementNodeAST {
+public:
+    std::unique_ptr<ExpressionNodeAST> value;
+
+    ThrowNodeAST(
+        std::unique_ptr<ExpressionNodeAST>&& value) : 
+            value(std::move(value)) {}
+
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
+struct ImportObject {
+    std::string internal_name;
+    std::string alias;
+
+    ImportObject(
+        const std::string& internal_name,
+        const std::string& alias) :
+            internal_name(internal_name),
+            alias(alias) {}
+};
+
+
+class UseNodeAST : public StatementNodeAST{
+public:
+    std::string path_lib;
+    std::vector<ImportObject> objects;
+    std::string as_name;
+
+    UseNodeAST(
+        const std::string& path_lib,
+        std::vector<ImportObject>&& objects,
+        const std::string& as_name) : 
+            path_lib(path_lib),
+            objects(objects),
+            as_name(as_name) {}
+
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
 class CallOperationNodeAST : public ExpressionNodeAST {
 public:
     std::string name;
@@ -270,6 +373,21 @@ public:
             condition(std::move(condition)),
             true_branch(std::move(true_branch)),
             false_branch(std::move(false_branch)) {}
+
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
+class RangeNodeAST : public ExpressionNodeAST {
+public:
+    std::unique_ptr<ExpressionNodeAST> start;
+    std::unique_ptr<ExpressionNodeAST> end;
+
+    RangeNodeAST(
+        std::unique_ptr<ExpressionNodeAST>&& start, 
+        std::unique_ptr<ExpressionNodeAST>&& end) :
+            start(std::move(start)), 
+            end(std::move(end)) {}
 
     void visit(Visitor& v) override { v.visit(*this); }
 };
