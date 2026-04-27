@@ -8,17 +8,6 @@
 #include "visitor.hpp"
 
 
-
-// class ClassNodeAST : public StatementNodeAST {};
-
-// class MatchCaseNodeAST : public StatementNodeAST {};
-
-// class TestNodeAST : public StatementNodeAST {};
-// class AssertNodeAST : public StatementNodeAST {};
-
-
-
-
 class NodeAST{
 public:
     virtual ~NodeAST() = default;
@@ -194,17 +183,14 @@ class ForNodeAST : public StatementNodeAST {
 public:
     std::string name_var;
     std::unique_ptr<ExpressionNodeAST> iterable;
-    std::unique_ptr<ExpressionNodeAST> step;
     std::unique_ptr<StatementNodeAST> body;
 
     ForNodeAST(
         const std::string& name_var,
         std::unique_ptr<ExpressionNodeAST>&& iterable,
-        std::unique_ptr<ExpressionNodeAST>&& step,
         std::unique_ptr<StatementNodeAST>&& body) :
             name_var(name_var),
             iterable(std::move(iterable)),
-            step(std::move(step)),
             body(std::move(body)) {}
 
     void visit(Visitor& v) override { v.visit(*this); }
@@ -270,7 +256,7 @@ struct ImportObject {
 };
 
 
-class UseNodeAST : public StatementNodeAST{
+class UseNodeAST : public StatementNodeAST {
 public:
     std::string path_lib;
     std::vector<ImportObject> objects;
@@ -283,6 +269,105 @@ public:
             path_lib(path_lib),
             objects(objects),
             as_name(as_name) {}
+
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
+struct ClassMember {
+    std::string access_modifier;
+    bool is_static;
+    bool is_getter;
+    bool is_setter;
+    std::unique_ptr<StatementNodeAST> member_node;
+
+    ClassMember(
+        const std::string& access_modifier,
+        bool is_static,
+        bool is_getter,
+        bool is_setter,
+        std::unique_ptr<StatementNodeAST>&& member_node) :
+            access_modifier(access_modifier),
+            is_static(is_static),
+            is_getter(is_getter),
+            is_setter(is_setter),
+            member_node(std::move(member_node)) {}
+};
+
+
+class ClassNodeAST : public StatementNodeAST {
+public:
+    std::string name;
+    std::string base_class_name;
+    std::vector<ClassMember> members;
+    FunctionNodeAST* constructor;
+    FunctionNodeAST* destructor;
+
+    ClassNodeAST(
+        const std::string& name, 
+        const std::string& base_class,
+        std::vector<ClassMember>&& members,
+        FunctionNodeAST* constructor,
+        FunctionNodeAST* destructor) : 
+            name(name), 
+            base_class_name(base_class),
+            members(std::move(members)),
+            constructor(constructor),
+            destructor(destructor) {}
+
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
+struct Case{
+    std::unique_ptr<ExpressionNodeAST> value;
+    std::unique_ptr<StatementNodeAST> body;
+
+    Case(
+        std::unique_ptr<ExpressionNodeAST>&& value,
+        std::unique_ptr<StatementNodeAST>&& body) : 
+            value(std::move(value)),
+            body(std::move(body)) {}
+};
+
+
+class MatchNodeAST : public StatementNodeAST {
+public:
+    std::unique_ptr<ExpressionNodeAST> value;
+    std::vector<Case> cases;
+
+    MatchNodeAST(
+        std::unique_ptr<ExpressionNodeAST>&& value,
+        std::vector<Case>&& cases) :
+            value(std::move(value)),
+            cases(std::move(cases)) {}
+
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
+class TestNodeAST : public StatementNodeAST {
+public:
+    std::string name;
+    std::unique_ptr<StatementNodeAST> body;
+
+    TestNodeAST(
+        const std::string& name,
+        std::unique_ptr<StatementNodeAST>&& body) : 
+            name(name),
+            body(std::move(body)) {}
+
+    void visit(Visitor& v) override { v.visit(*this); }
+};
+
+
+class AssertNodeAST : public StatementNodeAST {
+public:
+    std::unique_ptr<ExpressionNodeAST> value;
+
+    AssertNodeAST(
+        std::unique_ptr<ExpressionNodeAST>&& value) : 
+            value(std::move(value)) {}
 
     void visit(Visitor& v) override { v.visit(*this); }
 };
@@ -378,16 +463,19 @@ public:
 };
 
 
-class RangeNodeAST : public ExpressionNodeAST {
+class RangeOperationNodeAST : public ExpressionNodeAST {
 public:
     std::unique_ptr<ExpressionNodeAST> start;
     std::unique_ptr<ExpressionNodeAST> end;
+    std::unique_ptr<ExpressionNodeAST> step;
 
-    RangeNodeAST(
+    RangeOperationNodeAST(
         std::unique_ptr<ExpressionNodeAST>&& start, 
-        std::unique_ptr<ExpressionNodeAST>&& end) :
+        std::unique_ptr<ExpressionNodeAST>&& end,
+        std::unique_ptr<ExpressionNodeAST> step) :
             start(std::move(start)), 
-            end(std::move(end)) {}
+            end(std::move(end)),
+            step(std::move(step)) {}
 
     void visit(Visitor& v) override { v.visit(*this); }
 };

@@ -101,22 +101,24 @@ private:
     enum class Priorities {
         NONE = 0,
         ASSIGN = 10, // =, +=, -= ...
-        TERNARY = 15, // ?
-        LOGICAL_OR = 20, // |
-        LOGICAL_AND = 30, // &
-        EQUALS = 40, // ==, !=
-        COMPARE = 50, // <, >, <=, >=
-        SUM = 60, // +, -
-        PRODUCT = 70, // *, /, //, %
-        RANGE = 75, // ..
-        POW = 80, // ^
-        UNARY = 90, // -, ! (в префиксах)
-        CALL = 100 // . (доступ)
+        PIPE = 20, // |> 
+        ELVIS = 30, // ?:
+        TERNARY = 40, // ?
+        LOGICAL_OR = 50, // |
+        LOGICAL_AND = 60, // &
+        EQUALS = 70, // ==, !=
+        COMPARE = 80, // <, >, <=, >=
+        SUM = 90, // +, -
+        PRODUCT = 100, // *, /, //, %
+        RANGE = 110, // ..
+        POW = 120, // ^
+        UNARY = 130, // -, ! 
+        CALL = 140 // . , ?. 
     };
 
     int get_priority(TokenType type) const {
         switch (type) {
-            case TokenType::OP_DOT: 
+            case TokenType::OP_DOT: case TokenType::OP_SAFE_NAV:
                 return static_cast<int>(Priorities::CALL);
             case TokenType::OP_POW:
                 return static_cast<int>(Priorities::POW);
@@ -138,6 +140,10 @@ private:
                 return static_cast<int>(Priorities::LOGICAL_OR);
             case TokenType::OP_QUEST:
                 return static_cast<int>(Priorities::TERNARY);
+            case TokenType::OP_ELVIS:
+                return static_cast<int>(Priorities::ELVIS);
+            case TokenType::OP_PIPE:
+                return static_cast<int>(Priorities::PIPE);
             case TokenType::OP_ASSIGN: case TokenType::OP_PLUS_ASSIGN:
             case TokenType::OP_MINUS_ASSIGN: case TokenType::OP_MUL_ASSIGN:
             case TokenType::OP_DIV_ASSIGN: case TokenType::OP_INT_DIV_ASSIGN:
@@ -206,6 +212,10 @@ private:
         if(match(TokenType::KW_TRY)) return parse_try();
         if(match(TokenType::KW_THROW)) return parse_throw();
         if(match(TokenType::KW_USE)) return parse_use();
+        if(match(TokenType::KW_CLASS)) return parse_class();
+        if(match(TokenType::KW_MATCH)) return parse_match();
+        if(match(TokenType::KW_TEST)) return parse_test();
+        if(match(TokenType::KW_ASSERT)) return parse_assert();
         if (match(TokenType::KW_BREAK)) {
             consume(TokenType::SEMICOLON, "Ожидалась ';' после break");
             return std::make_unique<BreakNodeAST>();
@@ -235,8 +245,12 @@ private:
 
             if (op == TokenType::OP_RANGE) {
                 auto right = parse_expression(new_priority);
-                left = std::make_unique<RangeNodeAST>(
-                    std::move(left), std::move(right));
+                std::unique_ptr<ExpressionNodeAST> step = nullptr;
+                if (match(TokenType::KW_STEP)){
+                    step = parse_expression(static_cast<int>(Priorities::NONE));
+                }
+                left = std::make_unique<RangeOperationNodeAST>(
+                    std::move(left), std::move(right), std::move(step));
                 continue;
             }
 
@@ -351,7 +365,13 @@ private:
                 }
                 parameters.emplace_back(par_name, par_type, 
                     std::move(par_default_val), is_variadic);
-                if(is_variadic) break;
+                
+                if(is_variadic) {
+                    if (current().get_type() == TokenType::COMMA) {
+                        error(par_name + "... должен быть последним в списке");
+                    }
+                    break;
+                }
             } while (match(TokenType::COMMA));
             consume(TokenType::PAREN_R, "Ожидается закрывающая ')'"); 
         }
@@ -426,15 +446,10 @@ private:
             "Ожидается идентификатор").get_value();
         consume(TokenType::KW_IN, "Ожидается 'in'");
         auto iterable = parse_expression(static_cast<int>(Priorities::NONE));
-        std::unique_ptr<ExpressionNodeAST> step = nullptr;
-        if(match(TokenType::KW_STEP)){
-            step = parse_expression(static_cast<int>(Priorities::NONE));
-        }
         consume(TokenType::PAREN_R, "Ожидалась ')'");
-
         auto body = parse_block();
-        return std::make_unique<ForNodeAST>(name_var, std::move(iterable),
-            std::move(step), std::move(body));
+        return std::make_unique<ForNodeAST>(name_var, 
+            std::move(iterable), std::move(body));
     }
 
     std::unique_ptr<StatementNodeAST> parse_try() {
@@ -496,6 +511,116 @@ private:
         consume(TokenType::SEMICOLON, "Ожидалась ';'");
         return std::make_unique<UseNodeAST>(
             path_lib, std::move(objects), as_name);
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_class() {
+        std::string name = consume(TokenType::IDENTIFIER, 
+            "Ожидается имя класса").get_value();
+        std::string base_class_name;
+        if(match(TokenType::KW_EXTENDS)){
+            base_class_name = consume(TokenType::IDENTIFIER, 
+            "Ожидается имя класса наследника").get_value();
+        }
+        consume(TokenType::BRACE_L, "Ожидается тело класса '{'");
+
+        std::vector<ClassMember> members;
+        FunctionNodeAST* constructor = nullptr;
+        FunctionNodeAST* destructor = nullptr;
+
+        while (!match(TokenType::BRACE_R)) {
+            std::string access_modifier = "public";
+            bool is_static = match(TokenType::KW_STATIC);
+            bool is_getter = false;
+            bool is_setter = false;
+
+            if (match(TokenType::KW_PRIVATE)) 
+                access_modifier = "private";
+            else if (match(TokenType::KW_PROTECTED)) 
+                access_modifier = "protected";
+            else match(TokenType::KW_PUBLIC);
+
+            if (match(TokenType::KW_GETTER)) is_getter = true;
+            if (match(TokenType::KW_SETTER)) is_setter = true;
+
+            if(current().get_type() == TokenType::IDENTIFIER){
+                if(peek(1).get_type() == TokenType::PAREN_L){
+                    auto func = parse_func();
+                    FunctionNodeAST* func_ptr = static_cast<
+                        FunctionNodeAST*>(func.get());
+                    if(func_ptr->name == "new"){
+                        if(constructor) error(
+                            "Конструктор может быть только один");
+                        constructor = static_cast<FunctionNodeAST*>(func.get());
+                    } else if(func_ptr->name == "delete"){
+                        if(destructor) error(
+                            "Деструктор может быть только один");
+                        destructor = static_cast<FunctionNodeAST*>(func.get());
+                    }
+                    members.emplace_back(access_modifier, is_static, 
+                        is_getter, is_setter, std::move(func));
+                } else {
+                    auto statement_make = parse_make();
+                    members.emplace_back(access_modifier, is_static, 
+                            is_getter, is_setter, std::move(statement_make));
+                }
+            } else {
+                error("Ожидается идентификатор (имя метода или поля)");
+            }
+        }
+
+        return std::make_unique<ClassNodeAST>(name, base_class_name, 
+            std::move(members), constructor, destructor);
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_match() {
+        std::unique_ptr<ExpressionNodeAST> value;
+        std::vector<Case> cases;
+        bool exists_default = false;
+
+        consume(TokenType::PAREN_L, "Ожидалась '(' после match");
+        value = parse_expression(static_cast<int>(Priorities::NONE));
+        consume(TokenType::PAREN_R, "Ожидалась ')'");
+        consume(TokenType::BRACE_L, "Ожидалась '{' тело match");
+
+        while (current().get_type() != TokenType::BRACE_R && 
+            current().get_type() != TokenType::END_OF_FILE){
+                if(match(TokenType::KW_CASE)){
+                    auto case_expr = parse_expression(static_cast<int>(
+                        Priorities::NONE));
+                    consume(TokenType::OP_COLON, "Требуется ':'");
+                    auto body = parse_block();
+                    cases.emplace_back(std::move(case_expr), std::move(body));
+
+                } else if(match(TokenType::KW_DEFAULT)){
+                    if(exists_default) error("Допустим только один default");
+                    exists_default = true;
+                    consume(TokenType::OP_COLON, "Требуется ':'");
+                    auto body = parse_block();
+                    cases.emplace_back(nullptr, std::move(body));
+                } else {
+                    error("В match доступны блоки только case и default");
+                }
+        }
+        
+        if (cases.empty()) {
+            error("match должен содержать хотя бы один case или default");
+        }
+        consume(TokenType::BRACE_R, "Ожидалась '}'");
+        return std::make_unique<MatchNodeAST>(
+            std::move(value), std::move(cases));
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_test() {
+        std::string name = consume(TokenType::IDENTIFIER, 
+            "Ожидается имя теста").get_value();
+        auto body = parse_block();
+        return std::make_unique<TestNodeAST>(name, std::move(body));
+    }
+
+    std::unique_ptr<StatementNodeAST> parse_assert() {
+        auto value = parse_expression(static_cast<int>(Priorities::NONE));
+        consume(TokenType::SEMICOLON, "Ожидалась ';'");
+        return std::make_unique<AssertNodeAST>(std::move(value));
     }
 };
 

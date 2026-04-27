@@ -33,7 +33,6 @@ enum class TokenType {
     KW_FROM, // from
     KW_AS, // as
     KW_CLASS, // class
-    KW_THIS, // this
     KW_EXTENDS, // extends
     KW_PRIVATE, // private
     KW_PROTECTED, // protected
@@ -128,7 +127,6 @@ inline std::string token_to_string(TokenType type,
             case TokenType::KW_FROM: return "FROM";
             case TokenType::KW_AS: return "AS";
             case TokenType::KW_CLASS: return "CLASS";
-            case TokenType::KW_THIS: return "THIS";
             case TokenType::KW_EXTENDS: return "EXTENDS";
             case TokenType::KW_PRIVATE: return "PRIVATE";
             case TokenType::KW_PROTECTED: return "PROTECTED";
@@ -221,7 +219,6 @@ static const std::unordered_map<std::string, TokenType> keyword_map = {
     {"from", TokenType::KW_FROM},
     {"as", TokenType::KW_AS},
     {"class", TokenType::KW_CLASS},
-    {"this", TokenType::KW_THIS},
     {"extends", TokenType::KW_EXTENDS},
     {"private", TokenType::KW_PRIVATE},
     {"protected", TokenType::KW_PROTECTED},

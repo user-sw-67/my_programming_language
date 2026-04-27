@@ -22,9 +22,7 @@ private:
     void add_node(const std::string& id, const std::string& label, const std::string& shape = "[]", const std::string& link_label = "") {
         std::string open = shape.substr(0, shape.size() / 2);
         std::string close = shape.substr(shape.size() / 2);
-        
         out << "  " << id << open << "\"   " << label << "   \"" << close << "\n";
-        
         if (!parent_stack.empty()) {
             std::string text = link_label.empty() ? "далее" : link_label;
             out << "  " << parent_stack.top() << " -- \" <font color='black'><b>" << text << "</b></font> \" ----> " << id << "\n";
@@ -39,6 +37,10 @@ private:
 
     std::string op_to_str(TokenType type) {
         switch (type) {
+            case TokenType::OP_SAFE_NAV: return "🛡️ БЕЗОПАСНЫЙ ДОСТУП (?.)";
+            case TokenType::OP_PIPE:     return "🌊 ПОТОК (|>)";
+            case TokenType::OP_ELVIS:    return "👤 ЭЛВИС (?:)";
+            case TokenType::OP_RANGE:    return "📏 ДИАПАЗОН (..)";
             case TokenType::OP_PLUS:  return "➕ СЛОЖИТЬ (+) ";
             case TokenType::OP_MINUS: return "➖ ВЫЧЕСТЬ (-) ";
             case TokenType::OP_MUL:   return "✖️ УМНОЖИТЬ (*) ";
@@ -72,9 +74,9 @@ public:
         out << "  classDef op_style fill:#f3e5f5,color:#000,stroke:#7b1fa2,stroke-width:2px;\n";
         out << "  classDef logic_style fill:#fff9c4,color:#000,stroke:#fbc02d,stroke-width:2px;\n";
         out << "  classDef func_style fill:#c8e6c9,color:#000,stroke:#2e7d32,stroke-width:2px;\n";
+        out << "  classDef test_style fill:#ffe0b2,color:#000,stroke:#fb8c00,stroke-width:2px;\n";
+        out << "  classDef assert_style fill:#ffcdd2,color:#000,stroke:#e53935,stroke-width:2px;\n";
     }
-
-    // --- СТРУКТУРНЫЕ УЗЛЫ ---
 
     void visit(ProgramNode& node) override {
         std::string id = next_id();
@@ -90,17 +92,13 @@ public:
     }
 
     void visit(ExpressionStatementNodeAST& node) override {
-        // Чтобы не плодить лишние узлы, сразу идем к выражению
         if (node.expression) node.expression->visit(*this);
     }
-
-    // --- ПЕРЕМЕННЫЕ И ФУНКЦИИ ---
 
     void visit(MakeNodeAST& node) override {
         std::string id = next_id();
         add_node(id, node.is_const ? "🔒 КОНСТАНТЫ (make)" : "📝 ПЕРЕМЕННЫЕ (make)", "{{ }}");
         out << "  class " << id << " var_style\n";
-
         parent_stack.push(id);
         for (size_t i = 0; i < node.names.size(); ++i) {
             std::string var_id = next_id();
@@ -116,18 +114,14 @@ public:
         std::string id = next_id();
         add_node(id, "🔨 ФУНКЦИЯ: " + node.name + "\nВернет: " + node.return_type, "(( ))");
         out << "  class " << id << " func_style\n";
-
         parent_stack.push(id);
-        // Параметры
         for (auto& param : node.parameters) {
             std::string p_id = next_id();
             std::string label = "АРГ: " + param.name + (param.is_variadic ? "..." : "") + " (" + param.type + ")";
             add_node(p_id, label, "([ ])", "сигнатура");
             if (param.default_value) visit_child(*param.default_value, p_id, "дефолт");
         }
-        // Условие when
         if (node.when_condition) visit_child(*node.when_condition, id, "условие_when");
-        // Тело
         if (node.body) visit_child(*node.body, id, "код_внутри");
         parent_stack.pop();
     }
@@ -138,8 +132,6 @@ public:
         if (node.value) visit_child(*node.value, id, "результат");
     }
 
-    // --- ЛОГИКА ---
-
     void visit(IfElseNodeAST& node) override {
         std::string id = next_id();
         add_node(id, "❓ ЕСЛИ (if)", "{ }");
@@ -148,8 +140,6 @@ public:
         visit_child(*node.then_branch, id, "ветка_ТО");
         if (node.else_branch) visit_child(*node.else_branch, id, "ветка_ИНАЧЕ");
     }
-
-    // --- ВЫРАЖЕНИЯ И ОПЕРАЦИИ ---
 
     void visit(BinaryOperationNodeAST& node) override {
         std::string id = next_id();
@@ -182,8 +172,6 @@ public:
         for (auto& arg : node.args) visit_child(*arg, id, "арг");
     }
 
-    // --- ЛИТЕРАЛЫ И ИДЕНТИФИКАТОРЫ ---
-
     void visit(LiteralNodeAST& node) override {
         add_node(next_id(), "💎 " + node.value, "[]");
     }
@@ -192,41 +180,46 @@ public:
         add_node(next_id(), "🔍 " + node.name, "([ ])");
     }
 
-    // --- ЦИКЛЫ И УПРАВЛЕНИЕ ---
-
     void visit(WhileNodeAST& node) override {
         std::string id = next_id();
         std::string label = node.is_do_while ? "🔄 ЦИКЛ: do-while" : "🔄 ЦИКЛ: while";
         add_node(id, label, "{{ }}");
         out << "  class " << id << " logic_style\n";
-        
         visit_child(*node.condition, id, "условие");
         if (node.body) visit_child(*node.body, id, "тело_цикла");
+    }
+
+    void visit(RangeOperationNodeAST& node) override {
+        std::string id = next_id();
+        std::string label = node.step ? "📏 ДИАПАЗОН (.. step)" : "📏 ДИАПАЗОН (..)";
+        add_node(id, label, "{{ }}");
+        out << "  class " << id << " op_style\n";
+        if (node.start) {
+            visit_child(*node.start, id, "от");
+        }
+        if (node.end) {
+            visit_child(*node.end, id, "до");
+        }
+        if (node.step) {
+            visit_child(*node.step, id, "шаг");
+        }
     }
 
     void visit(ForNodeAST& node) override {
         std::string id = next_id();
         add_node(id, "♻️ ЦИКЛ: for (" + node.name_var + ")", "{{ }}");
         out << "  class " << id << " logic_style\n";
-        
-        if (node.iterable) visit_child(*node.iterable, id, "внутри");
-        if (node.step) visit_child(*node.step, id, "шаг");
-        if (node.body) visit_child(*node.body, id, "тело_цикла");
-    }
-
-    void visit(RangeNodeAST& node) override {
-        std::string id = next_id();
-        add_node(id, "📏 ДИАПАЗОН (..)", "[ ]");
-        out << "  class " << id << " op_style\n";
-        
-        if (node.start) visit_child(*node.start, id, "от");
-        if (node.end) visit_child(*node.end, id, "до");
+        if (node.iterable) {
+            visit_child(*node.iterable, id, "внутри");
+        }
+        if (node.body) {
+            visit_child(*node.body, id, "тело_цикла");
+        }
     }
 
     void visit(BreakNodeAST& node) override {
         std::string id = next_id();
         add_node(id, "🛑 ПРЕРВАТЬ (break)", "[[ ]]");
-        // Можно добавить отдельный стиль для управления потоком, если захочешь
     }
 
     void visit(ContinueNodeAST& node) override {
@@ -234,29 +227,21 @@ public:
         add_node(id, "⏭️ ПРОДОЛЖИТЬ (continue)", "[[ ]]");
     }
 
-    // --- ИСКЛЮЧЕНИЯ (Try-Catch-Finally / Throw) ---
-
     void visit(TryNodeAST& node) override {
         std::string try_id = next_id();
         add_node(try_id, "🛡️ ПОПРОБОВАТЬ (try)", "[ ]");
-        
-        // 1. Основной блок выполнения
         if (node.try_block) {
             visit_child(*node.try_block, try_id, "попытка");
         }
-
-        // 2. Блок перехвата ошибки
         if (node.catch_block) {
             std::string catch_id = next_id();
-            parent_stack.push(try_id); // Временно делаем try родителем для связи
+            parent_stack.push(try_id);
             add_node(catch_id, "⚠️ ПОЙМАТЬ (catch)", "{ }", "ошибка");
             parent_stack.pop();
 
             if (node.catch_expr) visit_child(*node.catch_expr, catch_id, "аргумент");
             visit_child(*node.catch_block, catch_id, "обработка");
         }
-
-        // 3. Блок завершения
         if (node.finally_block) {
             visit_child(*node.finally_block, try_id, "в любом случае");
         }
@@ -270,35 +255,99 @@ public:
         }
     }
 
-    // --- ИМПОРТЫ (use ... from ..) ---
     void visit(UseNodeAST& node) override {
         std::string id = next_id();
-        
-        // 1. Очистка пути (убираем кавычки, чтобы не сломать строку Mermaid)
         std::string clean_path = node.path_lib;
         clean_path.erase(std::remove(clean_path.begin(), clean_path.end(), '\"'), clean_path.end());
-
-        // 2. Текст заголовка (без лишних спецсимволов)
         std::string label = "📦 IMPORT: " + clean_path;
         if (!node.as_name.empty()) label += " as " + node.as_name;
-
-        // 3. Генерируем узел БЕЗ пробелов между кавычками и скобками.
-        // Вместо add_node(id, label, "[]") пишем напрямую, чтобы контролировать каждый пробел.
         out << "  " << id << "[\"" << label << "\"]\n";
         out << "  class " << id << " func_style\n"; 
-
-        // 4. Отрисовка объектов
         for (const auto& obj : node.objects) {
             std::string obj_id = next_id();
             std::string obj_label = "🔹 " + obj.internal_name;
             if (!obj.alias.empty()) obj_label += " ➜ " + obj.alias;
-
-            // Узел объекта: скругленный, без пробелов внутри ([])
             out << "  " << obj_id << "([\"" << obj_label << "\"])\n";
-            
-            // 5. Выравнивание линий:
-            // Используем ----> (4 тире), это заставляет Mermaid выпрямлять связи.
             out << "  " << id << " -- \" <font color='black'><b>объект</b></font> \" ----> " << obj_id << "\n";
+        }
+    }
+
+    void visit(ClassNodeAST& node) override {
+        std::string id = next_id();
+        std::string label = "🏛️ КЛАСС: " + node.name;
+        if (!node.base_class_name.empty()) {
+            label += "\n(наследует " + node.base_class_name + ")";
+        }
+        add_node(id, label, "[[ ]]");
+        out << "  class " << id << " root_style\n"; 
+        parent_stack.push(id);
+        for (auto& member : node.members) {
+            std::string m_id = next_id();
+            std::string m_label = "";
+            if (member.access_modifier == "private") m_label += " private ";
+            else if (member.access_modifier == "protected") m_label += " protected ";
+            else m_label += " public ";
+            if (member.is_static) m_label += "[static] ";
+            auto* func = dynamic_cast<FunctionNodeAST*>(member.member_node.get());
+            if (func) {
+                m_label += "МЕТОД: " + func->name;
+                if (member.is_getter) m_label += " «get»";
+                if (member.is_setter) m_label += " «set»";
+                add_node(m_id, m_label, "(( ))", "член_класса");
+                out << "  class " << m_id << " func_style\n";
+                visit_child(*func, m_id, "реализация");
+            } 
+            else {
+                m_label += "ПОЛЕ";
+                add_node(m_id, m_label, "([ ])", "член_класса");
+                out << "  class " << m_id << " var_style\n";
+                visit_child(*member.member_node, m_id, "определение");
+            }
+        }
+        
+        parent_stack.pop();
+    }
+
+    void visit(MatchNodeAST& node) override {
+        std::string match_id = next_id();
+        add_node(match_id, "🎯 MATCH", "{ }");
+        out << "  class " << match_id << " logic_style\n";
+        if (node.value) {
+            visit_child(*node.value, match_id, "значение");
+        }
+        parent_stack.push(match_id);
+        for (size_t i = 0; i < node.cases.size(); ++i) {
+            auto& c = node.cases[i];
+            std::string case_id = next_id();
+            bool is_default = (c.value == nullptr);
+            std::string label = is_default ? "⚙️ DEFAULT" : "📦 CASE #" + std::to_string(i + 1);
+            add_node(case_id, label, is_default ? "[ ]" : "([ ])", "вариант");
+            if (c.value) {
+                visit_child(*c.value, case_id, "условие");
+            }
+            if (c.body) {
+                visit_child(*c.body, case_id, "выполнить");
+            }
+        }
+        parent_stack.pop();
+    }
+
+    void visit(TestNodeAST& node) override {
+        std::string id = next_id();
+        add_node(id, "🧪 ТЕСТ: " + node.name, "{{ }}");
+        out << "  class " << id << " test_style\n";
+        if (node.body) {
+            visit_child(*node.body, id, "проверка");
+        }
+    }
+
+    void visit(AssertNodeAST& node) override {
+        std::string id = next_id();
+        add_node(id, "✅ ASSERT", "[/ /]");
+        out << "  class " << id << " assert_style\n";
+
+        if (node.value) {
+            visit_child(*node.value, id, "условие");
         }
     }
 

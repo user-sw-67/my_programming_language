@@ -170,7 +170,7 @@ use "math.atm" as m;
 
 # ----- КЛАССЫ И ООП -----
 class Person {
-    private name;
+    private name -> Int = 0;
     public age;
     protected id;
     
@@ -179,11 +179,15 @@ class Person {
         this.age = age;
     }
     
+    delete() {
+
+    }
+
     getter name() {
         return this.name;
     }
     
-    setter name(value) {
+    static private setter name(value) {
         this.name = value;
     }
     
@@ -191,7 +195,7 @@ class Person {
 }
 
 class Student extends Person {
-    private static studentCount = 0;
+    static private studentCount = 0;
     
     new(name, age) {
         super(name, age);
@@ -217,8 +221,8 @@ make city = user?.address?.city ?: "Unknown";
 make result = read("data.txt")
     |> parse_json()
     |> get("users")
-    |> filter(|u| u.age > 18)
-    |> map(|u| u.name);
+    |> filter(func f(u) -> u.age > 18)
+    |> map(func f(u) -> u.name);
 
 # Диапазоны
 make numbers = 1..10;
@@ -248,12 +252,12 @@ match (value) {
 }
 
 # ----- ТЕСТЫ -----
-test "add works" {
+test AddWork {
     assert add(2, 2) == 4;
     assert add(-1, 1) == 0;
 }
 
-test "string concat" {
+test StringConcat {
     assert "hello" + "world" == "helloworld";
 }
 
@@ -367,7 +371,7 @@ class User {
     new(id, name) {
         this.id = id;
         this.name = name;
-        this.tasks = [];
+        this.tasks;
     }
     
     getter id() {
@@ -391,7 +395,7 @@ class User {
     }
     
     removeTask(taskId) {
-        make newTasks = [];
+        make newTasks;
         make found = false;
         
         for (task in this.tasks) {
@@ -422,7 +426,7 @@ class User {
     }
     
     findTasksByPriority(priority) {
-        make results = [];
+        make results;
         for (task in this.tasks) {
             if (task.priority() == priority) {
                 results.push(task);
@@ -432,7 +436,7 @@ class User {
     }
     
     findTasksByStatus(completed) {
-        make results = [];
+        make results;
         for (task in this.tasks) {
             if (task.completed() == completed) {
                 results.push(task);
@@ -687,7 +691,7 @@ func main() {
 
 # ----- ЗАПУСК ПРОГРАММЫ -----
 
-test "Task Manager System" {
+test TesrSystem {
     make testUser = User(99, "Test User");
     
     testUser.addTask("Complete project", "Finish the ATM language project", 1);
