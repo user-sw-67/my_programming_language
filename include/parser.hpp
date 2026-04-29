@@ -64,6 +64,11 @@ protected:
             std::to_string(current().get_line()) + ":" + 
                 std::to_string(current().get_column()));
     }
+
+    SourceLocation get_loc(const Token& token) {
+        return SourceLocation(token.get_line(), token.get_column());
+    }
+
 };
 
 
@@ -92,7 +97,7 @@ private:
             file << "```mermaid\n";
             MermaidVisitor visualizer(file);
             visualizer.start();
-            program->visit(visualizer);
+            program->accept(visualizer);
             file << "```\n";
             file.close();
             std::cout << "AST дерево сохранено в " << filename << std::endl;
@@ -159,11 +164,13 @@ private:
             match(TokenType::LIT_DOUBLE) || match(TokenType::LIT_NULL) || 
                 match(TokenType::LIT_STR)) {
                     return std::make_unique<LiteralNodeAST>(
-                        peek(-1).get_value());
+                        peek(-1).get_value(), peek(-1).get_type(), 
+                        get_loc(peek(-1)));
                 }
 
         if(match(TokenType::IDENTIFIER)) {
-            std::string name = peek(-1).get_value();
+            const Token& token = peek(-1);
+            std::string name = token.get_value();
             if(match(TokenType::PAREN_L)) {
                 std::vector<std::unique_ptr<ExpressionNodeAST>> args;
                 if(current().get_type() != TokenType::PAREN_R){
@@ -175,17 +182,18 @@ private:
                 }
                 consume(TokenType::PAREN_R, "Ожидалась закрывающая скобка ')'");
                 return std::make_unique<CallOperationNodeAST>(
-                    name, std::move(args));
+                    name, std::move(args), get_loc(token));
             }
-            return std::make_unique<IdentifierNodeAST>(name);
+            return std::make_unique<IdentifierNodeAST>(name, get_loc(token));
         }
 
         if (match(TokenType::OP_NOT) || match(TokenType::OP_MINUS)) {
-            TokenType op = peek(-1).get_type();
+            const Token& token = peek(-1);
+            TokenType op = token.get_type();
             auto operand = parse_expression(
                 static_cast<int>(Priorities::UNARY));
             return std::make_unique<UnaryOperationNodeAST>(
-                op, std::move(operand));
+                op, std::move(operand), get_loc(token));
         }
 
         if (match(TokenType::PAREN_L)) {
@@ -217,21 +225,26 @@ private:
         if(match(TokenType::KW_TEST)) return parse_test();
         if(match(TokenType::KW_ASSERT)) return parse_assert();
         if (match(TokenType::KW_BREAK)) {
+            SourceLocation break_loc = get_loc(peek(-1));
             consume(TokenType::SEMICOLON, "Ожидалась ';' после break");
-            return std::make_unique<BreakNodeAST>();
+            return std::make_unique<BreakNodeAST>(break_loc);
         }
         if (match(TokenType::KW_CONTINUE)) {
+            SourceLocation continue_loc = get_loc(peek(-1));
             consume(TokenType::SEMICOLON, "Ожидалась ';' после continue");
-            return std::make_unique<ContinueNodeAST>();
+            return std::make_unique<ContinueNodeAST>(continue_loc);
         }
 
         auto expr = parse_expression(static_cast<int>(Priorities::NONE));
+        auto loc = expr->location;
         consume(TokenType::SEMICOLON, "Ожидалась ';' после выражения");
-        return std::make_unique<ExpressionStatementNodeAST>(std::move(expr));
+        return std::make_unique<ExpressionStatementNodeAST>(
+            std::move(expr), loc);
     }
 
     std::unique_ptr<ExpressionNodeAST> parse_expression(int priority) {
         auto left = get_prefix();
+        SourceLocation loc = left->location;
         while (get_priority(current().get_type()) > priority) {
             TokenType op = current().get_type();
             int new_priority = get_priority(op);
@@ -250,7 +263,7 @@ private:
                     step = parse_expression(static_cast<int>(Priorities::NONE));
                 }
                 left = std::make_unique<RangeOperationNodeAST>(
-                    std::move(left), std::move(right), std::move(step));
+                    std::move(left), std::move(right), std::move(step), loc);
                 continue;
             }
 
@@ -262,20 +275,21 @@ private:
                 auto false_expr = parse_expression(
                     static_cast<int>(Priorities::TERNARY) - 1);
                 left = std::make_unique<TernaryOperationNodeAST>(
-                    std::move(left), std::move(true_expr), std::move(false_expr)
-                );
+                    std::move(left), std::move(true_expr), 
+                    std::move(false_expr), loc);
                 continue;
             }
 
             auto right = parse_expression(new_priority);
             left = std::make_unique<BinaryOperationNodeAST>(
-                std::move(left), op, std::move(right));
+                std::move(left), op, std::move(right), loc);
         }
         return left;
     }
 
     std::unique_ptr<StatementNodeAST> parse_block() {
-        auto block = std::make_unique<BlockNodeAST>();
+        SourceLocation loc = get_loc(current());
+        auto block = std::make_unique<BlockNodeAST>(loc);
         consume(TokenType::BRACE_L, "Ожидалась '{' в начале блока");
 
         while (!is_end() && current().get_type() != TokenType::BRACE_R) {
@@ -286,14 +300,24 @@ private:
         return block;
     }
 
-    std::unique_ptr<StatementNodeAST> parse_make() {
+    std::unique_ptr<StatementNodeAST> parse_make(bool in_class = false) {
+        SourceLocation loc(0, 0);
+        if(!in_class){
+            loc = get_loc(peek(-1));
+        }
         bool is_const = match(TokenType::KW_CONST);
+        if(in_class && is_const) {
+            loc = get_loc(peek(-1));
+        }
 
         std::vector<std::string> names;
         std::vector<std::string> type_names;
         do{
             names.push_back(consume(TokenType::IDENTIFIER, 
                 "Отсутствует идентификатор (имя переменной)").get_value());
+            if(in_class && loc == SourceLocation(0, 0)){
+                loc = get_loc(peek(-1));
+            }
             std::string type_name_current("auto");
             if(match(TokenType::OP_ARROW)) {
                 type_name_current = consume(TokenType::IDENTIFIER, 
@@ -310,6 +334,10 @@ private:
             } while (match(TokenType::COMMA));
         }
 
+        if (!in_class && is_const && initializers.empty()) {
+            error("Константа должна быть инициализирована");
+        }
+
         consume(TokenType::SEMICOLON, "Ожидалась ';'");
         if (!initializers.empty() && names.size() != initializers.size()) {
             error("Количество переменных (" 
@@ -317,13 +345,14 @@ private:
                     ") не совпадает с количеством значений (" + 
                         std::to_string(initializers.size()) + ")");
         }
-        
+
         return std::make_unique<MakeNodeAST>(
             std::move(names), std::move(type_names), 
-            std::move(initializers), is_const);
+            std::move(initializers), is_const, loc);
     }
 
     std::unique_ptr<StatementNodeAST> parse_if() {
+        SourceLocation loc = get_loc(peek(-1));
         consume(TokenType::PAREN_L, "Ожидается условие в '()'");
         std::unique_ptr<ExpressionNodeAST> condition = 
             parse_expression(static_cast<int>(Priorities::NONE));
@@ -338,21 +367,29 @@ private:
         }
 
         return std::make_unique<IfElseNodeAST>(std::move(condition), 
-            std::move(then_branch), std::move(else_branch));
+            std::move(then_branch), std::move(else_branch), loc);
     }
 
-    std::unique_ptr<StatementNodeAST> parse_func() {
+    std::unique_ptr<StatementNodeAST> parse_func(bool in_class = false) {
+        SourceLocation loc;
+        if(!in_class){
+            loc = get_loc(peek(-1));
+        }
         std::string name = consume(
             TokenType::IDENTIFIER, 
                 "Ожидается идентификатор (имя функции)").get_value();
+        if(in_class) {
+            loc = get_loc(peek(-1));
+        }
         consume(TokenType::PAREN_L, "Ожидается '(' после идентификатора");
 
         std::vector<Parameter> parameters;
         if(!match(TokenType::PAREN_R)) {
             do{
                 bool is_variadic = match(TokenType::OP_ELLIPSIS);
-                std::string par_name = consume(TokenType::IDENTIFIER, 
-                    "Ожидалось имя параметра").get_value();
+                const Token& par = consume(TokenType::IDENTIFIER, 
+                    "Ожидалось имя параметра");
+                std::string par_name = par.get_value();
                 std::string par_type("auto");
                 if(match(TokenType::OP_ARROW)) {
                     par_type = consume(TokenType::IDENTIFIER, 
@@ -364,7 +401,7 @@ private:
                         static_cast<int>(Priorities::NONE));
                 }
                 parameters.emplace_back(par_name, par_type, 
-                    std::move(par_default_val), is_variadic);
+                    std::move(par_default_val), is_variadic, get_loc(par));
                 
                 if(is_variadic) {
                     if (current().get_type() == TokenType::COMMA) {
@@ -396,27 +433,31 @@ private:
 
         std::unique_ptr<StatementNodeAST> body;
         if(match(TokenType::OP_ARROW)){
+            SourceLocation arrow_loc = get_loc(peek(-1));
             auto expr = parse_expression(static_cast<int>(Priorities::NONE));
             consume(TokenType::SEMICOLON, "Ожидалась ';' после выражения");
-            body = std::make_unique<ReturnNodeAST>(std::move(expr));
+            body = std::make_unique<ReturnNodeAST>(std::move(expr), arrow_loc);
         } else {
             body = parse_block();
         }
 
         return std::make_unique<FunctionNodeAST>(name, return_type,
-            std::move(parameters), std::move(when_condition), std::move(body));            
+            std::move(parameters), std::move(when_condition), 
+            std::move(body), loc);            
     }
 
     std::unique_ptr<StatementNodeAST> parse_return() {
+        SourceLocation loc = get_loc(peek(-1));
         std::unique_ptr<ExpressionNodeAST> value = nullptr;
         if(!match(TokenType::SEMICOLON)){
             value = parse_expression(static_cast<int>(Priorities::NONE));
             consume(TokenType::SEMICOLON, "Ожидалась ';'");
         }
-        return std::make_unique<ReturnNodeAST>(std::move(value));
+        return std::make_unique<ReturnNodeAST>(std::move(value), loc);
     }
 
     std::unique_ptr<StatementNodeAST> parse_while(bool is_do_while) {
+        SourceLocation loc = get_loc(peek(-1));
         std::unique_ptr<StatementNodeAST> body;
         std::unique_ptr<ExpressionNodeAST> condition;
 
@@ -437,10 +478,11 @@ private:
         }
 
         return std::make_unique<WhileNodeAST>(std::move(condition), 
-            std::move(body), is_do_while);
+            std::move(body), is_do_while, loc);
     }
 
     std::unique_ptr<StatementNodeAST> parse_for() {
+        SourceLocation loc = get_loc(peek(-1));
         consume(TokenType::PAREN_L, "Ожидалась '(' после for");
         std::string name_var = consume(TokenType::IDENTIFIER, 
             "Ожидается идентификатор").get_value();
@@ -449,10 +491,11 @@ private:
         consume(TokenType::PAREN_R, "Ожидалась ')'");
         auto body = parse_block();
         return std::make_unique<ForNodeAST>(name_var, 
-            std::move(iterable), std::move(body));
+            std::move(iterable), std::move(body), loc);
     }
 
     std::unique_ptr<StatementNodeAST> parse_try() {
+        SourceLocation loc = get_loc(peek(-1));
         auto try_block = parse_block();
 
         consume(TokenType::KW_CATCH, "Необходим блок 'catch'");
@@ -468,33 +511,36 @@ private:
 
         return std::make_unique<TryNodeAST>(std::move(try_block), 
             std::move(catch_expr), std::move(catch_block), 
-                std::move(finally_block));
+                std::move(finally_block), loc);
     }
 
     std::unique_ptr<StatementNodeAST> parse_throw() {
+        SourceLocation loc = get_loc(peek(-1));
         std::unique_ptr<ExpressionNodeAST> value = nullptr;
         if(!match(TokenType::SEMICOLON)){
             value = parse_expression(static_cast<int>(Priorities::NONE));
             consume(TokenType::SEMICOLON, "Ожидалась ';'");
         }
-        return std::make_unique<ThrowNodeAST>(std::move(value));
+        return std::make_unique<ThrowNodeAST>(std::move(value), loc);
     }
 
     std::unique_ptr<StatementNodeAST> parse_use() {
+        SourceLocation loc = get_loc(peek(-1));
         std::string path_lib;
         std::vector<ImportObject> objects;
         std::string as_name("");
 
         if(match(TokenType::BRACE_L)){
             do{
-                std::string internal_name = consume(TokenType::IDENTIFIER, 
-                    "Ожидается идентификатор объекта").get_value();
+                const Token& token = consume(TokenType::IDENTIFIER, 
+                    "Ожидается идентификатор объекта");
+                std::string internal_name = token.get_value();
                 std::string alias("");
                 if(match(TokenType::KW_AS)){
                     alias = consume(TokenType::IDENTIFIER, 
                         "Ожидается новый идентификатор объекта").get_value();
                 }
-                objects.emplace_back(internal_name, alias);
+                objects.emplace_back(internal_name, alias, get_loc(token));
             } while (match(TokenType::COMMA));
             consume(TokenType::BRACE_R, "Ожидалась '}'");
             consume(TokenType::KW_FROM, "Требуется 'from'");
@@ -510,10 +556,11 @@ private:
         }
         consume(TokenType::SEMICOLON, "Ожидалась ';'");
         return std::make_unique<UseNodeAST>(
-            path_lib, std::move(objects), as_name);
+            path_lib, std::move(objects), as_name, loc);
     }
 
     std::unique_ptr<StatementNodeAST> parse_class() {
+        SourceLocation loc = get_loc(peek(-1));
         std::string name = consume(TokenType::IDENTIFIER, 
             "Ожидается имя класса").get_value();
         std::string base_class_name;
@@ -524,8 +571,6 @@ private:
         consume(TokenType::BRACE_L, "Ожидается тело класса '{'");
 
         std::vector<ClassMember> members;
-        FunctionNodeAST* constructor = nullptr;
-        FunctionNodeAST* destructor = nullptr;
 
         while (!match(TokenType::BRACE_R)) {
             std::string access_modifier = "public";
@@ -542,37 +587,37 @@ private:
             if (match(TokenType::KW_GETTER)) is_getter = true;
             if (match(TokenType::KW_SETTER)) is_setter = true;
 
-            if(current().get_type() == TokenType::IDENTIFIER){
-                if(peek(1).get_type() == TokenType::PAREN_L){
-                    auto func = parse_func();
-                    FunctionNodeAST* func_ptr = static_cast<
-                        FunctionNodeAST*>(func.get());
-                    if(func_ptr->name == "new"){
-                        if(constructor) error(
-                            "Конструктор может быть только один");
-                        constructor = static_cast<FunctionNodeAST*>(func.get());
-                    } else if(func_ptr->name == "delete"){
-                        if(destructor) error(
-                            "Деструктор может быть только один");
-                        destructor = static_cast<FunctionNodeAST*>(func.get());
-                    }
-                    members.emplace_back(access_modifier, is_static, 
-                        is_getter, is_setter, std::move(func));
-                } else {
-                    auto statement_make = parse_make();
-                    members.emplace_back(access_modifier, is_static, 
-                            is_getter, is_setter, std::move(statement_make));
-                }
+            if(current().get_type() == TokenType::KW_CONST) {
+                auto statement_make = parse_make(true);
+                auto loc = statement_make->location;
+                members.emplace_back(access_modifier, is_static, 
+                    is_getter, is_setter, std::move(statement_make), loc);
             } else {
-                error("Ожидается идентификатор (имя метода или поля)");
+                if(current().get_type() == TokenType::IDENTIFIER) {
+                    if(peek(1).get_type() == TokenType::PAREN_L){
+                        auto func = parse_func(true);
+                        auto loc = func->location;
+                        members.emplace_back(access_modifier, is_static, 
+                            is_getter, is_setter, std::move(func), loc);
+                    } else {
+                        auto statement_make = parse_make(true);
+                        auto loc = statement_make->location;
+                        members.emplace_back(access_modifier, is_static, 
+                                is_getter, is_setter, 
+                                    std::move(statement_make), loc);
+                    }
+                } else {
+                    error("Ожидается идентификатор (имя метода или поля)");
+                }
             }
         }
 
         return std::make_unique<ClassNodeAST>(name, base_class_name, 
-            std::move(members), constructor, destructor);
+            std::move(members), loc);
     }
 
     std::unique_ptr<StatementNodeAST> parse_match() {
+        SourceLocation loc = get_loc(peek(-1));
         std::unique_ptr<ExpressionNodeAST> value;
         std::vector<Case> cases;
         bool exists_default = false;
@@ -589,14 +634,16 @@ private:
                         Priorities::NONE));
                     consume(TokenType::OP_COLON, "Требуется ':'");
                     auto body = parse_block();
-                    cases.emplace_back(std::move(case_expr), std::move(body));
+                    cases.emplace_back(std::move(case_expr), std::move(body), 
+                        body->location);
 
                 } else if(match(TokenType::KW_DEFAULT)){
                     if(exists_default) error("Допустим только один default");
                     exists_default = true;
                     consume(TokenType::OP_COLON, "Требуется ':'");
                     auto body = parse_block();
-                    cases.emplace_back(nullptr, std::move(body));
+                    cases.emplace_back(nullptr, std::move(body), 
+                        body->location);
                 } else {
                     error("В match доступны блоки только case и default");
                 }
@@ -607,20 +654,22 @@ private:
         }
         consume(TokenType::BRACE_R, "Ожидалась '}'");
         return std::make_unique<MatchNodeAST>(
-            std::move(value), std::move(cases));
+            std::move(value), std::move(cases), loc);
     }
 
     std::unique_ptr<StatementNodeAST> parse_test() {
+        SourceLocation loc = get_loc(peek(-1));
         std::string name = consume(TokenType::IDENTIFIER, 
             "Ожидается имя теста").get_value();
         auto body = parse_block();
-        return std::make_unique<TestNodeAST>(name, std::move(body));
+        return std::make_unique<TestNodeAST>(name, std::move(body), loc);
     }
 
     std::unique_ptr<StatementNodeAST> parse_assert() {
+        SourceLocation loc = get_loc(peek(-1));
         auto value = parse_expression(static_cast<int>(Priorities::NONE));
         consume(TokenType::SEMICOLON, "Ожидалась ';'");
-        return std::make_unique<AssertNodeAST>(std::move(value));
+        return std::make_unique<AssertNodeAST>(std::move(value), loc);
     }
 };
 

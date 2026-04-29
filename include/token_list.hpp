@@ -56,8 +56,6 @@ enum class TokenType {
     PAREN_R, // )
     BRACE_L, // {
     BRACE_R, // }
-    BRACKET_L, // [
-    BRACKET_R, // ]
     
     SEMICOLON, // ;
     COMMA, // ,
@@ -150,8 +148,6 @@ inline std::string token_to_string(TokenType type,
             case TokenType::PAREN_R: return "PAREN_R";
             case TokenType::BRACE_L: return "BRACE_L";
             case TokenType::BRACE_R: return "BRACE_R";
-            case TokenType::BRACKET_L: return "BRACKET_L";
-            case TokenType::BRACKET_R: return "BRACKET_R";
             
             case TokenType::SEMICOLON: return "SEMICOLON";
             case TokenType::COMMA: return "COMMA";
@@ -280,8 +276,6 @@ static const std::unordered_map<std::string, TokenType> punctuation_map = {
     {")", TokenType::PAREN_R},
     {"{", TokenType::BRACE_L},
     {"}", TokenType::BRACE_R},
-    {"[", TokenType::BRACKET_L},
-    {"]", TokenType::BRACKET_R},
     {";", TokenType::SEMICOLON},
     {",", TokenType::COMMA},
 };

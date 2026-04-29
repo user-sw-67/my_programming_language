@@ -8,33 +8,70 @@
 #include "visitor.hpp"
 
 
-class NodeAST{
-public:
-    virtual ~NodeAST() = default;
+struct SourceLocation {
+    size_t line;
+    size_t column;
 
-    virtual void visit(Visitor& v) = 0;
+    SourceLocation(
+        size_t line = 0, 
+        size_t column = 0) : 
+            line(line), 
+            column(column) {}
+
+    bool operator == (const SourceLocation& other) const {
+        return (other.line == line) && (other.column == column);
+    }
+
+    bool operator != (const SourceLocation& other) const {
+        return !(other == *this);
+    }
 };
 
 
-class ExpressionNodeAST : public NodeAST {};
+class NodeAST{
+public:
+    SourceLocation location;
+
+    NodeAST(SourceLocation location) : 
+        location(location) {}
+
+    virtual ~NodeAST() = default;
+
+    virtual void accept(Visitor& v) = 0;
+};
 
 
-class StatementNodeAST : public NodeAST {};
+class ExpressionNodeAST : public NodeAST {
+public:
+    ExpressionNodeAST(SourceLocation location) : 
+        NodeAST(location) {}
+};
+
+
+class StatementNodeAST : public NodeAST {
+public:
+    StatementNodeAST(SourceLocation location) : 
+        NodeAST(location) {}
+};
 
 
 class ProgramNode : public NodeAST {
 public:
+    ProgramNode(SourceLocation location = SourceLocation(0, 0)) : 
+        NodeAST(location) {}
+
     std::vector<std::unique_ptr<StatementNodeAST>> statements;
 
-    void visit(Visitor& v) override {v.visit(*this);}
+    void accept(Visitor& v) override {v.visit(*this);}
 };
 
 
 class BlockNodeAST : public StatementNodeAST {
 public:
-    std::vector<std::unique_ptr<StatementNodeAST>> statements;
+    BlockNodeAST(SourceLocation location) : 
+        StatementNodeAST(location) {}
 
-    BlockNodeAST() = default;
+    std::vector<std::unique_ptr<StatementNodeAST>> statements;
 
     void add_statement(std::unique_ptr<StatementNodeAST>&& stmt) {
         if (stmt) {
@@ -42,7 +79,7 @@ public:
         }
     }
 
-    void visit(Visitor& v) override { 
+    void accept(Visitor& v) override { 
         v.visit(*this); 
     }
 };
@@ -53,10 +90,12 @@ public:
     std::unique_ptr<ExpressionNodeAST> expression;
 
     ExpressionStatementNodeAST(
-        std::unique_ptr<ExpressionNodeAST>&& expression) :
+        std::unique_ptr<ExpressionNodeAST>&& expression,
+        SourceLocation location) :
+            StatementNodeAST(location),
             expression(std::move(expression)) {}
 
-    void visit(Visitor& v) override { 
+    void accept(Visitor& v) override { 
         v.visit(*this); 
     }
 };
@@ -73,13 +112,15 @@ public:
         std::vector<std::string>&& names, 
         std::vector<std::string>&& type_names,
         std::vector<std::unique_ptr<ExpressionNodeAST>>&& initializers,
-        bool is_const) : 
+        bool is_const,
+        SourceLocation location) : 
+            StatementNodeAST(location),
             names(std::move(names)), 
             type_names(std::move(type_names)), 
             initializers(std::move(initializers)),
             is_const(is_const) {}
 
-    void visit(Visitor& v) override {v.visit(*this);}
+    void accept(Visitor& v) override {v.visit(*this);}
 };
 
 
@@ -92,16 +133,19 @@ public:
     IfElseNodeAST(
         std::unique_ptr<ExpressionNodeAST>&& condition,
         std::unique_ptr<StatementNodeAST>&& then_branch,
-        std::unique_ptr<StatementNodeAST>&& else_branch = nullptr): 
+        std::unique_ptr<StatementNodeAST>&& else_branch = nullptr,
+        SourceLocation location = SourceLocation(0, 0)): 
+            StatementNodeAST(location),
             condition(std::move(condition)),
             then_branch(std::move(then_branch)),
             else_branch(std::move(else_branch)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
 struct Parameter {
+    SourceLocation location;
     std::string name;
     std::string type;
     std::unique_ptr<ExpressionNodeAST> default_value;
@@ -111,7 +155,9 @@ struct Parameter {
         const std::string& name,
         const std::string& type,
         std::unique_ptr<ExpressionNodeAST>&& default_value = nullptr,
-        bool is_variadic = false) :
+        bool is_variadic = false,
+        SourceLocation location = SourceLocation(0, 0)) :
+            location(location),
             name(name),
             type(type),
             default_value(std::move(default_value)),
@@ -138,14 +184,16 @@ public:
         const std::string& return_type,
         std::vector<Parameter>&& parameters,
         std::unique_ptr<ExpressionNodeAST>&& when_condition,
-        std::unique_ptr<StatementNodeAST>&& body) :
+        std::unique_ptr<StatementNodeAST>&& body,
+        SourceLocation location) :
+            StatementNodeAST(location),
             name(name),
             return_type(return_type),
             parameters(std::move(parameters)),
             when_condition(std::move(when_condition)),
             body(std::move(body)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
@@ -154,10 +202,12 @@ public:
     std::unique_ptr<ExpressionNodeAST> value;
 
     ReturnNodeAST(
-        std::unique_ptr<ExpressionNodeAST>&& value) : 
+        std::unique_ptr<ExpressionNodeAST>&& value,
+        SourceLocation location) : 
+            StatementNodeAST(location),
             value(std::move(value)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
@@ -170,12 +220,14 @@ public:
     WhileNodeAST(
         std::unique_ptr<ExpressionNodeAST>&& condition, 
         std::unique_ptr<StatementNodeAST>&& body, 
-        bool is_do_while = false) : 
+        bool is_do_while = false,
+        SourceLocation location = SourceLocation(0, 0)) : 
+            StatementNodeAST(location),
             condition(std::move(condition)), 
             body(std::move(body)), 
             is_do_while(is_do_while) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
@@ -188,26 +240,32 @@ public:
     ForNodeAST(
         const std::string& name_var,
         std::unique_ptr<ExpressionNodeAST>&& iterable,
-        std::unique_ptr<StatementNodeAST>&& body) :
+        std::unique_ptr<StatementNodeAST>&& body,
+        SourceLocation location) :
+            StatementNodeAST(location),
             name_var(name_var),
             iterable(std::move(iterable)),
             body(std::move(body)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
 class BreakNodeAST : public StatementNodeAST {
 public:
-    BreakNodeAST() = default;
-    void visit(Visitor& v) override { v.visit(*this); }
+    BreakNodeAST(SourceLocation location) : 
+        StatementNodeAST(location) {}
+
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
 class ContinueNodeAST : public StatementNodeAST {
 public:
-    ContinueNodeAST() = default;
-    void visit(Visitor& v) override { v.visit(*this); }
+    ContinueNodeAST(SourceLocation location) :
+        StatementNodeAST(location) {}
+
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
@@ -222,13 +280,15 @@ public:
         std::unique_ptr<StatementNodeAST>&& try_block,
         std::unique_ptr<ExpressionNodeAST>&& catch_expr,
         std::unique_ptr<StatementNodeAST>&& catch_block,
-        std::unique_ptr<StatementNodeAST>&& finally_block) :
+        std::unique_ptr<StatementNodeAST>&& finally_block,
+        SourceLocation location) :
+            StatementNodeAST(location),
             try_block(std::move(try_block)),
             catch_expr(std::move(catch_expr)),
             catch_block(std::move(catch_block)),
             finally_block(std::move(finally_block)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
@@ -237,20 +297,25 @@ public:
     std::unique_ptr<ExpressionNodeAST> value;
 
     ThrowNodeAST(
-        std::unique_ptr<ExpressionNodeAST>&& value) : 
+        std::unique_ptr<ExpressionNodeAST>&& value,
+        SourceLocation location) : 
+            StatementNodeAST(location),
             value(std::move(value)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
 struct ImportObject {
+    SourceLocation location;
     std::string internal_name;
     std::string alias;
 
     ImportObject(
         const std::string& internal_name,
-        const std::string& alias) :
+        const std::string& alias,
+        SourceLocation location) :
+            location(location),
             internal_name(internal_name),
             alias(alias) {}
 };
@@ -265,16 +330,19 @@ public:
     UseNodeAST(
         const std::string& path_lib,
         std::vector<ImportObject>&& objects,
-        const std::string& as_name) : 
+        const std::string& as_name,
+        SourceLocation location) :
+            StatementNodeAST(location), 
             path_lib(path_lib),
             objects(objects),
             as_name(as_name) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
 struct ClassMember {
+    SourceLocation location;
     std::string access_modifier;
     bool is_static;
     bool is_getter;
@@ -286,7 +354,9 @@ struct ClassMember {
         bool is_static,
         bool is_getter,
         bool is_setter,
-        std::unique_ptr<StatementNodeAST>&& member_node) :
+        std::unique_ptr<StatementNodeAST>&& member_node,
+        SourceLocation location) :
+            location(location),
             access_modifier(access_modifier),
             is_static(is_static),
             is_getter(is_getter),
@@ -300,32 +370,31 @@ public:
     std::string name;
     std::string base_class_name;
     std::vector<ClassMember> members;
-    FunctionNodeAST* constructor;
-    FunctionNodeAST* destructor;
 
     ClassNodeAST(
         const std::string& name, 
         const std::string& base_class,
         std::vector<ClassMember>&& members,
-        FunctionNodeAST* constructor,
-        FunctionNodeAST* destructor) : 
+        SourceLocation location) : 
+            StatementNodeAST(location),
             name(name), 
             base_class_name(base_class),
-            members(std::move(members)),
-            constructor(constructor),
-            destructor(destructor) {}
+            members(std::move(members)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
 struct Case{
+    SourceLocation location;
     std::unique_ptr<ExpressionNodeAST> value;
     std::unique_ptr<StatementNodeAST> body;
 
     Case(
         std::unique_ptr<ExpressionNodeAST>&& value,
-        std::unique_ptr<StatementNodeAST>&& body) : 
+        std::unique_ptr<StatementNodeAST>&& body,
+        SourceLocation location) :
+            location(location), 
             value(std::move(value)),
             body(std::move(body)) {}
 };
@@ -338,11 +407,13 @@ public:
 
     MatchNodeAST(
         std::unique_ptr<ExpressionNodeAST>&& value,
-        std::vector<Case>&& cases) :
+        std::vector<Case>&& cases,
+        SourceLocation location) :
+            StatementNodeAST(location),
             value(std::move(value)),
             cases(std::move(cases)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
@@ -353,11 +424,13 @@ public:
 
     TestNodeAST(
         const std::string& name,
-        std::unique_ptr<StatementNodeAST>&& body) : 
+        std::unique_ptr<StatementNodeAST>&& body,
+        SourceLocation location) :
+            StatementNodeAST(location), 
             name(name),
             body(std::move(body)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
@@ -366,10 +439,12 @@ public:
     std::unique_ptr<ExpressionNodeAST> value;
 
     AssertNodeAST(
-        std::unique_ptr<ExpressionNodeAST>&& value) : 
+        std::unique_ptr<ExpressionNodeAST>&& value,
+        SourceLocation location) : 
+            StatementNodeAST(location),
             value(std::move(value)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
@@ -380,23 +455,30 @@ public:
 
     CallOperationNodeAST(
         const std::string& name,
-        std::vector<std::unique_ptr<ExpressionNodeAST>>&& args) :
+        std::vector<std::unique_ptr<ExpressionNodeAST>>&& args,
+        SourceLocation location) :
+            ExpressionNodeAST(location),
             name(name),
             args(std::move(args)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
 class LiteralNodeAST : public ExpressionNodeAST {
 public:
     std::string value;
+    TokenType literal_type;
 
     LiteralNodeAST(
-        const std::string& value) : 
-            value(value) {}
+        const std::string& value,
+        const TokenType& literal_type,
+        SourceLocation location) : 
+            ExpressionNodeAST(location),
+            value(value),
+            literal_type(literal_type) {}
 
-    void visit(Visitor& v) override {v.visit(*this);}
+    void accept(Visitor& v) override {v.visit(*this);}
 };
 
 
@@ -405,10 +487,12 @@ public:
     std::string name;
 
     IdentifierNodeAST(
-        const std::string& name) : 
+        const std::string& name,
+        SourceLocation location) : 
+            ExpressionNodeAST(location),
             name(name) {} 
     
-    void visit(Visitor& v) override {v.visit(*this);}
+    void accept(Visitor& v) override {v.visit(*this);}
 };
 
 
@@ -419,11 +503,13 @@ public:
 
     UnaryOperationNodeAST(
         TokenType op, 
-        std::unique_ptr<ExpressionNodeAST>&& operand) : 
+        std::unique_ptr<ExpressionNodeAST>&& operand,
+        SourceLocation location) : 
+            ExpressionNodeAST(location),
             op(op),
             operand(std::move(operand)) {} 
     
-    void visit(Visitor& v) override {v.visit(*this);}
+    void accept(Visitor& v) override {v.visit(*this);}
 };
 
 
@@ -436,12 +522,14 @@ public:
     BinaryOperationNodeAST(
         std::unique_ptr<ExpressionNodeAST>&& left,
         TokenType op,
-        std::unique_ptr<ExpressionNodeAST>&& right) : 
+        std::unique_ptr<ExpressionNodeAST>&& right,
+        SourceLocation location) : 
+            ExpressionNodeAST(location),
             op(op),
             left(std::move(left)),
             right(std::move(right)) {} 
     
-    void visit(Visitor& v) override {v.visit(*this);}
+    void accept(Visitor& v) override {v.visit(*this);}
 };
 
 
@@ -454,12 +542,14 @@ public:
     TernaryOperationNodeAST(
         std::unique_ptr<ExpressionNodeAST>&& condition,
         std::unique_ptr<ExpressionNodeAST>&& true_branch,
-        std::unique_ptr<ExpressionNodeAST>&& false_branch): 
+        std::unique_ptr<ExpressionNodeAST>&& false_branch,
+        SourceLocation location): 
+            ExpressionNodeAST(location),
             condition(std::move(condition)),
             true_branch(std::move(true_branch)),
             false_branch(std::move(false_branch)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
@@ -472,12 +562,14 @@ public:
     RangeOperationNodeAST(
         std::unique_ptr<ExpressionNodeAST>&& start, 
         std::unique_ptr<ExpressionNodeAST>&& end,
-        std::unique_ptr<ExpressionNodeAST> step) :
+        std::unique_ptr<ExpressionNodeAST> step,
+        SourceLocation location) :
+            ExpressionNodeAST(location),
             start(std::move(start)), 
             end(std::move(end)),
             step(std::move(step)) {}
 
-    void visit(Visitor& v) override { v.visit(*this); }
+    void accept(Visitor& v) override { v.visit(*this); }
 };
 
 
