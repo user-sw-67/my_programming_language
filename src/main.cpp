@@ -1,35 +1,16 @@
-#include <stdexcept>
-#include <string>
-#include <vector>
+#include "../include/addition/program_manager.hpp"
 
-#include "../include/lexer.hpp"
-#include "../include/parser.hpp"
+#include <iostream>
 
 
 int main(int argc, char const *argv[]){
-    if(argc < 2){
-        throw std::runtime_error("Не указан файл с кодом");
+    try{
+        ProgramManager manager(argc, argv);
+        manager.run();
+    } catch(const std::exception& e) {
+        std::cerr << e.what() << "\n";
+        return 1;
     }
-    std::string filename = argv[1];
-
-    bool pr_tokens = false;
-    bool pr_ast = false;
-    bool pr_ir = false;
-    for (int i = 1; i < argc; i++) {
-        std::string arg = argv[i];
-        if (arg == "--generate-tokens" || arg == "-t") {
-            pr_tokens = true;
-        } else if (arg == "--generate-ast" || arg == "-a") {
-            pr_ast = true;
-        } else if (arg == "--generate-ir" || arg == "-i") {
-            pr_ir = true;
-        }
-    }
-
-    Lexer lexer(filename);
-    std::vector<Token> tokens = lexer.get_tokens(pr_tokens);
-
-    Parser parser(std::move(tokens));
-    std::unique_ptr<ProgramNode> program = parser.parse(pr_ast);
+    std::cout << std::endl;
     return 0;
 }

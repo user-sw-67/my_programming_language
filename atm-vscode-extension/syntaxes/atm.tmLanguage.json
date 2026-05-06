@@ -17,14 +17,18 @@
     },
     {
       "name": "keyword.declaration.atm",
-      "match": "\\b(make|const|func|class|extends|new|super|this|use|from|as|try|catch|finally|test|assert)\\b"
+      "match": "\\b(make|const|func|class|extends|new|delete|this|super|use|from|as|try|catch|finally|test|assert)\\b"
+    },
+    {
+      "name": "keyword.throw.atm",
+      "match": "\\b(throw)\\b"
     },
     {
       "name": "storage.modifier.atm",
       "match": "\\b(private|public|protected|static|getter|setter)\\b"
     },
     {
-      "name": "keyword.type.atm",
+      "name": "support.type.atm",
       "match": "\\b(Int|Double|Str|Bool|Null)\\b"
     },
     {

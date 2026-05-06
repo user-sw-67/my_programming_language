@@ -1,5 +1,6 @@
-#ifndef VISITOR
-#define VISITOR
+#ifndef VISITOR_HPP
+#define VISITOR_HPP
+
 
 class ProgramNode;
 class MakeNodeAST;

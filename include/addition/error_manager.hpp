@@ -1,0 +1,100 @@
+#ifndef ERROR_MANAGER_HPP
+#define ERROR_MANAGER_HPP
+
+#include "source_manager.hpp"
+
+
+class CompilerError : public std::exception {
+protected:
+    std::string message;
+    SourceLocation loc;
+    SourceManager& source_manager;
+    
+public:
+    CompilerError(const std::string& msg, const SourceLocation& loc,
+        SourceManager& source_manager);
+    
+    virtual ~CompilerError() = default;
+    
+    virtual const char* what() const noexcept override;
+    
+    virtual int get_line() const;
+
+    virtual int get_column() const;
+    
+    virtual std::string to_string() const;
+};
+
+
+class PreparationError : public CompilerError {
+public:
+    PreparationError(const std::string& msg, const SourceLocation& loc, 
+        SourceManager& source_manager);
+};
+
+
+class LexerError : public CompilerError {
+public:
+    LexerError(const std::string& msg, const SourceLocation& loc,
+        SourceManager& source_manager);
+};
+
+
+class ParserError : public CompilerError {
+public:
+    ParserError(const std::string& msg, const SourceLocation& loc,
+        SourceManager& source_manager);
+};
+
+
+enum class StagesCompiler {
+    PREPARATION,
+    LEXER,
+    PARSER,
+    SEMANTICE
+};
+
+
+namespace error_code{
+    const std::string CODE_NULL = "ERR_007";
+}
+
+
+enum class Severity {
+    NOTE, 
+    WARNING,
+    ERROR
+};
+
+
+struct Error {
+    Severity lvl;
+    SourceLocation location;
+    std::string msg;
+    std::string code;
+};
+
+
+class ErrorManager{
+private:
+    size_t count_errors = 0;
+    std::vector<Error> errors;
+
+    void format_error(const Error& err, 
+        const SourceManager& source_manager) const;
+
+public:
+    void add(const std::string& msg, const SourceLocation& loc, 
+        const Severity& sev = Severity::ERROR, 
+            const std::string& code_error = error_code::CODE_NULL);
+
+    bool ok() const;
+
+    void printAll(const SourceManager& source_manager) const;
+
+    void except(StagesCompiler stages, 
+        const std::string& msg, SourceManager& source_manager,
+            const SourceLocation& loc = SourceLocation(0, 0, "")) const;
+};
+
+#endif

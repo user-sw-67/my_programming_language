@@ -1,8 +1,7 @@
-#ifndef TOKEN_LIST
-#define TOKEN_LIST
+#ifndef TOKEN_LIST_HPP
+#define TOKEN_LIST_HPP
 
 #include <string>
-#include <type_traits>
 #include <unordered_map>
 
 
