@@ -42,6 +42,7 @@ public:
 class IdentifierNodeAST : public ExpressionNodeAST {
 public:
     std::string name;
+    size_t slot_index = 0;
 
     IdentifierNodeAST(
         const std::string& name,

@@ -109,16 +109,8 @@ void ErrorManager::printAll(const SourceManager& source_manager) const {
     }
 }
 
-void ErrorManager::except(StagesCompiler stages, const std::string& msg, 
-    SourceManager& source_manager, const SourceLocation& loc) const {
-        switch(stages){
-            case StagesCompiler::PREPARATION:
-                throw PreparationError(msg, loc, source_manager);
-            case StagesCompiler::LEXER:
-                throw LexerError(msg, loc, source_manager);
-            case StagesCompiler::PARSER:
-                throw ParserError(msg, loc, source_manager);
-            default:
-                break;
-        }
-}
+RuntimeError::RuntimeError(const std::string& msg) : msg(msg) {}
+
+const char* RuntimeError::what() const noexcept {return msg.c_str();}
+
+TypeError::TypeError(const std::string& msg) : RuntimeError(msg) {}

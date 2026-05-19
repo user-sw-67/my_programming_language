@@ -41,6 +41,7 @@ public:
     std::vector<std::string> type_names;
     std::vector<std::unique_ptr<ExpressionNodeAST>> initializers;
     bool is_const;
+    std::vector<size_t> slot_indices;
 
     MakeNodeAST(
         std::vector<std::string>&& names, 
@@ -84,6 +85,7 @@ struct Parameter {
     std::string type;
     std::unique_ptr<ExpressionNodeAST> default_value;
     bool is_variadic;
+    size_t slot_index = 0;
 
     Parameter(
         const std::string& name,
@@ -97,8 +99,8 @@ struct Parameter {
             default_value(std::move(default_value)),
             is_variadic(is_variadic) {}
 
-    Parameter(Parameter&&) = default;
-    Parameter& operator=(Parameter&&) = default;
+    Parameter(Parameter&&) noexcept = default;
+    Parameter& operator=(Parameter&&) noexcept = default;
     
     Parameter(const Parameter&) = delete;
     Parameter& operator=(const Parameter&) = delete;
@@ -112,6 +114,7 @@ public:
     std::vector<Parameter> parameters;
     std::unique_ptr<ExpressionNodeAST> when_condition;
     std::unique_ptr<StatementNodeAST> body;
+    size_t locals_count = 0;
 
     FunctionNodeAST(
         const std::string& name,
@@ -128,6 +131,15 @@ public:
             body(std::move(body)) {}
 
     void accept(Visitor& v) override { v.visit(*this); }
+
+    int get_cout_parameters() const {
+        return parameters.size();
+    }
+
+    bool is_variadic_parameters() const {
+        if(parameters.empty()) return false;
+        return parameters.back().is_variadic;
+    }
 };
 
 
@@ -170,6 +182,7 @@ public:
     std::string name_var;
     std::unique_ptr<ExpressionNodeAST> iterable;
     std::unique_ptr<StatementNodeAST> body;
+    size_t slot_index = 0;
 
     ForNodeAST(
         const std::string& name_var,
@@ -272,6 +285,10 @@ public:
             as_name(as_name) {}
 
     void accept(Visitor& v) override { v.visit(*this); }
+
+    bool is_full() const {
+        return objects.empty();
+    }
 };
 
 
@@ -316,6 +333,10 @@ public:
             members(std::move(members)) {}
 
     void accept(Visitor& v) override { v.visit(*this); }
+
+    bool has_base_class() const {
+        return !base_class_name.empty();
+    }
 };
 
 

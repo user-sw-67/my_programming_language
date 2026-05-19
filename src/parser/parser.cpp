@@ -53,8 +53,8 @@ const Token& ParserBase::consume(TokenType type, const std::string& msg) {
 }
 
 void ParserBase::error(const std::string& msg) {
-    error_manager.except(StagesCompiler::PARSER, msg, source_manager,
-        {current().get_line(), current().get_column(), filename});
+    throw LexerError(msg, {current().get_line(), 
+        current().get_column(), filename}, source_manager);
 }
 
 SourceLocation ParserBase::get_loc(const Token& token) {

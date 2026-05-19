@@ -47,14 +47,6 @@ public:
 };
 
 
-enum class StagesCompiler {
-    PREPARATION,
-    LEXER,
-    PARSER,
-    SEMANTICE
-};
-
-
 namespace error_code{
     const std::string CODE_NULL = "ERR_007";
 }
@@ -92,9 +84,22 @@ public:
 
     void printAll(const SourceManager& source_manager) const;
 
-    void except(StagesCompiler stages, 
-        const std::string& msg, SourceManager& source_manager,
-            const SourceLocation& loc = SourceLocation(0, 0, "")) const;
+};
+
+
+class RuntimeError : std::exception {
+private:
+    std::string msg;
+public:
+    RuntimeError(const std::string& msg);
+    
+    const char* what() const noexcept override;
+};
+
+
+class TypeError : public RuntimeError {
+public:
+    TypeError(const std::string& msg);
 };
 
 #endif

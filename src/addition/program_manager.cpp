@@ -2,6 +2,7 @@
 #include "../../include/addition/mermaid_visitor.hpp"
 #include "../../include/lexer/lexer.hpp"
 #include "../../include/parser/parser.hpp"
+#include "../../include/semantics/semantics_manager.hpp"
 
 #include <fstream>
 #include <filesystem>
@@ -129,8 +130,7 @@ ProgramManager::ProgramManager(int argc, char const *argv[]) :
     error_manager(), 
     source_manager(error_manager) {
     if (argc < 2) {
-        error_manager.except(StagesCompiler::PREPARATION, 
-            "Не указан файл с исходным кодом", source_manager);
+        throw std::runtime_error("Не указан файл с исходным кодом");
     }
     config.input_file = argv[1];
     parse_config_flags(argc, argv);
@@ -144,16 +144,31 @@ void ProgramManager::run() {
 
         Lexer lexer(lines, config.input_file, error_manager, source_manager);
         std::vector<Token> tokens = lexer.get_tokens();
+
         if(config.print_tokens) {
             PrintPhase::tokens(config.tokens_path, tokens);
         }
 
         Parser parser(tokens, config.input_file, error_manager, source_manager);
         std::unique_ptr<ProgramNode> program = parser.parse();
+
         if(config.print_ast) {
             PrintPhase::ast(config.ast_path_pre, program, "Предварительное");
         }
-        
+
+        SemanticsManager semantics_manager(program, source_manager, 
+            error_manager, config.input_file);
+        semantics_manager.run();
+
+        error_manager.printAll(source_manager);
+        if(!error_manager.ok()){
+            return;
+        }
+
+        if(config.print_ast) {
+            PrintPhase::ast(config.ast_path_post, program, "Финальное");
+        }
+
     } catch(const CompilerError& e) {
         std::cerr << e.to_string() << "\n";
     } catch(const std::exception& e) {

@@ -27,15 +27,13 @@ SourceManager::SourceManager(ErrorManager& error_manager) :
 
 bool SourceManager::load_file(const std::string& file_path) {
         if (!std::filesystem::exists(file_path)) {
-            error_manager.except(StagesCompiler::PREPARATION,
-                "Файл не существует: " + file_path, *this);
-            return false;
+            throw PreparationError("Файл не существует: " + file_path, 
+                SourceLocation(0, 0, file_path), *this);
         }
 
         if (std::filesystem::path(file_path).extension() != ".atm") {
-            error_manager.except(StagesCompiler::PREPARATION, 
-                "Расширение файла должно быть .atm", *this);
-            return false;
+            throw PreparationError("Расширение файла должно быть .atm", 
+                SourceLocation(0, 0, file_path), *this);
         }
 
         if (files.find(file_path) != files.end()) {

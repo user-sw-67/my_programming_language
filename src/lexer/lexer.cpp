@@ -27,9 +27,7 @@ void FiniteAutomaton::add_token(TokenType type,
 
 void FiniteAutomaton::error(const std::string& msg) {
     state = StateList::ERROR;
-    error_manager.except(StagesCompiler::LEXER, msg, source_manager, 
-        {line, column, filename});
-    state = StateList::ERROR; 
+    throw LexerError(msg, {line, column, filename}, source_manager);
 }
 
 char FiniteAutomaton::next() {
