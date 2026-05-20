@@ -190,7 +190,7 @@ inline std::string token_to_string(TokenType type,
 }
 
 
-static const std::unordered_map<std::string, TokenType> keyword_map = {
+inline const std::unordered_map<std::string, TokenType> keyword_map = {
     {"make", TokenType::KW_MAKE},
     {"const", TokenType::KW_CONST},
     {"if", TokenType::KW_IF},
@@ -233,7 +233,7 @@ static const std::unordered_map<std::string, TokenType> keyword_map = {
 };
 
 
-static const std::unordered_map<std::string, TokenType> operator_map = {
+inline const std::unordered_map<std::string, TokenType> operator_map = {
     {"=", TokenType::OP_ASSIGN},
     {"+=", TokenType::OP_PLUS_ASSIGN},
     {"-=", TokenType::OP_MINUS_ASSIGN},
@@ -270,7 +270,7 @@ static const std::unordered_map<std::string, TokenType> operator_map = {
 };
 
 
-static const std::unordered_map<std::string, TokenType> punctuation_map = {
+inline const std::unordered_map<std::string, TokenType> punctuation_map = {
     {"(", TokenType::PAREN_L},
     {")", TokenType::PAREN_R},
     {"{", TokenType::BRACE_L},

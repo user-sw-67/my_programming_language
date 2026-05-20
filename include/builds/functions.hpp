@@ -4,6 +4,7 @@
 #include "../semantics/value.hpp"
 
 #include <iostream>
+#include <vector>
 
 
 Value printSystem(const std::vector<Value>& objects);

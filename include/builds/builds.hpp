@@ -1,7 +1,6 @@
 #ifndef BUILDS_HPP
 #define BUILDS_HPP
 
-#include "../semantics/value.hpp"
 #include "functions.hpp"
 
 #include <variant>
@@ -12,6 +11,7 @@
 
 
 class Scope;
+class Value;
 
 
 struct BuiltinFunctionData {
@@ -42,8 +42,8 @@ namespace builtin_data{
 
     namespace functions{
 
-        auto print = printSystem;
-        auto is_type = type_valueSystem;
+        constexpr auto print = printSystem;
+        constexpr auto is_type = type_valueSystem;
 
     }
 

@@ -1,1 +1,6 @@
-x = x + 3;
+func f1() -> Int -> 0;
+func f1() -> Int -> 0;
+
+class F1 extends F1{
+
+}
