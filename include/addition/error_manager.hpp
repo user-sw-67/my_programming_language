@@ -48,7 +48,13 @@ public:
 
 
 namespace error_code{
-    const std::string CODE_NULL = "ERR_007";
+    const std::string CODE_NULL = "ERR_000";
+
+    const std::string SEM_ONE_001 = "SEM_ONE_001";
+
+    const std::string SEM_TWO_001 = "SEM_TWO_001";
+
+    const std::string SEM_THREE_001 = "SEM_THREE_001";
 }
 
 

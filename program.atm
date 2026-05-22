@@ -1,6 +1,34 @@
 func f1() -> Int -> 0;
-func f1() -> Int -> 0;
+func f21() -> Int -> 0;
 
-class F1 extends F1{
+class F14{}
 
+class F1 extends F14{
 }
+
+class Person extends F1 {
+    private name -> Int = 0;
+    public age;
+    protected id;
+    boll -> Double = 0;
+    
+    new(name, age) {
+        this.name = name;
+        this.age = age;
+    }
+    
+    static delete() {
+        print("Destroy");
+    }
+
+    getter name1() {
+        return this.name;
+    }
+    
+    static private setter name2(value) {
+        this.name = value;
+    }
+    
+    public greet() -> "Hello, I'm " + this.name;
+}
+

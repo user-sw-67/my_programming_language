@@ -4,7 +4,20 @@
 #include "base.hpp"
 
 
+class Scope;
+
+
 class DefinitionVisitor : public BaseVisitorSemantics{
+private:
+    bool define_in_class = false;
+
+    std::string current_access_modifier = "public";
+    bool current_is_static = false;
+    bool current_is_getter = false;
+    bool current_is_setter = false;
+
+    std::shared_ptr<Scope> get_class_scope(ClassNodeAST& node);
+
 public:
     DefinitionVisitor(SymbolTable& table, ErrorManager& error_manager);
 

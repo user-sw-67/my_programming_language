@@ -40,6 +40,12 @@ struct SymbolInfo{
     bool is_has_parent = false;
     std::string parent_name;
     std::shared_ptr<Scope> class_scope = nullptr;
+
+    bool in_class = false;
+    std::string access_modifier = "public";
+    bool is_static = false;
+    bool is_getter = false;
+    bool is_setter = false;
 };
 
 
@@ -72,6 +78,8 @@ public:
     void exit_scope();
 
     SymbolInfo* lookup(const std::string& name) const;
+
+    SymbolInfo* lookup_local(const std::string& name) const;
 
     SymbolInfo* define(const std::string& name, SymbolType type);
 

@@ -87,6 +87,13 @@ SymbolInfo* SymbolTable::lookup(const std::string& name) const {
     return nullptr;
 }
 
+SymbolInfo* SymbolTable::lookup_local(const std::string& name) const {
+    auto it = current_scope->symbols.find(name);
+    if(it != current_scope->symbols.end()) return (it->second).get();
+    return nullptr;
+}
+
+
 SymbolInfo* SymbolTable::define(const std::string& name, SymbolType type) {
     if(current_scope->symbols.find(name) != current_scope->symbols.end()){
         throw RuntimeError(

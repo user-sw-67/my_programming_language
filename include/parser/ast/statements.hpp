@@ -56,6 +56,10 @@ public:
             is_const(is_const) {}
 
     void accept(Visitor& v) override {v.visit(*this);}
+
+    bool is_init() const {
+        return !initializers.empty();
+    }
 };
 
 
@@ -313,6 +317,12 @@ struct ClassMember {
             is_getter(is_getter),
             is_setter(is_setter),
             member_node(std::move(member_node)) {}
+
+    ClassMember(const ClassMember&) = delete;
+    ClassMember& operator=(const ClassMember&) = delete;
+
+    ClassMember(ClassMember&&) noexcept = default;
+    ClassMember& operator=(ClassMember&&) noexcept = default;
 };
 
 

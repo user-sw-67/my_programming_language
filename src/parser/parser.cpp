@@ -44,16 +44,16 @@ bool ParserBase::match(TokenType type) {
     return false;
 }
 
-const Token& ParserBase::consume(TokenType type, const std::string& msg) {
+const Token& ParserBase::consume(TokenType type, const std::string& err_msg) {
     if(current().get_type() == type) {
         return advance();
     }
-    error(msg);
+    error(err_msg);
     return current();
 }
 
 void ParserBase::error(const std::string& msg) {
-    throw LexerError(msg, {current().get_line(), 
+    throw ParserError(msg, {current().get_line(), 
         current().get_column(), filename}, source_manager);
 }
 
@@ -523,19 +523,29 @@ std::unique_ptr<StatementNodeAST> Parser::parse_class() {
     std::vector<ClassMember> members;
 
     while (!match(TokenType::BRACE_R)) {
+
         std::string access_modifier = "public";
-        bool is_static = match(TokenType::KW_STATIC);
+        bool is_static = false;
         bool is_getter = false;
         bool is_setter = false;
 
-        if (match(TokenType::KW_PRIVATE)) 
-            access_modifier = "private";
-        else if (match(TokenType::KW_PROTECTED)) 
-            access_modifier = "protected";
-        else match(TokenType::KW_PUBLIC);
-
-        if (match(TokenType::KW_GETTER)) is_getter = true;
-        if (match(TokenType::KW_SETTER)) is_setter = true;
+        while(true){
+            if (match(TokenType::KW_STATIC)) {
+                is_static = true;
+            } else if (match(TokenType::KW_GETTER)) {
+                is_getter = true;
+            } else if (match(TokenType::KW_SETTER)) {
+                is_setter = true;
+            } else if (match(TokenType::KW_PRIVATE)) {
+                access_modifier = "private";
+            } else if (match(TokenType::KW_PROTECTED)) {
+                access_modifier = "protected";
+            } else if (match(TokenType::KW_PUBLIC)) {
+                access_modifier = "public";
+            } else {
+                break; 
+            }
+        }
 
         if(current().get_type() == TokenType::KW_CONST) {
             auto statement_make = parse_make(true);
