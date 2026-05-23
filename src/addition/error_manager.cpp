@@ -49,14 +49,6 @@ PreparationError::PreparationError(const std::string& msg,
         CompilerError("Ошибка подготовки запуска: " + msg, 
             loc, source_manager) {}
 
-LexerError::LexerError(const std::string& msg, 
-    const SourceLocation& loc, SourceManager& source_manager)
-        : CompilerError("Лексическая ошибка: " + msg, loc, source_manager) {}
-
-ParserError::ParserError(const std::string& msg, 
-    const SourceLocation& loc, SourceManager& source_manager)
-        : CompilerError("Синтаксическая ошибка: " + msg, loc, source_manager) {}
-
 void ErrorManager::format_error(const Error& err, 
     const SourceManager& source_manager) const {
         std::stringstream ss;

@@ -70,6 +70,8 @@ private:
         CALL = 140 // . , ?. 
     };
 
+    void synchronize();
+
     int get_priority(TokenType type) const;
 
     std::unique_ptr<ExpressionNodeAST> get_prefix();

@@ -7,7 +7,23 @@
 #include <fstream>
 #include <filesystem>
 
+class Scope;
 class ErrorManager;
+class ProgramNode;
+
+enum class ModuleStatus {
+    NOT_LOADED,
+    LOADING,
+    LOADED
+};
+
+struct Module {
+    std::vector<std::string> lines;
+    std::unique_ptr<ProgramNode> ast;
+    std::shared_ptr<Scope> scope;
+
+    ModuleStatus status = ModuleStatus::NOT_LOADED;
+};
 
 struct SourceLocation {
     size_t line;
@@ -27,13 +43,17 @@ struct SourceLocation {
 class SourceManager {
 private:
     ErrorManager& error_manager;
-    std::unordered_map<std::string, std::vector<std::string>> files;
 
 public:
+    std::unordered_map<std::string, Module> modules;
+
     SourceManager(ErrorManager& error_manager);
     
-    bool load_file(const std::string& file_path);
+    std::string load_file(const std::string& file_path);
     
+    std::string resolve_canonical_path(
+        const std::string& import_path, const std::string& current_file_path);
+
     const std::vector<std::string>& get_file_content(
         const std::string& file_path) const;
     

@@ -18,12 +18,11 @@ private:
     SourceManager& source_manager;
     ErrorManager& error_manager;
     std::string filename;
-    SymbolTable table;
     std::unique_ptr<ProgramNode>& program;
-
-    std::vector<BuiltinData> get_builtin_data();
-
 public:
+
+    static std::vector<BuiltinData> get_builtin_data();
+
     SemanticsManager(std::unique_ptr<ProgramNode>& program, 
         SourceManager& source_manager, ErrorManager& error_manager, 
             const std::string& filename);

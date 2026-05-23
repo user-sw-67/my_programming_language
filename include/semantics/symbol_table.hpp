@@ -68,6 +68,10 @@ public:
     SymbolTable();
 
     std::shared_ptr<Scope> get_current_scope() const;
+    std::shared_ptr<Scope> get_global_scope() const;
+
+    void import_symbol(const std::string& name, 
+        std::shared_ptr<SymbolInfo> symbol);
 
     bool init_builtins(const std::vector<BuiltinData>& objects);
 

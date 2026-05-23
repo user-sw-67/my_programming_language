@@ -139,34 +139,41 @@ ProgramManager::ProgramManager(int argc, char const *argv[]) :
 
 void ProgramManager::run() {
     try{
-        source_manager.load_file(config.input_file);
-        const auto& lines = source_manager.get_file_content(config.input_file);
+        std::string file_path = source_manager.load_file(config.input_file);
+        const auto& lines = source_manager.get_file_content(file_path);
 
-        Lexer lexer(lines, config.input_file, error_manager, source_manager);
+        Lexer lexer(lines, file_path, error_manager, source_manager);
         std::vector<Token> tokens = lexer.get_tokens();
+
+        error_manager.printAll(source_manager);
+        if(!error_manager.ok()) return;
 
         if(config.print_tokens) {
             PrintPhase::tokens(config.tokens_path, tokens);
         }
 
-        Parser parser(tokens, config.input_file, error_manager, source_manager);
-        std::unique_ptr<ProgramNode> program = parser.parse();
+        Parser parser(tokens, file_path, error_manager, source_manager);
+        source_manager.modules[file_path].ast = parser.parse();
+
+        error_manager.printAll(source_manager);
+        if(!error_manager.ok()) return;
 
         if(config.print_ast) {
-            PrintPhase::ast(config.ast_path_pre, program, "Предварительное");
+            PrintPhase::ast(config.ast_path_pre, 
+                source_manager.modules[file_path].ast, "Предварительное");
         }
 
-        SemanticsManager semantics_manager(program, source_manager, 
-            error_manager, config.input_file);
+        SemanticsManager semantics_manager(
+            source_manager.modules[file_path].ast, source_manager, 
+                error_manager, file_path);
         semantics_manager.run();
 
         error_manager.printAll(source_manager);
-        if(!error_manager.ok()){
-            return;
-        }
+        if(!error_manager.ok()) return;
 
         if(config.print_ast) {
-            PrintPhase::ast(config.ast_path_post, program, "Финальное");
+            PrintPhase::ast(config.ast_path_post, 
+                source_manager.modules[file_path].ast, "Финальное");
         }
 
     } catch(const CompilerError& e) {

@@ -12,20 +12,19 @@ SemanticsManager::SemanticsManager(std::unique_ptr<ProgramNode>& program,
                 error_manager(error_manager), filename(filename) {}
 
 void SemanticsManager::run() {
-    if(!table.init_builtins(get_builtin_data())){
+    SymbolTable table_main;
+    if(!table_main.init_builtins(get_builtin_data())){
         error_manager.add(
             "Не удалось инициализировать встроенный функционал", 
                 {0, 0, filename}, Severity::ERROR);
     }
+    source_manager.modules[filename].scope = table_main.get_global_scope();
 
-    DefinitionVisitor definition_visitor(table, error_manager);
+    DefinitionVisitor definition_visitor(table_main, 
+        error_manager, source_manager);
+    source_manager.modules[filename].status = ModuleStatus::LOADING;
     program->accept(definition_visitor);
-
-    AnalysisVisitor analysis_visitor(table, error_manager);
-    program->accept(analysis_visitor);
-
-    OptimizationVisitor optimization_visitor(table, error_manager);
-    program->accept(optimization_visitor);
+    source_manager.modules[filename].status = ModuleStatus::LOADED;
 }
 
 std::vector<BuiltinData> SemanticsManager::get_builtin_data() {

@@ -256,7 +256,6 @@ void MermaidVisitor::visit(UseNodeAST& node) {
     std::string clean_path = node.path_lib;
     clean_path.erase(std::remove(clean_path.begin(), clean_path.end(), '\"'), clean_path.end());
     std::string label = "📦 IMPORT: " + clean_path;
-    if (!node.as_name.empty()) label += " as " + node.as_name;
     
     add_node(id, label, node.location, "[ ]");
     out << "  class " << id << " func_style\n"; 

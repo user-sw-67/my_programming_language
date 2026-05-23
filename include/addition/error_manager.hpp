@@ -33,19 +33,9 @@ public:
 };
 
 
-class LexerError : public CompilerError {
-public:
-    LexerError(const std::string& msg, const SourceLocation& loc,
-        SourceManager& source_manager);
+struct ParseError : public std::runtime_error {
+    ParseError() : std::runtime_error("") {}
 };
-
-
-class ParserError : public CompilerError {
-public:
-    ParserError(const std::string& msg, const SourceLocation& loc,
-        SourceManager& source_manager);
-};
-
 
 namespace error_code{
     const std::string CODE_NULL = "ERR_000";

@@ -53,8 +53,8 @@ const Token& ParserBase::consume(TokenType type, const std::string& err_msg) {
 }
 
 void ParserBase::error(const std::string& msg) {
-    throw ParserError(msg, {current().get_line(), 
-        current().get_column(), filename}, source_manager);
+    error_manager.add(msg, get_loc(current()), Severity::ERROR);
+    throw ParseError();
 }
 
 SourceLocation ParserBase::get_loc(const Token& token) {
@@ -65,11 +65,58 @@ Parser::Parser(const std::vector<Token>& tokens, const std::string& filename,
     ErrorManager& error_manager, SourceManager& source_manager) : 
         ParserBase(tokens, filename, error_manager, source_manager) {}
 
+void Parser::synchronize() {
+    while (!is_end()) {
+        switch (current().get_type()) {
+            case TokenType::KW_CLASS:
+            case TokenType::KW_MAKE:
+            case TokenType::KW_USE:
+            case TokenType::KW_FUNC:
+            case TokenType::KW_TEST:
+            case TokenType::KW_IF:
+            case TokenType::KW_WHILE:
+            case TokenType::KW_FOR:
+            case TokenType::KW_DO:
+            case TokenType::KW_TRY:
+            case TokenType::KW_RETURN:
+            case TokenType::KW_BREAK:
+            case TokenType::KW_CONTINUE:
+            case TokenType::KW_MATCH:
+                return;
+            default:
+                break;
+        }
+        if (current().get_type() == TokenType::SEMICOLON) {
+            advance();
+            return;
+        }
+        advance();
+    }
+}
+
 std::unique_ptr<ProgramNode> Parser::parse() {
     auto program = std::make_unique<ProgramNode>(
         SourceLocation(0, 0, filename));
+
     while (!is_end()) {
-        program->statements.push_back(parse_statement());
+        try{
+            if(match(TokenType::KW_CLASS)){
+                program->statements.push_back(parse_class());
+            } else if (match(TokenType::KW_MAKE)){
+                program->statements.push_back(parse_make(false));
+            } else if (match(TokenType::KW_USE)){
+                program->statements.push_back(parse_use());
+            } else if (match(TokenType::KW_FUNC)){
+                program->statements.push_back(parse_func());
+            } else if (match(TokenType::KW_TEST)){
+                program->statements.push_back(parse_test());
+            } else {
+                error("Исполняемый код вне функций запрещен. "
+                "Разрешены только объявления (use, func, class, make, test).");
+            }
+        }catch(const ParseError&){
+            synchronize();
+        }
     }
     return program;
 }
@@ -172,10 +219,13 @@ std::unique_ptr<StatementNodeAST> Parser::parse_statement() {
     if(match(TokenType::KW_FOR)) return parse_for();
     if(match(TokenType::KW_TRY)) return parse_try();
     if(match(TokenType::KW_THROW)) return parse_throw();
-    if(match(TokenType::KW_USE)) return parse_use();
-    if(match(TokenType::KW_CLASS)) return parse_class();
     if(match(TokenType::KW_MATCH)) return parse_match();
-    if(match(TokenType::KW_TEST)) return parse_test();
+    if(match(TokenType::KW_USE)) error(
+        "usе-импорты разрешены только в глобальной области видимости");
+    if(match(TokenType::KW_CLASS)) error(
+        "Объявления классов разрешены только в глобальной области видимости");
+    if(match(TokenType::KW_TEST)) error(
+        "Объявления тестов разрешены только в глобальной области видимости");
     if(match(TokenType::KW_ASSERT)) return parse_assert();
     if (match(TokenType::KW_BREAK)) {
         SourceLocation break_loc = get_loc(peek(-1));
@@ -246,7 +296,14 @@ std::unique_ptr<StatementNodeAST> Parser::parse_block() {
     consume(TokenType::BRACE_L, "Ожидалась '{' в начале блока");
 
     while (!is_end() && current().get_type() != TokenType::BRACE_R) {
-        block->add_statement(std::move(parse_statement()));
+        try {
+            auto stmt = parse_statement();
+            if (stmt) {
+                block->add_statement(std::move(stmt));
+            }
+        } catch (const ParseError&) {
+            synchronize();
+        }
     }
 
     consume(TokenType::BRACE_R, "Ожидалась '}' в конце блока");
@@ -478,7 +535,6 @@ std::unique_ptr<StatementNodeAST> Parser::parse_use() {
     SourceLocation loc = get_loc(peek(-1));
     std::string path_lib;
     std::vector<ImportObject> objects;
-    std::string as_name("");
 
     if(match(TokenType::BRACE_L)){
         do{
@@ -499,14 +555,22 @@ std::unique_ptr<StatementNodeAST> Parser::parse_use() {
     } else {
         path_lib = consume(TokenType::LIT_STR, 
             "Требуется имя файла").get_value();
-        if(match(TokenType::KW_AS)){
-            as_name = consume(TokenType::IDENTIFIER, 
-                "Ожидается новый псевдоним файла").get_value();
-        }
     }
+
+    std::string path_lib_canonical = source_manager.resolve_canonical_path(
+        path_lib, filename);
+    if(path_lib_canonical.empty()){
+        error("Не удалось разрешить путь импорта: " + path_lib_canonical);
+    }
+    try {
+        source_manager.load_file(path_lib_canonical);
+    } catch (const PreparationError& e) {
+        error(e.what());
+    }
+
     consume(TokenType::SEMICOLON, "Ожидалась ';'");
     return std::make_unique<UseNodeAST>(
-        path_lib, std::move(objects), as_name, loc);
+        path_lib_canonical, std::move(objects), loc);
 }
 
 std::unique_ptr<StatementNodeAST> Parser::parse_class() {

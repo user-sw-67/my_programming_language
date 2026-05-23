@@ -276,17 +276,14 @@ class UseNodeAST : public StatementNodeAST {
 public:
     std::string path_lib;
     std::vector<ImportObject> objects;
-    std::string as_name;
 
     UseNodeAST(
         const std::string& path_lib,
         std::vector<ImportObject>&& objects,
-        const std::string& as_name,
         const SourceLocation& location) :
             StatementNodeAST(location), 
             path_lib(path_lib),
-            objects(objects),
-            as_name(as_name) {}
+            objects(objects) {}
 
     void accept(Visitor& v) override { v.visit(*this); }
 

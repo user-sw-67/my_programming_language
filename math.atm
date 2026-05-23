@@ -1,0 +1,6 @@
+class F1{}
+
+class F2 extends F1{}
+
+func cos() -> 0;
+func sin() -> 0;

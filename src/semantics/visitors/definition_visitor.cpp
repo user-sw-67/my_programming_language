@@ -2,12 +2,17 @@
 #include "../../include/semantics/symbol_table.hpp"
 #include "../../include/addition/error_manager.hpp"
 #include "../../include/parser/ast.hpp"
+#include "../../include/parser/parser.hpp"
+#include "../../include/lexer/lexer.hpp"
+#include "../semantics_manager.hpp"
 
 #include "functional"
 
 
 DefinitionVisitor::DefinitionVisitor(SymbolTable& table, 
-    ErrorManager& error_manager) : BaseVisitorSemantics(table, error_manager) {}
+    ErrorManager& error_manager, SourceManager& source_manager) : 
+        BaseVisitorSemantics(table, error_manager), 
+            source_manager(source_manager) {}
 
 void DefinitionVisitor::visit(MakeNodeAST& node) {
     try{
@@ -88,7 +93,45 @@ void DefinitionVisitor::visit(ThrowNodeAST& node) {}
 
 void DefinitionVisitor::visit(TryNodeAST& node) {}
 
-void DefinitionVisitor::visit(UseNodeAST& node) {}
+void DefinitionVisitor::visit(UseNodeAST& node) {
+    Module& mod = source_manager.modules[node.path_lib];
+
+    if (mod.status == ModuleStatus::LOADING) {
+        error_manager.add("Обнаружен циклический импорт с файлом " 
+            + node.path_lib, node.location, Severity::ERROR);
+        return;
+    }
+
+    if (mod.status == ModuleStatus::LOADED) {
+        load_symbols(node, mod);
+        return;
+    }
+
+    mod.status = ModuleStatus::LOADING;
+
+    if(!mod.ast){
+        Lexer lexer(mod.lines, node.path_lib, error_manager, source_manager);
+        std::vector<Token> tokens = lexer.get_tokens();
+        Parser parser(tokens, node.path_lib, 
+            error_manager, source_manager);
+        mod.ast = parser.parse();
+    }
+
+    if(!mod.scope){
+        mod.scope = std::make_shared<Scope>(nullptr);
+        SymbolTable new_table;
+        if(!new_table.init_builtins(SemanticsManager::get_builtin_data())){
+            error_manager.add(
+                "Не удалось инициализировать встроенный функционал", 
+                    {0, 0, node.path_lib}, Severity::ERROR);
+        }
+        DefinitionVisitor def_vis(new_table, error_manager, source_manager);
+        mod.ast->accept(def_vis);
+        mod.scope = new_table.get_global_scope();
+    }
+    mod.status = ModuleStatus::LOADED;
+    load_symbols(node, mod);
+}
 
 void DefinitionVisitor::visit(ClassNodeAST& node) {
     try{
@@ -191,4 +234,30 @@ std::shared_ptr<Scope> DefinitionVisitor::get_class_scope(ClassNodeAST& node) {
 
     table.exit_scope();
     return class_scope;
+}
+
+void DefinitionVisitor::load_symbols(UseNodeAST& node, Module& mod){
+    try{
+        if(node.is_full()){
+            for (const auto& [name, symbol_ptr] : mod.scope->symbols){
+                if (symbol_ptr->is_built_in) continue;
+                table.import_symbol(name, symbol_ptr);
+            }
+        } else {
+            for(const auto& obj : node.objects){
+                auto it = mod.scope->symbols.find(obj.internal_name);
+                if(it == mod.scope->symbols.end()){
+                    error_manager.add("Идентификатор " + obj.internal_name + 
+                        " не найден в модуле " + node.path_lib, 
+                            obj.location, Severity::ERROR);
+                    continue;
+                }
+                std::string final_name = obj.alias.empty() ? 
+                    obj.internal_name : obj.alias;
+                table.import_symbol(final_name, it->second);
+            }
+        }
+    }catch(const RuntimeError& e) {
+        error_manager.add(e.what(), node.location, Severity::ERROR);
+    }
 }

@@ -20,6 +20,20 @@ std::shared_ptr<Scope> SymbolTable::get_current_scope() const {
     return current_scope;
 }
 
+std::shared_ptr<Scope> SymbolTable::get_global_scope() const {
+    return global_scope;
+}
+
+void SymbolTable::import_symbol(const std::string& name, 
+        std::shared_ptr<SymbolInfo> symbol) {
+            if(current_scope->symbols.find(name) != 
+                current_scope->symbols.end()){
+                    throw RuntimeError("Идентификатор " + name + 
+                        " уже определен при импорте");
+            }
+            current_scope->symbols[name] = symbol;
+}
+
 bool SymbolTable::init_builtins(const std::vector<BuiltinData>& objects) {
     if(current_scope != global_scope) {
         return false;
@@ -131,6 +145,7 @@ SymbolInfo* SymbolTable::define_function(const std::string& name,
         symbol->count_args = count_args;
         symbol->is_ellipsis_args = is_ellipsis_args;
         symbol->body_ast = body_ast;
+        symbol->type_name = body_ast->return_type;
         return symbol;
 }
 

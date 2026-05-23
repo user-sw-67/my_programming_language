@@ -8,6 +8,7 @@
 #include <memory>
 #include <functional>
 #include <iostream>
+#include <unordered_set>
 
 
 class Scope;
@@ -34,11 +35,14 @@ struct BuiltinClassData {
     std::shared_ptr<Scope> class_scope = nullptr;
 };
 
-
 using BuiltinData = std::variant<
     BuiltinFunctionData, BuiltinVariableData, BuiltinClassData>;
 
 namespace builtin_data{
+
+    namespace variables{
+
+    }
 
     namespace functions{
 
@@ -51,7 +55,7 @@ namespace builtin_data{
         
     }
 
-    namespace variables{
+    namespace modules{
 
     }
 
