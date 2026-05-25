@@ -1,1 +1,10 @@
-build
+/build
+/.vscode
+/atm-vscode-extension
+/atm-vscode-extension/syntaxes
+/mermaid-config.json
+/status_code_error.atm
+
+/program.atm
+/math.atm
+/1.atm
