@@ -1,7 +1,0 @@
-use {Mx as M, D123 as DF} from "math.atm";
-
-class G extends Double{}
-
-class Matrix extends M{}
-
-class Int extends DF{}

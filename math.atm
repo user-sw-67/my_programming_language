@@ -1,3 +1,0 @@
-use {D1 as D12, Matrix as Mx} from "1.atm";
-
-class D123 extends D12{}
