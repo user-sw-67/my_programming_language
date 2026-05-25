@@ -1,7 +1,6 @@
 #include "../../include/semantics/symbol_table.hpp"
 #include "../../include/parser/ast.hpp"
 #include "../../include/addition/error_manager.hpp"
-#include "../../include/builds/builds.hpp"
 
 
 Scope::Scope(std::shared_ptr<Scope> parent_ptr) : parent(parent_ptr) {
@@ -10,8 +9,8 @@ Scope::Scope(std::shared_ptr<Scope> parent_ptr) : parent(parent_ptr) {
     }
 }
     
-SymbolTable::SymbolTable() {
-    current_scope = std::make_shared<Scope>(nullptr);
+SymbolTable::SymbolTable(std::shared_ptr<Scope> std_lib) {
+    current_scope = std::make_shared<Scope>(std_lib);
     global_scope = current_scope;
     max_slots_in_function = 0;
 }
@@ -32,43 +31,6 @@ void SymbolTable::import_symbol(const std::string& name,
                         " уже определен при импорте");
             }
             current_scope->symbols[name] = symbol;
-}
-
-bool SymbolTable::init_builtins(const std::vector<BuiltinData>& objects) {
-    if(current_scope != global_scope) {
-        return false;
-    }
-
-    for (const auto& i : objects){
-        std::visit([this](auto&& arg) {
-
-            using T = std::decay_t<decltype(arg)>;
-            if constexpr (std::is_same_v<T, BuiltinVariableData>){
-                SymbolInfo* sym = define(arg.name, SymbolType::VARIABLE);
-                sym->is_built_in = true;
-                sym->type_name = arg.type_name;
-                sym->is_const = arg.is_const;
-                sym->slot_index = arg.slot_index;
-                sym->is_init = arg.is_init;
-
-            } else if constexpr (std::is_same_v<T, BuiltinFunctionData>) {
-                SymbolInfo* sym = define(arg.name, SymbolType::FUNCTION);
-                sym->is_built_in = true;
-                sym->count_args = arg.count_args;
-                sym->is_ellipsis_args = arg.is_ellipsis_args;
-                sym->built_in_func = arg.built_in_func;
-
-            } else if constexpr (std::is_same_v<T, BuiltinClassData>) {
-                SymbolInfo* sym = define(arg.name, SymbolType::CLASS);
-                sym->is_built_in = true;
-                sym->is_has_parent = false;
-                sym->class_scope = arg.class_scope;
-            }
-
-        }, i);
-    }
-
-    return true;
 }
 
 void SymbolTable::enter_scope() {

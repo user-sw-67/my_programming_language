@@ -1,5 +1,7 @@
-use "math.atm";
-use {F2 as F2_ma, sin as s} from "math.atm";
+use {Mx as M, D123 as DF} from "math.atm";
 
-class F3 extends F2_ma{}
+class G extends Double{}
 
+class Matrix extends M{}
+
+class Int extends DF{}

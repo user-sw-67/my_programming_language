@@ -1,6 +1,3 @@
-class F1{}
+use {D1 as D12, Matrix as Mx} from "1.atm";
 
-class F2 extends F1{}
-
-func cos() -> 0;
-func sin() -> 0;
+class D123 extends D12{}

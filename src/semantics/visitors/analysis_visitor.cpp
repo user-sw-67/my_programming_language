@@ -1,11 +1,11 @@
 #include "../../include/semantics/visitors/analysis_visitor.hpp"
 #include "../../include/semantics/symbol_table.hpp"
-#include "../../include/addition/error_manager.hpp"
+#include "../../include/addition/program_manager.hpp"
 #include "../../include/parser/ast.hpp"
 
 
-AnalysisVisitor::AnalysisVisitor(SymbolTable& table, 
-    ErrorManager& error_manager) : BaseVisitorSemantics(table, error_manager) {}
+AnalysisVisitor::AnalysisVisitor(SymbolTable& table, Managers& managers) : 
+    BaseVisitorSemantics(table, managers) {}
 
 void AnalysisVisitor::visit(MakeNodeAST& node) {}
 

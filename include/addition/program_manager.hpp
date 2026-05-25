@@ -3,6 +3,7 @@
 
 #include "error_manager.hpp"
 #include "source_manager.hpp"
+#include "builds_manager.hpp"
 #include "../lexer/token.hpp"
 #include "../parser/ast.hpp"
 
@@ -31,6 +32,7 @@ struct CompilerConfig {
     std::string ir_path = "output.ll";
 };
 
+
 class PrintPhase {
 public:
     static void tokens(const std::string& filename, 
@@ -42,6 +44,16 @@ public:
     static void launch(const CompilerConfig& config);
 };
 
+
+struct Managers{
+    ErrorManager error;
+    SourceManager source;
+    BuildInManager build_in;
+
+    Managers() : error(), source(error), build_in() {}
+};
+
+
 class ProgramManager {
 public:
     ProgramManager(int argc, char const *argv[]);
@@ -49,8 +61,7 @@ public:
     void run();
 
 private:
-    ErrorManager error_manager;
-    SourceManager source_manager;
+    Managers managers;
     CompilerConfig config;
 
     void parse_config_flags(int argc, char const *argv[]);

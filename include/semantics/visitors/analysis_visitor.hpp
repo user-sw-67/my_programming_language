@@ -8,7 +8,7 @@ class AnalysisVisitor : public BaseVisitorSemantics{
 private:
 
 public:
-    AnalysisVisitor(SymbolTable& table, ErrorManager& error_manager);
+    AnalysisVisitor(SymbolTable& table, Managers& managers);
 
     void visit(MakeNodeAST& node) override;
     void visit(LiteralNodeAST& node) override;

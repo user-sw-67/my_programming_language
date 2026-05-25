@@ -7,8 +7,7 @@
 #include <vector>
 
 
-class ErrorManager;
-class SourceManager;
+class Managers;
 
 
 class FiniteAutomaton {
@@ -36,14 +35,13 @@ protected:
     size_t line_idx = 0;
     size_t col_idx = 0;
 
-    ErrorManager& error_manager;
-    SourceManager& source_manager;
+    Managers& managers;
     const std::vector<std::string>& lines;
     std::string filename;
     bool flag_run;
 
-    FiniteAutomaton(ErrorManager& error_manager, SourceManager& source_manager,
-        const std::vector<std::string>& lines, const std::string& filename);
+    FiniteAutomaton(Managers& managers, const std::vector<std::string>& lines, 
+        const std::string& filename);
 
     void add_simvol(char simvol);
 
@@ -64,8 +62,7 @@ protected:
 class Lexer : public FiniteAutomaton {
 public:
     Lexer(const std::vector<std::string>& lines, 
-        const std::string& filename, ErrorManager& error_manager, 
-            SourceManager& source_manager);
+        const std::string& filename, Managers& managers);
 
     std::vector<Token> get_tokens();
 

@@ -174,7 +174,7 @@ class Person {
     static private setter name(value) {
         this.name = value;
     }
-    
+
     public greet() -> "Hello, I'm " + this.name;
 }
 

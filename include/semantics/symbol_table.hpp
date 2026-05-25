@@ -1,8 +1,6 @@
 #ifndef SYMBOL_TABLE_HPP
 #define SYMBOL_TABLE_HPP
 
-#include "../builds/builds.hpp"
-
 #include <string>
 #include <variant>
 #include <functional>
@@ -15,7 +13,7 @@ class Value;
 class Scope;
 
 
-enum class SymbolType{
+enum class SymbolType : uint8_t{
     VARIABLE,
     FUNCTION,
     CLASS,
@@ -24,28 +22,29 @@ enum class SymbolType{
 
 struct SymbolInfo{
     std::string name;
-    SymbolType type;
-    bool is_built_in = false;
-
     std::string type_name;
-    bool is_const = false;
-    bool is_init = false;
-    size_t slot_index = 0;
-
-    int count_args;
-    bool is_ellipsis_args = false;
-    FunctionNodeAST* body_ast = nullptr;
-    std::function<Value(const std::vector<Value>&)> built_in_func = nullptr;
-
-    bool is_has_parent = false;
     std::string parent_name;
+    std::function<Value(const std::vector<Value>&)> built_in_func = nullptr;
+    std::string access_modifier = "public";
+
     std::shared_ptr<Scope> class_scope = nullptr;
 
-    bool in_class = false;
-    std::string access_modifier = "public";
-    bool is_static = false;
-    bool is_getter = false;
-    bool is_setter = false;
+    size_t slot_index = 0;
+    FunctionNodeAST* body_ast = nullptr;
+    
+    SymbolType type;
+    uint8_t count_args;
+
+    bool is_built_in : 1 = false;
+    bool is_std : 1 = false;
+    bool is_ellipsis_args : 1 = false;
+    bool is_const : 1 = false;
+    bool is_init : 1 = false;
+    bool is_has_parent : 1 = false;
+    bool in_class : 1 = false;
+    bool is_static : 1 = false;
+    bool is_getter : 1 = false;
+    bool is_setter : 1 = false;
 };
 
 
@@ -65,15 +64,13 @@ private:
     size_t max_slots_in_function = 0;
     
 public:
-    SymbolTable();
+    SymbolTable(std::shared_ptr<Scope> std_lib);
 
     std::shared_ptr<Scope> get_current_scope() const;
     std::shared_ptr<Scope> get_global_scope() const;
 
     void import_symbol(const std::string& name, 
         std::shared_ptr<SymbolInfo> symbol);
-
-    bool init_builtins(const std::vector<BuiltinData>& objects);
 
     void enter_scope();
 

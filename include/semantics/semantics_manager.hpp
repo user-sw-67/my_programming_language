@@ -2,30 +2,23 @@
 #define SEMANTICS_MANAGER_HPP
 
 #include "symbol_table.hpp"
-#include "../builds/builds.hpp"
 
 #include <string>
 #include <memory>
 
 
-class SourceManager;
-class ErrorManager;
+class Managers;
 class ProgramNode;
 
 
 class SemanticsManager{
 private:
-    SourceManager& source_manager;
-    ErrorManager& error_manager;
+    Managers& managers;
     std::string filename;
     std::unique_ptr<ProgramNode>& program;
 public:
-
-    static std::vector<BuiltinData> get_builtin_data();
-
-    SemanticsManager(std::unique_ptr<ProgramNode>& program, 
-        SourceManager& source_manager, ErrorManager& error_manager, 
-            const std::string& filename);
+    SemanticsManager(std::unique_ptr<ProgramNode>& program,
+            const std::string& filename, Managers& managers);
 
     void run();
 

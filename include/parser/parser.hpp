@@ -11,20 +11,19 @@
 
 class ErrorManager;
 class SourceManager;
+class Managers;
 
 
 class ParserBase{
 public:
     ParserBase(const std::vector<Token>& tokens, 
-        const std::string& filename, ErrorManager& error_manager, 
-            SourceManager& source_manager);
+        const std::string& filename, Managers& managers);
 
 protected:
     const std::vector<Token>& tokens;
     std::string filename;
     size_t pos_tokens;
-    ErrorManager& error_manager;
-    SourceManager& source_manager;
+    Managers& managers;
 
     bool is_end() const;
 
@@ -47,7 +46,7 @@ protected:
 class Parser : public ParserBase{
 public:
     Parser(const std::vector<Token>& tokens, const std::string& filename, 
-        ErrorManager& error_manager, SourceManager& source_manager);
+        Managers& managers);
 
     std::unique_ptr<ProgramNode> parse();
 

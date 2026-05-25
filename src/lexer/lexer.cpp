@@ -1,14 +1,12 @@
 #include "../../include/lexer/lexer.hpp"
-#include "../../include/addition/error_manager.hpp"
+#include "../../include/addition/program_manager.hpp"
 
 
-FiniteAutomaton::FiniteAutomaton(ErrorManager& error_manager, 
-    SourceManager& source_manager, const std::vector<std::string>& lines, 
-        const std::string& filename) : 
-            state(StateList::START), line(1), column(0), 
-            error_manager(error_manager), lines(lines),
-            filename(filename), flag_run(!lines.empty()),
-            source_manager(source_manager) {}
+FiniteAutomaton::FiniteAutomaton(Managers& managers, 
+    const std::vector<std::string>& lines, const std::string& filename) : 
+        state(StateList::START), line(1), column(0), 
+        managers(managers), lines(lines),
+        filename(filename), flag_run(!lines.empty()){}
 
 void FiniteAutomaton::add_simvol(char simvol) {
     buffer += simvol;
@@ -26,7 +24,7 @@ void FiniteAutomaton::add_token(TokenType type,
 }
 
 void FiniteAutomaton::error(const std::string& msg) {
-    error_manager.add(msg, {line, column, filename}, Severity::ERROR);
+    managers.error.add(msg, {line, column, filename}, Severity::ERROR);
     buffer.clear();
     state = StateList::START;
 }
@@ -92,9 +90,8 @@ bool FiniteAutomaton::is_punctuation_char(char c) {
 }
 
 Lexer::Lexer(const std::vector<std::string>& lines, 
-    const std::string& filename, ErrorManager& error_manager, 
-        SourceManager& source_manager) : 
-            FiniteAutomaton(error_manager, source_manager, lines, filename) {}
+    const std::string& filename, Managers& managers) : 
+            FiniteAutomaton(managers, lines, filename) {}
 
 std::vector<Token> Lexer::get_tokens() {
     tokenize();

@@ -18,7 +18,6 @@ include_directories(
     ${CMAKE_CURRENT_SOURCE_DIR}/include/parser/ast
     ${CMAKE_CURRENT_SOURCE_DIR}/include/semantics
     ${CMAKE_CURRENT_SOURCE_DIR}/include/semantics/visitors
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/builds
 )
 
 set(SOURCES
@@ -28,6 +27,7 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/addition/source_manager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/addition/program_manager.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/addition/mermaid_visitor.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/addition/builds_manager.cpp
     
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lexer/lexer.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/lexer/token.cpp
@@ -41,8 +41,6 @@ set(SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/semantics/visitors/analysis_visitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/semantics/visitors/definition_visitor.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/semantics/visitors/optimization_visitor.cpp
-
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/builds/functions.cpp
 )
 
 add_executable(atm ${SOURCES})

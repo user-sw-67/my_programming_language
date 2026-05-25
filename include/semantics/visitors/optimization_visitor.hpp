@@ -8,7 +8,7 @@ class OptimizationVisitor : public BaseVisitorSemantics{
 private:
 
 public:
-    OptimizationVisitor(SymbolTable& table, ErrorManager& error_manager);
+    OptimizationVisitor(SymbolTable& table, Managers& managers);
     
     void visit(MakeNodeAST& node) override;
     void visit(LiteralNodeAST& node) override;

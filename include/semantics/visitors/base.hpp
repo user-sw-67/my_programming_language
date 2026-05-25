@@ -9,14 +9,15 @@
 class SymbolTable;
 class ErrorManager;
 class ProgramNode;
+class Managers;
 
 
 class BaseVisitorSemantics : public Visitor {
 protected:
     SymbolTable& table;
-    ErrorManager& error_manager;
+    Managers& managers;
 
-    BaseVisitorSemantics(SymbolTable& table, ErrorManager& error_manager);
+    BaseVisitorSemantics(SymbolTable& table, Managers& managers);
 
 public:
 

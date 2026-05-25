@@ -1,11 +1,11 @@
 #include "../../include/semantics/visitors/optimization_visitor.hpp"
 #include "../../include/semantics/symbol_table.hpp"
-#include "../../include/addition/error_manager.hpp"
+#include "../../include/addition/program_manager.hpp"
 #include "../../include/parser/ast.hpp"
 
 
 OptimizationVisitor::OptimizationVisitor(SymbolTable& table, 
-    ErrorManager& error_manager) : BaseVisitorSemantics(table, error_manager) {}
+    Managers& managers) : BaseVisitorSemantics(table, managers) {}
 
 void OptimizationVisitor::visit(MakeNodeAST& node) {}
 

@@ -11,8 +11,6 @@ class SourceManager;
 
 class DefinitionVisitor : public BaseVisitorSemantics{
 private:
-    SourceManager& source_manager;
-
     bool define_in_class = false;
 
     std::string current_access_modifier = "public";
@@ -22,10 +20,10 @@ private:
 
     std::shared_ptr<Scope> get_class_scope(ClassNodeAST& node);
 
-    void load_symbols(UseNodeAST& node, Module& mod);
+    void load_symbols(UseNodeAST& node, std::shared_ptr<Scope> scope);
 
 public:
-    DefinitionVisitor(SymbolTable& table, ErrorManager& error_manager, SourceManager& source_manager);
+    DefinitionVisitor(SymbolTable& table, Managers& managers);
 
     void visit(MakeNodeAST& node) override;
     void visit(LiteralNodeAST& node) override;

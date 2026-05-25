@@ -1,16 +1,14 @@
 #include "../../include/parser/parser.hpp"
-#include "../../include/addition/error_manager.hpp"
+#include "../../include/addition/program_manager.hpp"
 
 #include <vector>
 #include <string>
 #include <memory>
 
 ParserBase::ParserBase(const std::vector<Token>& tokens, 
-    const std::string& filename, ErrorManager& error_manager,
-        SourceManager& source_manager) : 
+    const std::string& filename, Managers& managers) : 
             tokens(tokens), filename(filename), 
-                pos_tokens(0), error_manager(error_manager), 
-                    source_manager(source_manager) {}
+                pos_tokens(0), managers(managers) {}
 
 bool ParserBase::is_end() const {
     if (pos_tokens >= tokens.size()) {
@@ -53,7 +51,7 @@ const Token& ParserBase::consume(TokenType type, const std::string& err_msg) {
 }
 
 void ParserBase::error(const std::string& msg) {
-    error_manager.add(msg, get_loc(current()), Severity::ERROR);
+    managers.error.add(msg, get_loc(current()), Severity::ERROR);
     throw ParseError();
 }
 
@@ -62,8 +60,8 @@ SourceLocation ParserBase::get_loc(const Token& token) {
 }
 
 Parser::Parser(const std::vector<Token>& tokens, const std::string& filename, 
-    ErrorManager& error_manager, SourceManager& source_manager) : 
-        ParserBase(tokens, filename, error_manager, source_manager) {}
+    Managers& managers) : 
+        ParserBase(tokens, filename, managers) {}
 
 void Parser::synchronize() {
     while (!is_end()) {
@@ -535,6 +533,7 @@ std::unique_ptr<StatementNodeAST> Parser::parse_use() {
     SourceLocation loc = get_loc(peek(-1));
     std::string path_lib;
     std::vector<ImportObject> objects;
+    bool is_build_in = false;
 
     if(match(TokenType::BRACE_L)){
         do{
@@ -557,20 +556,27 @@ std::unique_ptr<StatementNodeAST> Parser::parse_use() {
             "Требуется имя файла").get_value();
     }
 
-    std::string path_lib_canonical = source_manager.resolve_canonical_path(
-        path_lib, filename);
-    if(path_lib_canonical.empty()){
-        error("Не удалось разрешить путь импорта: " + path_lib_canonical);
+    std::string path_lib_canonical;
+    if (!path_lib.empty() && path_lib[0] == '@') {
+        path_lib_canonical = path_lib.erase(0, 1);
+        is_build_in = true;
     }
-    try {
-        source_manager.load_file(path_lib_canonical);
-    } catch (const PreparationError& e) {
-        error(e.what());
+    if(!is_build_in){
+        path_lib_canonical = managers.source.resolve_canonical_path(
+            path_lib, filename);
+        if(path_lib_canonical.empty()){
+            error("Не удалось разрешить путь импорта: " + path_lib_canonical);
+        }
+        try {
+            managers.source.load_file(path_lib_canonical);
+        } catch (const PreparationError& e) {
+            error(e.what());
+        }
     }
 
     consume(TokenType::SEMICOLON, "Ожидалась ';'");
     return std::make_unique<UseNodeAST>(
-        path_lib_canonical, std::move(objects), loc);
+        path_lib_canonical, std::move(objects), is_build_in, loc);
 }
 
 std::unique_ptr<StatementNodeAST> Parser::parse_class() {
