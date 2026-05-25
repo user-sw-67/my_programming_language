@@ -11,6 +11,9 @@ std::string Object::get_name() const {
     return class_definition->name;
 }
 
+ArrayObject::ArrayObject(
+    std::shared_ptr<SymbolInfo> definition) : Object(definition) {}
+
 Value::Value() : data(ValueTypeList::NULL_V{}) {}
 
 Value::Value(ValueTypeList::INT_V data) : data(data) {}
@@ -138,6 +141,14 @@ std::ostream& operator<<(std::ostream& os, const Value& val) {
 
     }, val.data);
     return os;
+}
+
+std::istream& operator>>(std::istream& is, Value& val){
+    std::string line;
+    if (std::getline(is, line)) {
+        val.data = ValueTypeList::STR_V{line};
+    }
+    return is;
 }
 
 Value operator+(const Value& v1, const Value& v2) {

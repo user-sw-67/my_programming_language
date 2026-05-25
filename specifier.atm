@@ -149,6 +149,7 @@ throw Error("Error get");
 
 # ----- ИМПОРТЫ -----
 use "math.atm";
+use "@array";
 use { sin, cos, pi } from "math.atm";
 use { sin as s, cos as c, pi as PI } from "math.atm";
 

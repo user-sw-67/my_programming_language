@@ -172,8 +172,12 @@ void DefinitionVisitor::visit(RangeOperationNodeAST& node) {}
 
 std::shared_ptr<Scope> DefinitionVisitor::get_class_scope(ClassNodeAST& node) {
     table.enter_scope();
-
     auto class_scope = table.get_current_scope();
+
+    table.define_variable("this", node.name, true, true);
+    if(node.has_base_class()) 
+        table.define_variable("super", node.base_class_name, true, true);
+
     define_in_class = true;
 
     for (auto& m : node.members){
@@ -244,26 +248,34 @@ std::shared_ptr<Scope> DefinitionVisitor::get_class_scope(ClassNodeAST& node) {
 
 void DefinitionVisitor::load_symbols(UseNodeAST& node, 
     std::shared_ptr<Scope> scope){
-        try{
-            if(node.is_full()){
-                for (const auto& [name, symbol_ptr] : scope->symbols){
+        if(node.is_full()){
+            for (const auto& [name, symbol_ptr] : scope->symbols){
+                if(!node.is_build_in && symbol_ptr->is_built_in) continue;
+                try{
                     table.import_symbol(name, symbol_ptr);
+                }catch(const RuntimeError& e){
+                    managers.error.add(e.what(), 
+                        node.location, Severity::ERROR);
                 }
-            } else {
-                for(const auto& obj : node.objects){
-                    auto it = scope->symbols.find(obj.internal_name);
-                    if(it == scope->symbols.end()){
+            }
+        }else{
+            for(const auto& obj : node.objects){
+                auto it = scope->symbols.find(obj.internal_name);
+                if(it == scope->symbols.end() || 
+                    (!node.is_build_in && it->second->is_built_in)){
                         managers.error.add("Идентификатор " + 
                             obj.internal_name + " не найден в модуле " + 
                                 node.path_lib, obj.location, Severity::ERROR);
                         continue;
-                    }
-                    std::string final_name = obj.alias.empty() ? 
-                        obj.internal_name : obj.alias;
+                }
+                std::string final_name = obj.alias.empty() ? 
+                    obj.internal_name : obj.alias;
+                try{
                     table.import_symbol(final_name, it->second);
+                }catch(const RuntimeError& e){
+                    managers.error.add(e.what(), 
+                        node.location, Severity::ERROR);
                 }
             }
-        } catch(const RuntimeError& e) {
-            managers.error.add(e.what(), node.location, Severity::ERROR);
         }
 }

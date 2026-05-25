@@ -139,6 +139,7 @@ void ProgramManager::run() {
     try{
         std::string file_path = managers.source.load_file(config.input_file);
         const auto& lines = managers.source.get_file_content(file_path);
+        managers.source.modules[file_path].is_root = true;
 
         Lexer lexer(lines, file_path, managers);
         std::vector<Token> tokens = lexer.get_tokens();

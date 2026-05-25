@@ -6,6 +6,7 @@
 #include <type_traits>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 #include <ostream>
 
 
@@ -22,6 +23,16 @@ struct Object{
     Object(std::shared_ptr<SymbolInfo> definition);
 
     std::string get_name() const;
+
+    virtual ~Object() noexcept = default;
+};
+
+
+class ArrayObject : public Object{
+public:
+    std::vector<Value> elements;
+
+    ArrayObject(std::shared_ptr<SymbolInfo> definition);
 };
 
 
@@ -83,6 +94,7 @@ public:
         const Value& left, const TokenType& op, const Value& right);
 
     friend std::ostream& operator<<(std::ostream& os, const Value& val);
+    friend std::istream& operator>>(std::istream& is, Value& val);
     friend Value operator+(const Value& v1, const Value& v2);
     friend Value operator-(const Value& v1, const Value& v2);
     friend Value operator/(const Value& v1, const Value& v2);
@@ -91,6 +103,7 @@ public:
 
 
 std::ostream& operator<<(std::ostream& os, const Value& val);
+std::istream& operator>>(std::istream& is, Value& val);
 Value operator+(const Value& v1, const Value& v2);
 Value operator-(const Value& v1, const Value& v2);
 Value operator/(const Value& v1, const Value& v2);

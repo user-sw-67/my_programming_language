@@ -88,7 +88,7 @@ public:
         const std::string& type_name, bool is_const = false, 
             bool is_init = false);
 
-    SymbolInfo* define_function(const std::string& name, int count_args = 0,
+    SymbolInfo* define_function(const std::string& name, uint8_t count_args = 0,
         bool is_ellipsis_args = false, FunctionNodeAST* body_ast = nullptr);
 
     SymbolInfo* define_class(const std::string& name, 

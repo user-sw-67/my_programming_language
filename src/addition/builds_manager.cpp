@@ -3,40 +3,45 @@
 #include "../../include/addition/error_manager.hpp"
 #include "../../include/semantics/value.hpp"
 
+#include "iostream"
 
 BuildInClass::BuildInClass(const std::string& class_name, 
     BuildInModule& parent_builder, std::shared_ptr<Scope> scope) : 
         class_name(class_name), parent_builder(parent_builder), 
             class_scope(scope){}
 
-BuildInClass& BuildInClass::add_method(const std::string& name, int count_args,
+BuildInClass& BuildInClass::add_method(const std::string& name, uint8_t count_args,
     bool is_ellipsis_args, const std::string& ret_type, 
-        std::function<Value(const std::vector<Value>&)> func, bool is_std){
-            auto sym = std::make_shared<SymbolInfo>();
-            sym->type = SymbolType::FUNCTION;
-            sym->type_name = ret_type;
-            sym->count_args = count_args;
-            sym->is_ellipsis_args = is_ellipsis_args;
-            sym->built_in_func = func;
-            sym->is_built_in = true;
-            sym->in_class = true;
-            sym->is_std = is_std;
-            class_scope->symbols[name] = sym;
-            return *this;
+        std::function<Value(const std::vector<Value>&)> func, 
+            const std::string& modif, bool is_std){
+                auto sym = std::make_shared<SymbolInfo>();
+                sym->type = SymbolType::FUNCTION;
+                sym->type_name = ret_type;
+                sym->count_args = count_args;
+                sym->is_ellipsis_args = is_ellipsis_args;
+                sym->built_in_func = func;
+                sym->is_built_in = true;
+                sym->in_class = true;
+                sym->is_std = is_std;
+                sym->access_modifier = modif;
+                class_scope->symbols[name] = sym;
+                return *this;
 }
 
 BuildInClass& BuildInClass::add_field(const std::string& name, 
-    const std::string& type, bool is_const, bool is_init, bool is_std){
-        auto sym = std::make_shared<SymbolInfo>();
-        sym->type = SymbolType::VARIABLE;
-        sym->type_name = type;
-        sym->is_const = is_const;
-        sym->is_init = is_init;
-        sym->is_built_in = true;
-        sym->in_class = true;
-        sym->is_std = is_std;
-        class_scope->symbols[name] = sym;
-        return *this;
+    const std::string& type, bool is_const, bool is_init, 
+        const std::string& modif,bool is_std){
+            auto sym = std::make_shared<SymbolInfo>();
+            sym->type = SymbolType::VARIABLE;
+            sym->type_name = type;
+            sym->is_const = is_const;
+            sym->is_init = is_init;
+            sym->is_built_in = true;
+            sym->in_class = true;
+            sym->is_std = is_std;
+            sym->access_modifier = modif;
+            class_scope->symbols[name] = sym;
+            return *this;
 }
 
 BuildInModule& BuildInClass::end_class(){
@@ -58,7 +63,7 @@ BuildInClass BuildInModule::add_class(const std::string& name, bool is_std){
 }
 
 BuildInModule& BuildInModule::add_function(const std::string& name, 
-    int count_args, bool is_ellipsis_args, const std::string& ret_type, 
+    uint8_t count_args, bool is_ellipsis_args, const std::string& ret_type, 
         std::function<Value(const std::vector<Value>&)> func, bool is_std){
             auto sym = std::make_shared<SymbolInfo>();
             sym->type = SymbolType::FUNCTION;
@@ -113,9 +118,12 @@ bool BuildInManager::is_module_standard(const std::string& name) const {
     return false;
 }
 
-BuildInManager::BuildInManager(){
-    register_std();
-    all_standart_modules["math"] = [this](){this->register_math();};
+BuildInManager::BuildInManager(ErrorManager& error_manager) : 
+    error_manager(error_manager){
+        register_std();
+        all_standart_modules["io"] = [this](){this->register_io();};
+        all_standart_modules["math"] = [this](){this->register_math();};
+        all_standart_modules["array"] = [this](){this->register_array();};
 }
 
 void BuildInManager::register_std(){
@@ -137,9 +145,119 @@ void BuildInManager::register_std(){
         .add_variable("__module__", "Str", true, true);
 }
 
+void BuildInManager::register_io(){
+    create_module("io")
+        .add_function("print", 0, true, "Null", 
+            [](std::vector<Value> values) -> Value {
+                for(const auto& v : values){
+                    std::cout << v << " ";
+                }
+                return Value();
+            })
+        .add_function("input", 1, false, "Str", 
+            [](std::vector<Value> values) -> Value {
+                if(!values.empty()){
+                    std::cout << values.back();
+                }
+                Value x;
+                std::cin >> x;
+                return x;
+            });
+}
+
 void BuildInManager::register_math(){
     create_module("math")
         .add_class("Matrix")
             .end_class()
         .add_variable("PI", "Double", true);
+}
+
+void BuildInManager::register_array(){
+    create_module("array")
+        .add_class("Array")
+            .add_method("new", 0, false, "Array", 
+                [this](std::vector<Value>) -> Value {
+                    auto class_def = modules["array"]->symbols["Array"];
+                    auto array = std::make_shared<ArrayObject>(class_def);
+                    return Value(array);
+                })
+            .add_method("delete", 0, false, "Null", 
+                [](std::vector<Value>) -> Value {
+                    return Value();
+                })
+            .add_method("push", 1, false, "Null", 
+                [](std::vector<Value> values) -> Value {
+                    auto arr = std::dynamic_pointer_cast<ArrayObject>(
+                        values.at(0).as_object());
+                    if (!arr) {
+                        throw RuntimeError("Ожидался объект класса Array");
+                    }
+                    if(values.size() < 2){
+                        throw RuntimeError(
+                            "Метод push(value) ожидает 1 аргумент");
+                    }
+                    arr->elements.push_back(values[1]);
+                    return Value();
+                })
+            .add_method("pop", 0, false, "auto", 
+                [](std::vector<Value> values) -> Value{
+                    auto arr = std::dynamic_pointer_cast<ArrayObject>(
+                        values.at(0).as_object());
+                    if (!arr) {
+                        throw RuntimeError("Ожидался объект класса Array");
+                    }
+                    if(arr->elements.empty()){
+                        throw RuntimeError("Объект Array пуст");
+                    }
+                    auto val = arr->elements.back();
+                    arr->elements.pop_back();
+                    return val;
+                })
+            .add_method("at", 1, false, "auto", 
+                [](std::vector<Value> values) -> Value {
+                    auto arr = std::dynamic_pointer_cast<ArrayObject>(
+                        values.at(0).as_object());
+                    if (!arr) {
+                        throw RuntimeError("Ожидался объект класса Array");
+                    }
+                    if(values.size() < 2){
+                        throw RuntimeError(
+                            "Метод at(index) ожидает 1 аргумент");
+                    }
+                    auto index = values[1].as_int();
+                    if (index < 0 || index >= arr->elements.size()) {
+                        throw RuntimeError("Индекс " + std::to_string(index) + 
+                            " вышел за пределы массива");
+                    }
+                    return arr->elements[index];
+                })
+            .add_method("insert", 2, false, "Null", 
+                [](std::vector<Value> values) -> Value {
+                    auto arr = std::dynamic_pointer_cast<ArrayObject>(
+                        values.at(0).as_object());
+                    if (!arr) {
+                        throw RuntimeError("Ожидался объект класса Array");
+                    }
+                    if(values.size() < 3){
+                        throw RuntimeError(
+                            "Метод insert(index, value) ожидает 2 аргументa");
+                    }
+
+                    auto index = values[1].as_int();
+                    if (index < 0) {
+                        throw RuntimeError("Индекс " + std::to_string(index) + 
+                            " не может быть меньше нуля");
+                    }
+                    size_t size = arr->elements.size();
+                    if (size == 0) {
+                        index = 0; 
+                    } else if (index > size) {
+                        index %= size;
+                    }
+
+                    auto it = arr->elements.begin() + index;
+                    arr->elements.insert(it, values[2]);
+                    return Value();
+                })
+            .end_class();
 }

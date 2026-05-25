@@ -50,7 +50,7 @@ struct Managers{
     SourceManager source;
     BuildInManager build_in;
 
-    Managers() : error(), source(error), build_in() {}
+    Managers() : error(), source(error), build_in(error) {}
 };
 
 

@@ -102,7 +102,7 @@ SymbolInfo* SymbolTable::define_variable(const std::string& name,
 }
 
 SymbolInfo* SymbolTable::define_function(const std::string& name, 
-    int count_args, bool is_ellipsis_args, FunctionNodeAST* body_ast) {
+    uint8_t count_args, bool is_ellipsis_args, FunctionNodeAST* body_ast) {
         SymbolInfo* symbol = define(name, SymbolType::FUNCTION);
         symbol->count_args = count_args;
         symbol->is_ellipsis_args = is_ellipsis_args;

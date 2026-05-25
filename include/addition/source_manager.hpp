@@ -21,6 +21,7 @@ struct Module {
     std::vector<std::string> lines;
     std::unique_ptr<ProgramNode> ast;
     std::shared_ptr<Scope> scope;
+    bool is_root = false;
 
     ModuleStatus status = ModuleStatus::NOT_LOADED;
 };
