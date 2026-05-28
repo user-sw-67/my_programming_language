@@ -35,16 +35,21 @@ void SemanticsManager::validate_entry_point(
 
 void SemanticsManager::run() {
     auto std_lib = managers.build_in.get_standard_module("std");
-    SymbolTable table_main(std_lib);
-    managers.source.modules[filename].scope = table_main.get_global_scope();
+    Module& mod = managers.source.modules[filename];
+    SymbolTable table_main(std_lib, filename);
+    mod.scope = table_main.get_global_scope();
 
     DefinitionVisitor definition_visitor(table_main, managers); 
-    managers.source.modules[filename].status = ModuleStatus::LOADING;
+    mod.status = ModuleStatus::LOADING;
     program->accept(definition_visitor);
-    managers.source.modules[filename].status = ModuleStatus::LOADED;
+    mod.status = ModuleStatus::LOADED;
+    managers.source.active_index(mod);
 
-    auto& root_module = managers.source.modules[filename];
-    if (root_module.is_root) {
-        validate_entry_point(root_module.scope, filename);
+    if (mod.is_root) {
+        validate_entry_point(mod.scope, filename);
+    }
+
+    for(const auto& [p, m] : managers.source.modules){
+        std::cout << p << " " << m.index << std::endl;
     }
 }

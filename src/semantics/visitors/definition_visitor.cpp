@@ -129,10 +129,11 @@ void DefinitionVisitor::visit(UseNodeAST& node) {
     if(!mod.scope){
         mod.scope = std::make_shared<Scope>(nullptr);
         auto std_lib = managers.build_in.get_standard_module("std");
-        SymbolTable new_table(std_lib);
+        SymbolTable new_table(std_lib, node.path_lib);
         DefinitionVisitor def_vis(new_table, managers);
         mod.ast->accept(def_vis);
         mod.scope = new_table.get_global_scope();
+        managers.source.active_index(mod);
     }
     mod.status = ModuleStatus::LOADED;
     load_symbols(node, mod.scope);
@@ -251,6 +252,8 @@ void DefinitionVisitor::load_symbols(UseNodeAST& node,
         if(node.is_full()){
             for (const auto& [name, symbol_ptr] : scope->symbols){
                 if(!node.is_build_in && symbol_ptr->is_built_in) continue;
+                if(!symbol_ptr->is_built_in && 
+                    node.path_lib != symbol_ptr->defined_in_file) continue;
                 try{
                     table.import_symbol(name, symbol_ptr);
                 }catch(const RuntimeError& e){
@@ -261,6 +264,7 @@ void DefinitionVisitor::load_symbols(UseNodeAST& node,
         }else{
             for(const auto& obj : node.objects){
                 auto it = scope->symbols.find(obj.internal_name);
+
                 if(it == scope->symbols.end() || 
                     (!node.is_build_in && it->second->is_built_in)){
                         managers.error.add("Идентификатор " + 
@@ -268,6 +272,17 @@ void DefinitionVisitor::load_symbols(UseNodeAST& node,
                                 node.path_lib, obj.location, Severity::ERROR);
                         continue;
                 }
+                if(!it->second->is_built_in && 
+                    node.path_lib != it->second->defined_in_file) {
+                        managers.error.add("Идентификатор " + obj.internal_name 
+                        + " импортирован внутри " + node.path_lib + 
+                        ", транзитивный импорт запрещен, для использования " + 
+                        obj.internal_name + " импортируйте модуль " + 
+                        it->second->defined_in_file, obj.location, 
+                            Severity::WARNING);
+                        continue;
+                }
+                
                 std::string final_name = obj.alias.empty() ? 
                     obj.internal_name : obj.alias;
                 try{

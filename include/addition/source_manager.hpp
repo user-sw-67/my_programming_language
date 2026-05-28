@@ -22,6 +22,7 @@ struct Module {
     std::unique_ptr<ProgramNode> ast;
     std::shared_ptr<Scope> scope;
     bool is_root = false;
+    size_t index;
 
     ModuleStatus status = ModuleStatus::NOT_LOADED;
 };
@@ -44,6 +45,7 @@ struct SourceLocation {
 class SourceManager {
 private:
     ErrorManager& error_manager;
+    size_t next_index = 0;
 
 public:
     std::unordered_map<std::string, Module> modules;
@@ -58,6 +60,8 @@ public:
     const std::vector<std::string>& get_file_content(
         const std::string& file_path) const;
     
+    void active_index(Module& mod);
+
     std::string get_line(const std::string& file_path, size_t i) const;
 };
 

@@ -9,10 +9,12 @@ Scope::Scope(std::shared_ptr<Scope> parent_ptr) : parent(parent_ptr) {
     }
 }
     
-SymbolTable::SymbolTable(std::shared_ptr<Scope> std_lib) {
-    current_scope = std::make_shared<Scope>(std_lib);
-    global_scope = current_scope;
-    max_slots_in_function = 0;
+SymbolTable::SymbolTable(std::shared_ptr<Scope> std_lib, 
+    const std::string& current_defined_in_file) : 
+        current_defined_in_file(current_defined_in_file){
+            current_scope = std::make_shared<Scope>(std_lib);
+            global_scope = current_scope;
+            max_slots_in_function = 0;
 }
 
 std::shared_ptr<Scope> SymbolTable::get_current_scope() const {
@@ -80,6 +82,7 @@ SymbolInfo* SymbolTable::define(const std::string& name, SymbolType type) {
     SymbolInfo symbol;
     symbol.name = name;
     symbol.type = type;
+    symbol.defined_in_file = current_defined_in_file;
         
     if (type == SymbolType::VARIABLE) {
         symbol.slot_index = current_scope->next_slot++;

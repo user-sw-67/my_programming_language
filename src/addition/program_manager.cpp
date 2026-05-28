@@ -139,7 +139,8 @@ void ProgramManager::run() {
     try{
         std::string file_path = managers.source.load_file(config.input_file);
         const auto& lines = managers.source.get_file_content(file_path);
-        managers.source.modules[file_path].is_root = true;
+        Module& mod = managers.source.modules[file_path];
+        mod.is_root = true;
 
         Lexer lexer(lines, file_path, managers);
         std::vector<Token> tokens = lexer.get_tokens();
@@ -152,26 +153,23 @@ void ProgramManager::run() {
         }
 
         Parser parser(tokens, file_path, managers);
-        managers.source.modules[file_path].ast = parser.parse();
+        mod.ast = parser.parse();
 
         managers.error.printAll(managers.source);
         if(!managers.error.ok()) return;
 
         if(config.print_ast) {
-            PrintPhase::ast(config.ast_path_pre, 
-                managers.source.modules[file_path].ast, "Предварительное");
+            PrintPhase::ast(config.ast_path_pre, mod.ast, "Предварительное");
         }
 
-        SemanticsManager semantics_manager(
-            managers.source.modules[file_path].ast, file_path, managers);
+        SemanticsManager semantics_manager(mod.ast, file_path, managers);
         semantics_manager.run();
 
         managers.error.printAll(managers.source);
         if(!managers.error.ok()) return;
 
         if(config.print_ast) {
-            PrintPhase::ast(config.ast_path_post, 
-                managers.source.modules[file_path].ast, "Финальное");
+            PrintPhase::ast(config.ast_path_post, mod.ast, "Финальное");
         }
 
     } catch(const CompilerError& e) {

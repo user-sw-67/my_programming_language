@@ -85,6 +85,11 @@ const std::vector<std::string>& SourceManager::get_file_content(
     return modules.at(file_path).lines;
 }
 
+void SourceManager::active_index(Module& mod){
+    mod.index = next_index;
+    ++next_index;
+}
+
 std::string SourceManager::get_line(
     const std::string& file_path, size_t i) const {
     auto it = modules.find(file_path);

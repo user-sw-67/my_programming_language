@@ -46,10 +46,29 @@ namespace ValueTypeList{
     using FUNCTION_V = SymbolInfo*;
 }
 
+template<typename T>
+constexpr static bool IsNull = std::is_same_v<T, ValueTypeList::NULL_V>;
 
 template<typename T>
-constexpr static bool IsArithmetic = std::is_same_v<T, ValueTypeList::DOUBLE_V> 
-    || std::is_same_v<T, ValueTypeList::INT_V>;
+constexpr static bool IsDouble = std::is_same_v<T, ValueTypeList::DOUBLE_V>;
+
+template<typename T>
+constexpr static bool IsInt = std::is_same_v<T, ValueTypeList::INT_V>;
+
+template<typename T>
+constexpr static bool IsBool = std::is_same_v<T, ValueTypeList::BOOL_V>;
+
+template<typename T>
+constexpr static bool IsStr = std::is_same_v<T, ValueTypeList::STR_V>;
+
+template<typename T>
+constexpr static bool IsObject = std::is_same_v<T, ValueTypeList::OBJECT_V>;
+
+template<typename T>
+constexpr static bool IsFunction = std::is_same_v<T, ValueTypeList::FUNCTION_V>;
+
+template<typename T>
+constexpr static bool IsArithmetic = IsInt<T> || IsDouble<T> || IsBool<T>;
 
 
 class Value{
@@ -99,6 +118,15 @@ public:
     friend Value operator-(const Value& v1, const Value& v2);
     friend Value operator/(const Value& v1, const Value& v2);
     friend Value operator*(const Value& v1, const Value& v2);
+    friend Value operator<(const Value& v1, const Value& v2);
+    friend Value operator>(const Value& v1, const Value& v2);
+    friend Value operator==(const Value& v1, const Value& v2);
+    friend Value operator!=(const Value& v1, const Value& v2);
+    friend Value operator<=(const Value& v1, const Value& v2);
+    friend Value operator>=(const Value& v1, const Value& v2);
+    friend Value operator!(const Value& v1);
+    friend Value operator&&(const Value& v1, const Value& v2);
+    friend Value operator||(const Value& v1, const Value& v2);
 };
 
 
@@ -108,6 +136,15 @@ Value operator+(const Value& v1, const Value& v2);
 Value operator-(const Value& v1, const Value& v2);
 Value operator/(const Value& v1, const Value& v2);
 Value operator*(const Value& v1, const Value& v2);
+Value operator<(const Value& v1, const Value& v2);
+Value operator>(const Value& v1, const Value& v2);
+Value operator==(const Value& v1, const Value& v2);
+Value operator!=(const Value& v1, const Value& v2);
+Value operator<=(const Value& v1, const Value& v2);
+Value operator>=(const Value& v1, const Value& v2);
+Value operator!(const Value& v1);
+Value operator&&(const Value& v1, const Value& v2);
+Value operator||(const Value& v1, const Value& v2);
 
 
 #endif

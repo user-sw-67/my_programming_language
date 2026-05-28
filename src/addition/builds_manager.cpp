@@ -5,6 +5,7 @@
 
 #include "iostream"
 
+
 BuildInClass::BuildInClass(const std::string& class_name, 
     BuildInModule& parent_builder, std::shared_ptr<Scope> scope) : 
         class_name(class_name), parent_builder(parent_builder), 
@@ -91,7 +92,11 @@ BuildInModule& BuildInModule::add_variable(const std::string& name,
 }
 
 BuildInModule BuildInManager::create_module(const std::string& name){
-    auto scope = std::make_shared<Scope>(nullptr);
+    std::shared_ptr<Scope> std_lib = nullptr;
+    if(name != "std"){
+        std_lib = get_standard_module("std");
+    }
+    auto scope = std::make_shared<Scope>(std_lib);
     modules[name] = scope;
     return BuildInModule(name, scope);
 }
@@ -139,10 +144,130 @@ void BuildInManager::register_std(){
         .add_class("Null", true)
             .end_class()
         .add_function("type", 1, false, "Str", 
-            [](std::vector<Value> value) -> Value {
-                return Value(value.back().type_to_string());
+            [](std::vector<Value> values) -> Value {
+                return Value(values.back().type_to_string());
             }, true)
-        .add_variable("__module__", "Str", true, true);
+        .add_variable("__module__", "Str", true, true)
+        .add_function("is_primitive", 1, false, "Bool", 
+            [](std::vector<Value> values) -> Value {
+                if(values.size() < 1 || values.size() > 1){
+                    throw RuntimeError(
+                        "Метод is_primitive(object) ожидает 1 аргумент");
+                }
+                Value v = values.back();
+                if(v.is_bool() || v.is_double() || 
+                    v.is_int() || v.is_str() || v.is_null()){
+                        return Value(true);
+                }
+                return Value(false);
+            }, true)
+        .add_function("primitive_cast", 2, false, "auto", 
+            [](std::vector<Value> values) -> Value {
+                if(values.size() < 2 || values.size() > 2){
+                    throw RuntimeError("Метод primitive_cast(type_name, object)"
+                        " ожидает 2 аргумента");
+                }
+                Value v = values[1];
+                std::string type = values[0].as_str();
+                if(v.is_bool()){
+                    if(type == "Int"){
+                        return Value(
+                            static_cast<ValueTypeList::INT_V>(v.as_bool()));
+                    } else if (type == "Double") {
+                        return Value(
+                            static_cast<ValueTypeList::DOUBLE_V>(v.as_bool()));
+                    } else if (type == "Bool") {
+                        return Value(
+                            static_cast<ValueTypeList::BOOL_V>(v.as_bool()));
+                    } else if (type == "Str") {
+                        throw TypeError(
+                            "Каст обьекта типа Bool к типу Str невозможен");
+                    } else if (type == "Null") {
+                        return Value();
+                    }
+                    throw TypeError("Переданный тип не является примитивным");
+
+                } else if(v.is_int()) {
+                    if(type == "Int"){
+                        return Value(
+                            static_cast<ValueTypeList::INT_V>(v.as_int()));
+                    } else if (type == "Double") {
+                        return Value(
+                            static_cast<ValueTypeList::DOUBLE_V>(v.as_int()));
+                    } else if (type == "Bool") {
+                        return Value(
+                            static_cast<ValueTypeList::BOOL_V>(v.as_int()));
+                    } else if (type == "Str") {
+                        throw Value(static_cast<ValueTypeList::STR_V>(
+                            std::to_string(v.as_int())));
+                    } else if (type == "Null") {
+                        return Value();
+                    }
+                    throw TypeError("Переданный тип не является примитивным");
+
+                } else if(v.is_double()) {
+                    if(type == "Int"){
+                        return Value(
+                            static_cast<ValueTypeList::INT_V>(v.as_double()));
+                    } else if (type == "Double") {
+                        return Value(static_cast<ValueTypeList::DOUBLE_V>(
+                            v.as_double()));
+                    } else if (type == "Bool") {
+                        return Value(
+                            static_cast<ValueTypeList::BOOL_V>(v.as_double()));
+                    } else if (type == "Str") {
+                        throw Value(static_cast<ValueTypeList::STR_V>(
+                            std::to_string(v.as_double())));
+                    } else if (type == "Null") {
+                        return Value();
+                    }
+                    throw TypeError("Переданный тип не является примитивным");
+
+                } else if(v.is_str()) {
+                    if(type == "Int"){
+                        try {
+                            return Value(static_cast<ValueTypeList::INT_V>(
+                                std::stoi(v.as_str())));
+                        } catch (...) {
+                            throw TypeError("Каст данного обьекта типа Str к "
+                                "типу Int невозможен");
+                        }
+                    } else if (type == "Double") {
+                        try {
+                            return Value(static_cast<ValueTypeList::DOUBLE_V>(
+                                std::stod(v.as_str())));
+                        } catch (...) {
+                            throw TypeError("Каст данного обьекта типа Str к "
+                                "типу Double невозможен");
+                        }
+                    } else if (type == "Bool") {
+                        return Value(static_cast<ValueTypeList::BOOL_V>(
+                            !v.as_str().empty()));
+                    } else if (type == "Str") {
+                        throw Value(
+                            static_cast<ValueTypeList::STR_V>(v.as_str()));
+                    } else if (type == "Null") {
+                        return Value();
+                    }
+                    throw TypeError("Переданный тип не является примитивным");
+
+                } else if(v.is_null()) {
+                    if(type == "Int"){
+                        return Value(static_cast<ValueTypeList::INT_V>(0));
+                    } else if (type == "Double") {
+                        return Value(static_cast<ValueTypeList::DOUBLE_V>(0.0));
+                    } else if (type == "Bool") {
+                        return Value(static_cast<ValueTypeList::BOOL_V>(false));
+                    } else if (type == "Str") {
+                        throw Value(static_cast<ValueTypeList::STR_V>(""));
+                    } else if (type == "Null") {
+                        return Value();
+                    }
+                    throw TypeError("Переданный тип не является примитивным");
+
+                }
+                throw TypeError("Объект не примитивного типа");
+            }, true);
 }
 
 void BuildInManager::register_io(){
@@ -152,6 +277,7 @@ void BuildInManager::register_io(){
                 for(const auto& v : values){
                     std::cout << v << " ";
                 }
+                std::cout << std::endl;
                 return Value();
             })
         .add_function("input", 1, false, "Str", 
@@ -257,6 +383,103 @@ void BuildInManager::register_array(){
 
                     auto it = arr->elements.begin() + index;
                     arr->elements.insert(it, values[2]);
+                    return Value();
+                })
+            .add_method("erase", 1, false, "auto", 
+                [](std::vector<Value> values) -> Value {
+                    auto arr = std::dynamic_pointer_cast<ArrayObject>(
+                        values.at(0).as_object());
+                    if (!arr) {
+                        throw RuntimeError("Ожидался объект класса Array");
+                    }
+                    if(values.size() < 2){
+                        throw RuntimeError(
+                            "Метод erase(index) ожидает 1 аргумент");
+                    }
+                    if (arr->elements.empty()) {
+                        throw RuntimeError(
+                            "Невозможно удалить элемент: массив пуст");
+                    }
+
+                    auto index = values[1].as_int();
+                    if (index < 0) {
+                        throw RuntimeError("Индекс " + std::to_string(index) + 
+                            " не может быть меньше нуля");
+                    }
+                    size_t size = arr->elements.size();
+                    if (index >= size) {
+                        index %= size;
+                    }
+
+                    auto it = arr->elements.begin() + index;
+                    auto val = *it;
+                    arr->elements.erase(it);
+                    return val;
+                })
+            .add_method("size", 0, false, "Int", 
+                [](std::vector<Value> values) -> Value{
+                    auto arr = std::dynamic_pointer_cast<ArrayObject>(
+                        values.at(0).as_object());
+                    if (!arr) {
+                        throw RuntimeError("Ожидался объект класса Array");
+                    }
+                    return Value(static_cast<ValueTypeList::INT_V>(
+                        arr->elements.size()));
+                })
+            .add_method("is_empty", 0, false, "Bool", 
+                [](std::vector<Value> values) -> Value{
+                    auto arr = std::dynamic_pointer_cast<ArrayObject>(
+                        values.at(0).as_object());
+                    if (!arr) {
+                        throw RuntimeError("Ожидался объект класса Array");
+                    }
+                    return Value(static_cast<ValueTypeList::BOOL_V>(
+                        arr->elements.empty()));
+                })
+            .add_method("clear", 0, false, "Null", 
+                [](std::vector<Value> values) -> Value {
+                    auto arr = std::dynamic_pointer_cast<ArrayObject>(
+                        values.at(0).as_object());
+                    if (!arr) {
+                        throw RuntimeError("Ожидался объект класса Array");
+                    }
+                    arr->elements.clear();
+                    return Value();
+                })
+            .add_method("sort", 0, true, "Null", 
+                [](std::vector<Value> values) -> Value {
+                    auto arr = std::dynamic_pointer_cast<ArrayObject>(
+                        values.at(0).as_object());
+                    if (!arr) {
+                        throw RuntimeError("Ожидался объект класса Array");
+                    }
+                    if (values.size() == 1) {
+                        std::sort(arr->elements.begin(), arr->elements.end(), 
+                            [](const Value& a, const Value& b) {
+                                return (a < b).as_bool();
+                            }
+                        );
+                    } else if (values.size() == 2) {
+                        if(!values[1].is_function()){
+                            throw RuntimeError(
+                                "predicate должен быть функцией");
+                        }
+                        ValueTypeList::FUNCTION_V predicate = 
+                            values[1].as_function();
+                        if(predicate->count_args != 2){
+                            throw RuntimeError(
+                                "predicate должен принимать 2 аргумента");
+                        }
+                        std::sort(arr->elements.begin(), arr->elements.end(), 
+                            [&predicate](const Value& a, const Value& b){
+                                // Дописать когда появится запуск(пока сортировка по умолчанию) и добавить проверку на Bool
+                                return (a < b).as_bool();
+                            }
+                        );
+                    } else {
+                        throw RuntimeError(
+                            "Метод sort(predicate) ожидает 0 или 1 аргумент");
+                    }
                     return Value();
                 })
             .end_class();

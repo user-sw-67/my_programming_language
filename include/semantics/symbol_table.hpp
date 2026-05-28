@@ -26,6 +26,7 @@ struct SymbolInfo{
     std::string parent_name;
     std::function<Value(const std::vector<Value>&)> built_in_func = nullptr;
     std::string access_modifier = "public";
+    std::string defined_in_file;
 
     std::shared_ptr<Scope> class_scope = nullptr;
 
@@ -62,9 +63,11 @@ private:
     std::shared_ptr<Scope> current_scope;
     std::shared_ptr<Scope> global_scope;
     size_t max_slots_in_function = 0;
+    std::string current_defined_in_file;
     
 public:
-    SymbolTable(std::shared_ptr<Scope> std_lib);
+    SymbolTable(std::shared_ptr<Scope> std_lib, 
+        const std::string& current_defined_in_file);
 
     std::shared_ptr<Scope> get_current_scope() const;
     std::shared_ptr<Scope> get_global_scope() const;
