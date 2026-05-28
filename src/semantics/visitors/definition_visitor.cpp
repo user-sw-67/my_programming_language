@@ -22,13 +22,18 @@ void DefinitionVisitor::visit(MakeNodeAST& node) {
                 symbol->access_modifier = current_access_modifier;
                 if(symbol->is_setter || symbol->is_getter){
                     std::string modif = symbol->is_setter ? "setter" : "getter";
-                    managers.error.add("Перменная " + node.names[i] + 
+                    managers.error.add("Переменная " + node.names[i] + 
                         " не может иметь модификатор " + modif, node.location, 
                             Severity::WARNING);
                 }
                 symbol->is_setter = false;
                 symbol->is_getter = false;
                 symbol->is_static = current_is_static;
+            }
+        } else {
+            for(size_t i = 0; i < node.names.size(); ++i){
+                SymbolInfo* symbol = table.define_variable(node.names[i], 
+                    node.type_names[i], node.is_const, node.is_init());
             }
         }
     } catch(const RuntimeError& e) {

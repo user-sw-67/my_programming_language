@@ -27,6 +27,11 @@ struct Module {
     ModuleStatus status = ModuleStatus::NOT_LOADED;
 };
 
+struct ModuleReference {
+    const std::string* path;
+    const Module* module;
+};
+
 struct SourceLocation {
     size_t line;
     size_t column;

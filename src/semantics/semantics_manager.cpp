@@ -49,7 +49,11 @@ void SemanticsManager::run() {
         validate_entry_point(mod.scope, filename);
     }
 
-    for(const auto& [p, m] : managers.source.modules){
-        std::cout << p << " " << m.index << std::endl;
+    std::vector<ModuleReference> sort_moduls(managers.source.modules.size());
+    for(const auto& [path, mod]: managers.source.modules){
+        sort_moduls[mod.index] = {&path, &mod};
     }
+    
+    
+
 }
