@@ -179,9 +179,17 @@ void MermaidVisitor::visit(TernaryOperationNodeAST& node) {
 
 void MermaidVisitor::visit(CallOperationNodeAST& node) {
     std::string id = next_id();
-    add_node(id, "🚀 ВЫЗОВ: " + node.name + "()", node.location, "([ ])");
-    out << "  class " << id << " func_style\n";
-    for (auto& arg : node.args) visit_child(*arg, id, "арг");
+    add_node(id, "📞 CALL", node.location, "( )");
+    
+    parent_stack.push(id);
+    if (node.callee) {
+        visit_child(*node.callee, id, "вызываемый объект");
+    }
+    
+    for (auto& arg : node.args) {
+        visit_child(*arg, id, "аргумент");
+    }
+    parent_stack.pop();
 }
 
 void MermaidVisitor::visit(LiteralNodeAST& node) {

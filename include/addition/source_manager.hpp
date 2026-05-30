@@ -54,6 +54,7 @@ private:
 
 public:
     std::unordered_map<std::string, Module> modules;
+    std::vector<ModuleReference> sort_moduls;
 
     SourceManager(ErrorManager& error_manager);
     

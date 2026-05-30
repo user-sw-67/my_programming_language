@@ -6,6 +6,9 @@
 
 class AnalysisVisitor : public BaseVisitorSemantics{
 private:
+    bool current_method_is_static = false;
+    bool in_cycle = false;
+    bool in_test = false;
 
 public:
     AnalysisVisitor(SymbolTable& table, Managers& managers);

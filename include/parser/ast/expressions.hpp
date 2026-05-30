@@ -4,18 +4,20 @@
 #include "base.hpp"
 #include "../../lexer/token_list.hpp"
 
+class SymbolInfo;
+
 
 class CallOperationNodeAST : public ExpressionNodeAST {
 public:
-    std::string name;
+    std::unique_ptr<ExpressionNodeAST> callee;
     std::vector<std::unique_ptr<ExpressionNodeAST>> args;
 
     CallOperationNodeAST(
-        const std::string& name,
+        std::unique_ptr<ExpressionNodeAST>&& callee,
         std::vector<std::unique_ptr<ExpressionNodeAST>>&& args,
         const SourceLocation& location) :
             ExpressionNodeAST(location),
-            name(name),
+            callee(std::move(callee)),
             args(std::move(args)) {}
 
     void accept(Visitor& v) override { v.visit(*this); }
@@ -39,10 +41,21 @@ public:
 };
 
 
+enum class IdentifierKind{
+    LOCAL,
+    GLOBAL,
+    FIELD,
+    CONSTANT
+};
+
+
 class IdentifierNodeAST : public ExpressionNodeAST {
 public:
     std::string name;
     size_t slot_index = 0;
+    
+    IdentifierKind kind;
+    SymbolInfo* resolved_symbol = nullptr;
 
     IdentifierNodeAST(
         const std::string& name,

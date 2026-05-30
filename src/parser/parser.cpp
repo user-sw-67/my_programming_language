@@ -76,9 +76,6 @@ void Parser::synchronize() {
             case TokenType::KW_FOR:
             case TokenType::KW_DO:
             case TokenType::KW_TRY:
-            case TokenType::KW_RETURN:
-            case TokenType::KW_BREAK:
-            case TokenType::KW_CONTINUE:
             case TokenType::KW_MATCH:
                 return;
             default:
@@ -121,7 +118,8 @@ std::unique_ptr<ProgramNode> Parser::parse() {
 
 int Parser::get_priority(TokenType type) const {
     switch (type) {
-        case TokenType::OP_DOT: case TokenType::OP_SAFE_NAV:
+        case TokenType::PAREN_L: case TokenType::OP_DOT: 
+        case TokenType::OP_SAFE_NAV:
             return static_cast<int>(Priorities::CALL);
         case TokenType::OP_POW:
             return static_cast<int>(Priorities::POW);
@@ -169,19 +167,6 @@ std::unique_ptr<ExpressionNodeAST> Parser::get_prefix() {
     if(match(TokenType::IDENTIFIER)) {
         const Token& token = peek(-1);
         std::string name = token.get_value();
-        if(match(TokenType::PAREN_L)) {
-            std::vector<std::unique_ptr<ExpressionNodeAST>> args;
-            if(current().get_type() != TokenType::PAREN_R){
-                do{
-                    auto arg = parse_expression(
-                        static_cast<int>(Priorities::NONE));
-                    args.push_back(std::move(arg));
-                } while (match(TokenType::COMMA));
-            }
-            consume(TokenType::PAREN_R, "Ожидалась закрывающая скобка ')'");
-            return std::make_unique<CallOperationNodeAST>(
-                name, std::move(args), get_loc(token));
-        }
         return std::make_unique<IdentifierNodeAST>(name, get_loc(token));
     }
 
@@ -210,7 +195,8 @@ std::unique_ptr<StatementNodeAST> Parser::parse_statement() {
     if(current().get_type() == TokenType::BRACE_L) return parse_block();
     if(match(TokenType::KW_MAKE)) return parse_make();
     if(match(TokenType::KW_IF)) return parse_if();
-    if(match(TokenType::KW_FUNC)) return parse_func();
+    if(match(TokenType::KW_FUNC)) error("Объявления функций разрешены только "
+        "в глобальной области видимости или в классе");
     if(match(TokenType::KW_RETURN)) return parse_return();
     if(match(TokenType::KW_WHILE)) return parse_while(false);
     if(match(TokenType::KW_DO)) return parse_while(true);
@@ -249,6 +235,23 @@ std::unique_ptr<ExpressionNodeAST> Parser::parse_expression(int priority) {
     while (get_priority(current().get_type()) > priority) {
         TokenType op = current().get_type();
         int new_priority = get_priority(op);
+        
+        if (op == TokenType::PAREN_L) {
+            advance();
+            std::vector<std::unique_ptr<ExpressionNodeAST>> args;
+            if(current().get_type() != TokenType::PAREN_R){
+                do {
+                    auto arg = parse_expression(
+                        static_cast<int>(Priorities::NONE));
+                    args.push_back(std::move(arg));
+                } while (match(TokenType::COMMA));
+            }
+            consume(TokenType::PAREN_R, "Ожидалась закрывающая скобка ')'");
+            left = std::make_unique<CallOperationNodeAST>(
+                std::move(left), std::move(args), loc);
+            continue;
+        }
+
         advance();
 
         if (op == TokenType::OP_POW || 

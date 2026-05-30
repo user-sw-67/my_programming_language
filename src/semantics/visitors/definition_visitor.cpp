@@ -18,6 +18,7 @@ void DefinitionVisitor::visit(MakeNodeAST& node) {
             for(size_t i = 0; i < node.names.size(); ++i){
                 SymbolInfo* symbol = table.define_variable(node.names[i], 
                     node.type_names[i], node.is_const, node.is_init());
+                node.slot_indices.push_back(symbol->slot_index);
                 symbol->in_class = true;
                 symbol->access_modifier = current_access_modifier;
                 if(symbol->is_setter || symbol->is_getter){
@@ -34,6 +35,7 @@ void DefinitionVisitor::visit(MakeNodeAST& node) {
             for(size_t i = 0; i < node.names.size(); ++i){
                 SymbolInfo* symbol = table.define_variable(node.names[i], 
                     node.type_names[i], node.is_const, node.is_init());
+                node.slot_indices.push_back(symbol->slot_index);
             }
         }
     } catch(const RuntimeError& e) {
@@ -170,7 +172,16 @@ void DefinitionVisitor::visit(ClassNodeAST& node) {
 
 void DefinitionVisitor::visit(MatchNodeAST& node) {}
 
-void DefinitionVisitor::visit(TestNodeAST& node) {}
+void DefinitionVisitor::visit(TestNodeAST& node) {
+    try{
+        table.enter_scope();
+        auto test_scope = table.get_current_scope();
+        table.exit_scope();
+        table.define_test(node.name, test_scope);
+    } catch(const RuntimeError& e) {
+        managers.error.add(e.what(), node.location, Severity::ERROR);
+    }
+}
 
 void DefinitionVisitor::visit(AssertNodeAST& node) {}
 

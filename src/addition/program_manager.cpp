@@ -172,6 +172,8 @@ void ProgramManager::run() {
             PrintPhase::ast(config.ast_path_post, mod.ast, "Финальное");
         }
 
+    } catch(const RuntimeError& e) {
+        std::cerr << e.what() << "\n";
     } catch(const CompilerError& e) {
         std::cerr << e.to_string() << "\n";
     } catch(const std::exception& e) {

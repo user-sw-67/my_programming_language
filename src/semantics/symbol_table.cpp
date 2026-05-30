@@ -17,6 +17,14 @@ SymbolTable::SymbolTable(std::shared_ptr<Scope> std_lib,
             max_slots_in_function = 0;
 }
 
+SymbolTable::SymbolTable(std::shared_ptr<Scope> existing_global_scope, 
+        const std::string& current_defined_in_file, bool) :
+            current_defined_in_file(current_defined_in_file){
+            current_scope = existing_global_scope;
+            global_scope = existing_global_scope;
+            max_slots_in_function = 0;
+}
+
 std::shared_ptr<Scope> SymbolTable::get_current_scope() const {
     return current_scope;
 }
@@ -123,6 +131,45 @@ SymbolInfo* SymbolTable::define_class(const std::string& name,
             return symbol;
 }
 
+SymbolInfo* SymbolTable::define_test(const std::string& name, 
+        std::shared_ptr<Scope> test_scope) {
+            SymbolInfo* symbol = define(name, SymbolType::TEST);
+            symbol->test_scope = test_scope;
+            return symbol;
+}
+
 size_t SymbolTable::get_current_slots_count() const {
     return max_slots_in_function;
+}
+
+void SymbolTable::enter_existing_scope(std::shared_ptr<Scope> existing_scope) {
+    if(current_scope == existing_scope->parent){
+        scope_stack.push_back(current_scope);
+        current_scope = existing_scope;
+        return;
+    }
+    throw RuntimeError("Текущий Scope не является родителем заданного Scope.");
+}
+
+void SymbolTable::exit_existing_scope() {
+    if(!scope_stack.empty()){
+        current_scope = scope_stack.back();
+        scope_stack.pop_back();
+    }
+}
+
+void SymbolTable::set_current_class(SymbolInfo* cls) {
+    current_class = cls;
+}
+
+SymbolInfo* SymbolTable::get_current_class() const {
+    return current_class;
+}
+    
+void SymbolTable::set_current_function(SymbolInfo* func) {
+    current_function = func;
+}
+
+SymbolInfo* SymbolTable::get_current_function() const {
+    return current_function;
 }

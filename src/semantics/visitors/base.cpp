@@ -9,6 +9,6 @@ BaseVisitorSemantics::BaseVisitorSemantics(SymbolTable& table,
 
 void BaseVisitorSemantics::visit(ProgramNode& node) {
     for (auto& n : node.statements) {
-        n->accept(*this);
+        if(n) n->accept(*this);
     }
 }

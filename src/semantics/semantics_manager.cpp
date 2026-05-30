@@ -44,16 +44,21 @@ void SemanticsManager::run() {
     program->accept(definition_visitor);
     mod.status = ModuleStatus::LOADED;
     managers.source.active_index(mod);
+    validate_entry_point(mod.scope, filename);
 
-    if (mod.is_root) {
-        validate_entry_point(mod.scope, filename);
-    }
-
-    std::vector<ModuleReference> sort_moduls(managers.source.modules.size());
+    managers.source.sort_moduls.resize(managers.source.modules.size());
     for(const auto& [path, mod]: managers.source.modules){
-        sort_moduls[mod.index] = {&path, &mod};
+        managers.source.sort_moduls[mod.index] = {&path, &mod};
     }
     
-    
+    for(auto& mod_ref : managers.source.sort_moduls){
+        const std::string& file_path_current = *(mod_ref.path);
+        const Module& module_current = *(mod_ref.module);
+        SymbolTable symbol_table_current(module_current.scope, 
+            file_path_current, true);
+
+        AnalysisVisitor analysis_visitor(symbol_table_current, managers);
+        if(module_current.ast) module_current.ast->accept(analysis_visitor);
+    }
 
 }

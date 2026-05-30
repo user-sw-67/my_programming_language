@@ -17,6 +17,7 @@ enum class SymbolType : uint8_t{
     VARIABLE,
     FUNCTION,
     CLASS,
+    TEST
 };
 
 
@@ -29,6 +30,7 @@ struct SymbolInfo{
     std::string defined_in_file;
 
     std::shared_ptr<Scope> class_scope = nullptr;
+    std::shared_ptr<Scope> test_scope = nullptr;
 
     size_t slot_index = 0;
     FunctionNodeAST* body_ast = nullptr;
@@ -46,6 +48,7 @@ struct SymbolInfo{
     bool is_static : 1 = false;
     bool is_getter : 1 = false;
     bool is_setter : 1 = false;
+    bool is_test : 1 = false;
 };
 
 
@@ -65,9 +68,15 @@ private:
     size_t max_slots_in_function = 0;
     std::string current_defined_in_file;
     
+    std::vector<std::shared_ptr<Scope>> scope_stack;
+    SymbolInfo* current_class = nullptr;
+    SymbolInfo* current_function = nullptr;
 public:
     SymbolTable(std::shared_ptr<Scope> std_lib, 
         const std::string& current_defined_in_file);
+
+    SymbolTable(std::shared_ptr<Scope> existing_global_scope, 
+        const std::string& current_defined_in_file, bool);
 
     std::shared_ptr<Scope> get_current_scope() const;
     std::shared_ptr<Scope> get_global_scope() const;
@@ -98,7 +107,19 @@ public:
         std::shared_ptr<Scope> class_scope = nullptr, 
             bool is_has_parent = false, const std::string& parent_name = "");
 
+    SymbolInfo* define_test(const std::string& name, 
+        std::shared_ptr<Scope> test_scope = nullptr);
+
     size_t get_current_slots_count() const;
+
+    void enter_existing_scope(std::shared_ptr<Scope> existing_scope);
+    void exit_existing_scope();
+
+    void set_current_class(SymbolInfo* cls);
+    SymbolInfo* get_current_class() const;
+
+    void set_current_function(SymbolInfo* func);
+    SymbolInfo* get_current_function() const;
 };
 
 #endif
