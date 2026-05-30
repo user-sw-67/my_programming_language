@@ -8,8 +8,8 @@
 
 BuildInClass::BuildInClass(const std::string& class_name, 
     BuildInModule& parent_builder, std::shared_ptr<Scope> scope) : 
-        class_name(class_name), parent_builder(parent_builder), 
-            class_scope(scope){}
+        class_name(class_name), class_scope(scope), 
+            parent_builder(parent_builder) {}
 
 BuildInClass& BuildInClass::add_method(const std::string& name, uint8_t count_args,
     bool is_ellipsis_args, const std::string& ret_type, 
@@ -351,7 +351,7 @@ void BuildInManager::register_array(){
                             "Метод at(index) ожидает 1 аргумент");
                     }
                     auto index = values[1].as_int();
-                    if (index < 0 || index >= arr->elements.size()) {
+                    if (index < 0 || static_cast<size_t>(index) >= arr->elements.size()) {
                         throw RuntimeError("Индекс " + std::to_string(index) + 
                             " вышел за пределы массива");
                     }
@@ -377,7 +377,7 @@ void BuildInManager::register_array(){
                     size_t size = arr->elements.size();
                     if (size == 0) {
                         index = 0; 
-                    } else if (index > size) {
+                    } else if (static_cast<size_t>(index) > size) {
                         index %= size;
                     }
 
@@ -407,7 +407,7 @@ void BuildInManager::register_array(){
                             " не может быть меньше нуля");
                     }
                     size_t size = arr->elements.size();
-                    if (index >= size) {
+                    if (static_cast<size_t>(index) >= size) {
                         index %= size;
                     }
 

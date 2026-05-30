@@ -4,8 +4,8 @@
 
 
 Scope::Scope(std::shared_ptr<Scope> parent_ptr) : parent(parent_ptr) {
-    if (parent) {
-        next_slot = parent->next_slot;
+    if (parent_ptr) {
+        next_slot = parent_ptr->next_slot;
     }
 }
     
@@ -44,10 +44,12 @@ void SymbolTable::import_symbol(const std::string& name,
 }
 
 void SymbolTable::enter_scope() {
+    scope_stack.push_back(current_scope);
     current_scope = std::make_shared<Scope>(current_scope);
 }
 
 void SymbolTable::enter_function_scope() {
+    scope_stack.push_back(current_scope);
     current_scope = std::make_shared<Scope>(current_scope);
     current_scope->next_slot = 0;
     max_slots_in_function = 0;
@@ -58,7 +60,12 @@ void SymbolTable::exit_scope() {
         throw RuntimeError(
             "Невозможно выйти из глобальной области видимости");
     }
-    current_scope = current_scope->parent;
+    if (!scope_stack.empty()) {
+        current_scope = scope_stack.back();
+        scope_stack.pop_back();
+    } else {
+        current_scope = current_scope->parent.lock();
+    }
 }
 
 SymbolInfo* SymbolTable::lookup(const std::string& name) const {
@@ -68,7 +75,7 @@ SymbolInfo* SymbolTable::lookup(const std::string& name) const {
         if(it != scope->symbols.end()){
             return (it->second).get();
         }
-        scope = scope->parent;
+        scope = scope->parent.lock();
     }
     return nullptr;
 }
@@ -143,7 +150,7 @@ size_t SymbolTable::get_current_slots_count() const {
 }
 
 void SymbolTable::enter_existing_scope(std::shared_ptr<Scope> existing_scope) {
-    if(current_scope == existing_scope->parent){
+    if(current_scope == existing_scope->parent.lock()){
         scope_stack.push_back(current_scope);
         current_scope = existing_scope;
         return;

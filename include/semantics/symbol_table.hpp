@@ -54,7 +54,7 @@ struct SymbolInfo{
 
 struct Scope{
     std::unordered_map<std::string, std::shared_ptr<SymbolInfo>> symbols;
-    std::shared_ptr<Scope> parent;
+    std::weak_ptr<Scope> parent;
     size_t next_slot = 0;
 
     Scope(std::shared_ptr<Scope> parent_ptr);

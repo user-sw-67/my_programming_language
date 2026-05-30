@@ -41,8 +41,9 @@ void AnalysisVisitor::visit(IdentifierNodeAST& node) {
     node.resolved_symbol = sym;
     node.slot_index = sym->slot_index;
 
-    if(sym->is_built_in || sym->type == SymbolType::CLASS){
-        node.kind = IdentifierKind::CONSTANT;
+    if(sym->is_built_in || sym->type == SymbolType::CLASS 
+        || sym->type == SymbolType::TEST){
+            node.kind = IdentifierKind::CONSTANT;
     } else if (sym->in_class) {
         if(sym->is_static){
             node.kind = IdentifierKind::GLOBAL;

@@ -13,6 +13,8 @@ private:
 public:
     AnalysisVisitor(SymbolTable& table, Managers& managers);
 
+    using BaseVisitorSemantics::visit;
+
     void visit(MakeNodeAST& node) override;
     void visit(LiteralNodeAST& node) override;
     void visit(IdentifierNodeAST& node) override;

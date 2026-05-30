@@ -6,8 +6,7 @@
 
 SemanticsManager::SemanticsManager(std::unique_ptr<ProgramNode>& program, 
         const std::string& filename, Managers& managers) : 
-            program(program), filename(filename), 
-                    managers(managers) {}
+            managers(managers), filename(filename), program(program) {}
 
 void SemanticsManager::validate_entry_point(
     std::shared_ptr<Scope> scope, const std::string& filename) const {

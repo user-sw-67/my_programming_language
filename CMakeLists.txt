@@ -14,16 +14,16 @@ option(ENABLE_SANITIZERS "Enable Address and Undefined Behavior Sanitizers" ON)
 
 set(SOURCES
     src/main.cpp
-    
+
     src/addition/error_manager.cpp
     src/addition/source_manager.cpp
     src/addition/program_manager.cpp
     src/addition/mermaid_visitor.cpp
     src/addition/builds_manager.cpp
-    
+
     src/lexer/lexer.cpp
     src/lexer/token.cpp
-    
+
     src/parser/parser.cpp
 
     src/semantics/semantics_manager.cpp
@@ -52,17 +52,19 @@ target_compile_options(atm PRIVATE
     -Wall 
     -Wextra 
     -Wpedantic
+    -Wno-unused-parameter
+    -Wnon-virtual-dtor
 )
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND ENABLE_SANITIZERS)
     message(STATUS "Включение санитайзеров: AddressSanitizer + UndefinedBehaviorSanitizer")
-    
+
     target_compile_options(atm PRIVATE 
         -fsanitize=address,undefined 
         -fno-omit-frame-pointer 
         -g
     )
-    
+
     target_link_options(atm PRIVATE 
         -fsanitize=address,undefined
     )

@@ -137,7 +137,7 @@ public:
     void accept(Visitor& v) override { v.visit(*this); }
 
     int get_cout_parameters() const {
-        return parameters.size();
+        return static_cast<int>(parameters.size());
     }
 
     bool is_variadic_parameters() const {
@@ -285,8 +285,8 @@ public:
         const SourceLocation& location) :
             StatementNodeAST(location), 
             path_lib(path_lib),
-            is_build_in(is_build_in),
-            objects(objects) {}
+            objects(std::move(objects)), 
+            is_build_in(is_build_in) {}
 
     void accept(Visitor& v) override { v.visit(*this); }
 
