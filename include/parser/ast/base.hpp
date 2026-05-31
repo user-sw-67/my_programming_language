@@ -37,10 +37,10 @@ public:
 
 class ProgramNode : public NodeAST {
 public:
+    std::vector<std::unique_ptr<StatementNodeAST>> statements;
+
     ProgramNode(const SourceLocation& location) : 
         NodeAST(location) {}
-
-    std::vector<std::unique_ptr<StatementNodeAST>> statements;
 
     void accept(Visitor& v) override {v.visit(*this);}
 };

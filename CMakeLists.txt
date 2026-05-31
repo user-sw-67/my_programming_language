@@ -26,6 +26,8 @@ set(SOURCES
 
     src/parser/parser.cpp
 
+    src/base/visitor.cpp
+
     src/semantics/semantics_manager.cpp
     src/semantics/symbol_table.cpp
     src/semantics/value.cpp

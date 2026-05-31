@@ -3,12 +3,13 @@
 #include "../../include/addition/program_manager.hpp"
 #include "../../include/parser/ast.hpp"
 
-
+// ДОПИСАТЬ ПРОВЕРКУ СУЩ ТИПОВ В ФУНКЦИИ И МАКЕ
 AnalysisVisitor::AnalysisVisitor(SymbolTable& table, Managers& managers) : 
     BaseVisitorSemantics(table, managers) {}
 
 void AnalysisVisitor::visit(MakeNodeAST& node) {
     bool init = node.is_init();
+    
     for (size_t i = 0; i < node.names.size(); ++i){
         if(init){
             if(node.initializers[i]) node.initializers[i]->accept(*this);
@@ -49,8 +50,8 @@ void AnalysisVisitor::visit(IdentifierNodeAST& node) {
             node.kind = IdentifierKind::GLOBAL;
         } else {
             if (current_method_is_static) {
-                managers.error.add("Нельзя использовать нестатическое поле " + 
-                    node.name + " в статическом контексте", 
+                managers.error.add("Нельзя использовать нестатическое поле "
+                    "или метод " + node.name + " в статическом контексте", 
                         node.location, Severity::ERROR);
                 return;
             }

@@ -52,12 +52,15 @@ void SemanticsManager::run() {
     
     for(auto& mod_ref : managers.source.sort_moduls){
         const std::string& file_path_current = *(mod_ref.path);
-        const Module& module_current = *(mod_ref.module);
+        Module& module_current = *(const_cast<Module*>(mod_ref.module));
         SymbolTable symbol_table_current(module_current.scope, 
             file_path_current, true);
 
         AnalysisVisitor analysis_visitor(symbol_table_current, managers);
         if(module_current.ast) module_current.ast->accept(analysis_visitor);
+
+        OptimizationVisitor optimization_visitor(managers);
+        if(module_current.ast) optimization_visitor.visit(module_current.ast);
     }
 
 }

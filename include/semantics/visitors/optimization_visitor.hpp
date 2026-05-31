@@ -2,40 +2,97 @@
 #define OPTIMIZATION_VISITOR_HPP
 
 #include "base.hpp"
+#include "../../lexer/lexer.hpp"
 
 
-class OptimizationVisitor : public BaseVisitorSemantics{
+class OptimizationVisitor : public VisitorCarve{
 private:
+    Managers& managers;
+
+    std::unique_ptr<LiteralNodeAST> calculate(
+        LiteralNodeAST* left, TokenType op, 
+            LiteralNodeAST* right, SourceLocation loc);
+
+    bool literal_cast(LiteralNodeAST* l);
 
 public:
-    OptimizationVisitor(SymbolTable& table, Managers& managers);
-    
-    using BaseVisitorSemantics::visit;
+    OptimizationVisitor(Managers& managers);
 
-    void visit(MakeNodeAST& node) override;
-    void visit(LiteralNodeAST& node) override;
-    void visit(IdentifierNodeAST& node) override;
-    void visit(UnaryOperationNodeAST& node) override;
-    void visit(BinaryOperationNodeAST& node) override;
-    void visit(BlockNodeAST& node) override;
-    void visit(IfElseNodeAST& node) override;
-    void visit(TernaryOperationNodeAST& node) override;
-    void visit(ExpressionStatementNodeAST& node) override;
-    void visit(FunctionNodeAST& node) override;
-    void visit(ReturnNodeAST& node) override;
-    void visit(CallOperationNodeAST& node) override;
-    void visit(WhileNodeAST& node) override;
-    void visit(ForNodeAST& node) override;
-    void visit(BreakNodeAST& node) override;
-    void visit(ContinueNodeAST& node) override;
-    void visit(ThrowNodeAST& node) override;
-    void visit(TryNodeAST& node) override;
-    void visit(UseNodeAST& node) override;
-    void visit(ClassNodeAST& node) override;
-    void visit(MatchNodeAST& node) override;
-    void visit(TestNodeAST& node) override;
-    void visit(AssertNodeAST& node) override;
-    void visit(RangeOperationNodeAST& node) override;
+    void visit(
+        std::unique_ptr<ProgramNode>& node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<MakeNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<LiteralNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<IdentifierNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<UnaryOperationNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<BinaryOperationNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<BlockNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<IfElseNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<TernaryOperationNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<ExpressionStatementNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<FunctionNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<ReturnNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<CallOperationNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<WhileNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<ForNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<BreakNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<ContinueNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<ThrowNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<TryNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<UseNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<ClassNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<MatchNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<TestNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<AssertNodeAST> node) override;
+
+    std::unique_ptr<NodeAST> visit(
+        std::unique_ptr<RangeOperationNodeAST> node) override;
+
 };
 
 #endif
