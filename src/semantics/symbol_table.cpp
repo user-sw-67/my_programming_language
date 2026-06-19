@@ -90,7 +90,13 @@ SymbolInfo* SymbolTable::lookup_local(const std::string& name) const {
 SymbolInfo* SymbolTable::define(const std::string& name, SymbolType type) {
     if(current_scope->symbols.find(name) != current_scope->symbols.end()){
         throw RuntimeError(
-            "Идентификатор уже определен в этой области видимости: " 
+            "Идентификатор уже определен в этой области видимости: " + name);
+    }
+
+    auto* std_elem = lookup(name);
+    if(std_elem && std_elem->is_std){
+        throw RuntimeError(
+            "Переопределять идентификатор стандартной библиотеки запрещено: " 
                 + name);
     }
 
@@ -126,6 +132,7 @@ SymbolInfo* SymbolTable::define_function(const std::string& name,
         symbol->is_ellipsis_args = is_ellipsis_args;
         symbol->body_ast = body_ast;
         symbol->type_name = body_ast->return_type;
+        symbol->count_elem_default = body_ast->count_elem_default;
         return symbol;
 }
 
@@ -155,7 +162,7 @@ void SymbolTable::enter_existing_scope(std::shared_ptr<Scope> existing_scope) {
         current_scope = existing_scope;
         return;
     }
-    throw RuntimeError("Текущий Scope не является родителем заданного Scope.");
+    throw RuntimeError("Текущий Scope не является родителем заданного Scope");
 }
 
 void SymbolTable::exit_existing_scope() {

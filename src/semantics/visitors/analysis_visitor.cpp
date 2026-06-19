@@ -3,7 +3,7 @@
 #include "../../include/addition/program_manager.hpp"
 #include "../../include/parser/ast.hpp"
 
-// ДОПИСАТЬ ПРОВЕРКУ СУЩ ТИПОВ В ФУНКЦИИ И МАКЕ
+
 AnalysisVisitor::AnalysisVisitor(SymbolTable& table, Managers& managers) : 
     BaseVisitorSemantics(table, managers) {}
 
@@ -11,9 +11,24 @@ void AnalysisVisitor::visit(MakeNodeAST& node) {
     bool init = node.is_init();
     
     for (size_t i = 0; i < node.names.size(); ++i){
+        auto* sym_std = table.lookup(node.names[i]);
+        if(sym_std && sym_std->is_std) continue;
+
         if(init){
             if(node.initializers[i]) node.initializers[i]->accept(*this);
         }
+
+        if(node.type_names[i] != "auto"){
+            auto* type = table.lookup(node.type_names[i]);
+            if(!type || type->type != SymbolType::CLASS){
+                managers.error.add("Использование необъявленного "
+                    "типа данных", node.location, Severity::ERROR);
+            }
+        }
+
+        // if(can_cast(node.type_names[i], node.initializers[i])){
+
+        // }
 
         if(table.get_current_function() != nullptr){
             try{
@@ -122,10 +137,21 @@ void AnalysisVisitor::visit(ExpressionStatementNodeAST& node) {
 void AnalysisVisitor::visit(FunctionNodeAST& node) {
     SymbolInfo* func_sym = table.lookup(node.name);
 
+    if(!func_sym || func_sym->is_std) return;
+
     table.enter_function_scope();
     table.set_current_function(func_sym);
 
     for (auto& arg : node.parameters){
+
+        if(arg.type != "auto"){
+            auto* type = table.lookup(arg.type);
+            if(!type || type->type != SymbolType::CLASS){
+                managers.error.add("Использование необъявленного "
+                    "типа данных", node.location, Severity::ERROR);
+            }
+        }
+
         SymbolInfo* sym = nullptr;
         try{
             sym = table.define_variable(
@@ -158,8 +184,55 @@ void AnalysisVisitor::visit(ReturnNodeAST& node) {
 
 void AnalysisVisitor::visit(CallOperationNodeAST& node) {
     if(node.callee) node.callee->accept(*this);
+
     for (auto& arg : node.args) {
         if(arg) arg->accept(*this);
+    }
+
+    auto* id_ptr = dynamic_cast<IdentifierNodeAST*>(node.callee.get());
+    auto* bin_ptr = dynamic_cast<BinaryOperationNodeAST*>(node.callee.get());
+
+    auto valid_func = [&node, this](SymbolInfo* symbol, const std::string& err){
+        int size = node.args.size();
+        int difference = symbol->count_args - 
+            symbol->count_elem_default;
+        if(symbol->is_ellipsis_args) --difference;
+        if((!symbol->is_ellipsis_args && 
+            (size < difference || size > symbol->count_args)) || 
+                (symbol->is_ellipsis_args && size < difference)){
+                    managers.error.add(err, node.location, Severity::ERROR);
+        }
+    };
+
+    if(id_ptr){
+        auto* symbol = table.lookup(id_ptr->name);
+        if(symbol){
+            if(symbol->type == SymbolType::FUNCTION){
+                valid_func(symbol, "Количество передаваемых аргументов (" + 
+                    std::to_string(node.args.size()) + ") в функцию " + 
+                    symbol->name + " не соответствует ее сигнатуре");
+            } else if (symbol->type == SymbolType::CLASS){
+                auto construct = symbol->class_scope->symbols.find("new");
+                if(construct != symbol->class_scope->symbols.end()){
+                    valid_func(construct->second.get(),  "Количество "
+                        "передаваемых аргументов (" + std::to_string(
+                        node.args.size()) + ") в конструктор класса " + 
+                        symbol->name + " не соответствует его сигнатуре");
+                }
+            } else {
+                managers.error.add("Идентификатор " + symbol->name + 
+                    " не может быть вызван", node.location, Severity::ERROR);
+            }
+        }
+    } else if (bin_ptr){
+        if(bin_ptr->op == TokenType::OP_DOT || 
+            bin_ptr->op == TokenType::OP_SAFE_NAV){
+
+        } else {
+            
+        }
+    } else {
+
     }
 }
 
@@ -226,6 +299,8 @@ void AnalysisVisitor::visit(UseNodeAST& node) {}
 void AnalysisVisitor::visit(ClassNodeAST& node) {
     SymbolInfo* class_symbol = table.lookup(node.name);
 
+    if(!class_symbol || class_symbol->is_std) return;
+
     table.enter_existing_scope(class_symbol->class_scope);
     table.set_current_class(class_symbol);
 
@@ -263,6 +338,8 @@ void AnalysisVisitor::visit(MatchNodeAST& node) {
 void AnalysisVisitor::visit(TestNodeAST& node) {
     SymbolInfo* test_symbol = table.lookup(node.name);
 
+    if(!test_symbol || test_symbol->is_std) return;
+
     table.enter_existing_scope(test_symbol->test_scope);
     in_test = true;
     if(node.body) node.body->accept(*this);
@@ -282,4 +359,23 @@ void AnalysisVisitor::visit(RangeOperationNodeAST& node) {
     if(node.start) node.start->accept(*this);
     if(node.end) node.end->accept(*this);
     if(node.step) node.step->accept(*this);
+}
+
+bool AnalysisVisitor::can_cast(
+    const std::string& expected, const std::string& actual){
+        if(expected == actual) return true;
+        if (expected == "auto" || actual == "auto") return true;
+
+        if (expected == "Double" && actual == "Int") return true;
+        if (expected == "Int" && actual == "Double") return true;
+
+        if (expected == "Bool" && actual == "Double") return true;
+        if (expected == "Double" && actual == "Bool") return true;
+
+        if (expected == "Bool" && actual == "Int") return true;
+        if (expected == "Int" && actual == "Bool") return true;
+
+        if (expected == "Str" && actual == "Str") return true;
+
+        return false;
 }

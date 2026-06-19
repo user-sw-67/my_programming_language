@@ -10,6 +10,7 @@
 class Scope;
 class ErrorManager;
 class ProgramNode;
+class Token;
 
 enum class ModuleStatus {
     NOT_LOADED,
@@ -19,6 +20,7 @@ enum class ModuleStatus {
 
 struct Module {
     std::vector<std::string> lines;
+    std::vector<Token> tokens;
     std::unique_ptr<ProgramNode> ast;
     std::shared_ptr<Scope> scope;
     bool is_root = false;
@@ -51,10 +53,16 @@ class SourceManager {
 private:
     ErrorManager& error_manager;
     size_t next_index = 0;
+    std::unordered_map<std::string, std::string> files_print;
 
 public:
     std::unordered_map<std::string, Module> modules;
     std::vector<ModuleReference> sort_moduls;
+    
+    bool is_print_tokens = false;
+    bool is_print_ast = false;
+    bool is_print_ir = false;
+    std::filesystem::path dir_print;
 
     SourceManager(ErrorManager& error_manager);
     
@@ -69,6 +77,15 @@ public:
     void active_index(Module& mod);
 
     std::string get_line(const std::string& file_path, size_t i) const;
+
+    void print_tokens(const std::string& file, Module& mod);
+
+    void print_ast(const std::string& file, Module& mod, 
+        const std::string& type_ast);
+
+    void print_ir(const std::string& file, Module& mod);
+
+    void print_all_files();
 };
 
 #endif

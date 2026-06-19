@@ -10,6 +10,8 @@ private:
     bool in_cycle = false;
     bool in_test = false;
 
+    bool can_cast(const std::string& expected, const std::string& actual);
+
 public:
     AnalysisVisitor(SymbolTable& table, Managers& managers);
 

@@ -55,12 +55,17 @@ void SemanticsManager::run() {
         Module& module_current = *(const_cast<Module*>(mod_ref.module));
         SymbolTable symbol_table_current(module_current.scope, 
             file_path_current, true);
-
+        
+        managers.source.print_tokens(file_path_current, module_current);
+        managers.source.print_ast(file_path_current, module_current, "pre");
+        
         AnalysisVisitor analysis_visitor(symbol_table_current, managers);
         if(module_current.ast) module_current.ast->accept(analysis_visitor);
 
         OptimizationVisitor optimization_visitor(managers);
         if(module_current.ast) optimization_visitor.visit(module_current.ast);
+
+        managers.source.print_ast(file_path_current, module_current, "post");
     }
 
 }

@@ -26,10 +26,7 @@ struct CompilerConfig {
     bool print_ast = false;
     bool print_ir = false;
 
-    std::string tokens_path = "tokens.txt";
-    std::string ast_path_pre = "ast_pre.md";
-    std::string ast_path_post = "ast_post.md";
-    std::string ir_path = "output.ll";
+    std::string dir_for_files;
 };
 
 
@@ -39,7 +36,7 @@ public:
         const std::vector<Token>& tokens);
     
     static void ast(const std::string& filename, 
-        const std::unique_ptr<ProgramNode>& program, const std::string& type);
+        const std::unique_ptr<ProgramNode>& program);
     
     static void launch(const CompilerConfig& config);
 };

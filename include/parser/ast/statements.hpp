@@ -118,6 +118,8 @@ public:
     std::vector<Parameter> parameters;
     std::unique_ptr<ExpressionNodeAST> when_condition;
     std::unique_ptr<StatementNodeAST> body;
+    uint8_t count_elem_default;
+
     size_t locals_count = 0;
 
     FunctionNodeAST(
@@ -126,13 +128,15 @@ public:
         std::vector<Parameter>&& parameters,
         std::unique_ptr<ExpressionNodeAST>&& when_condition,
         std::unique_ptr<StatementNodeAST>&& body,
+        uint8_t count_elem_default,
         const SourceLocation& location) :
             StatementNodeAST(location),
             name(name),
             return_type(return_type),
             parameters(std::move(parameters)),
             when_condition(std::move(when_condition)),
-            body(std::move(body)) {}
+            body(std::move(body)), 
+            count_elem_default(count_elem_default) {}
 
     void accept(Visitor& v) override { v.visit(*this); }
 

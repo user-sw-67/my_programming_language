@@ -48,6 +48,14 @@ std::unique_ptr<NodeAST> OptimizationVisitor::visit(
         auto oper = dispatch(std::move(node->operand));
         node->operand = std::unique_ptr<ExpressionNodeAST>(
             static_cast<ExpressionNodeAST*>(oper.release()));
+
+        auto lit = dynamic_cast<LiteralNodeAST*>(node->operand.get());
+        if (lit && node->op == TokenType::OP_NOT) {
+            lit->value = literal_cast(lit) ? "true" : "false";
+            lit->literal_type = TokenType::LIT_BOOL;
+            return std::move(node->operand);
+        }
+
         return node;
 }
 

@@ -64,26 +64,24 @@ Parser::Parser(const std::vector<Token>& tokens, const std::string& filename,
         ParserBase(tokens, filename, managers) {}
 
 void Parser::synchronize() {
+    advance();
+
     while (!is_end()) {
-        switch (current().get_type()) {
+        if (peek(-1).get_type() == TokenType::SEMICOLON) return;
+
+        switch (peek().get_type()) {
             case TokenType::KW_CLASS:
-            case TokenType::KW_MAKE:
-            case TokenType::KW_USE:
             case TokenType::KW_FUNC:
-            case TokenType::KW_TEST:
-            case TokenType::KW_IF:
-            case TokenType::KW_WHILE:
+            case TokenType::KW_MAKE:
             case TokenType::KW_FOR:
-            case TokenType::KW_DO:
-            case TokenType::KW_TRY:
+            case TokenType::KW_WHILE:
+            case TokenType::KW_IF:
+            case TokenType::KW_RETURN:
             case TokenType::KW_MATCH:
+            case TokenType::BRACE_R:
                 return;
             default:
                 break;
-        }
-        if (current().get_type() == TokenType::SEMICOLON) {
-            advance();
-            return;
         }
         advance();
     }
@@ -392,30 +390,50 @@ std::unique_ptr<StatementNodeAST> Parser::parse_func(bool in_class) {
     consume(TokenType::PAREN_L, "Ожидается '(' после идентификатора");
 
     std::vector<Parameter> parameters;
+    bool is_active_def = false;
+    uint8_t count_elem_default = 0;
     if(!match(TokenType::PAREN_R)) {
         do{
             bool is_variadic = match(TokenType::OP_ELLIPSIS);
-            const Token& par = consume(TokenType::IDENTIFIER, 
-                "Ожидалось имя параметра");
-            std::string par_name = par.get_value();
-            std::string par_type("auto");
-            if(match(TokenType::OP_ARROW)) {
-                par_type = consume(TokenType::IDENTIFIER, 
-                    "Ожидался тип параметра после '->'").get_value();
-            }
-            std::unique_ptr<ExpressionNodeAST> par_default_val = nullptr;
-            if(match(TokenType::OP_ASSIGN)){
-                par_default_val = parse_expression(
-                    static_cast<int>(Priorities::NONE));
-            }
-            parameters.emplace_back(par_name, par_type, 
-                std::move(par_default_val), is_variadic, get_loc(par));
-            
-            if(is_variadic) {
-                if (current().get_type() == TokenType::COMMA) {
-                    error(par_name + "... должен быть последним в списке");
+            if(is_variadic){
+                const Token& par = consume(TokenType::IDENTIFIER, 
+                    "Ожидалось имя параметра");
+                std::string par_name = par.get_value();
+                if(match(TokenType::OP_ARROW)) {
+                    error("Параметр ..." + par_name + " не может иметь типа");
+                }
+                if(match(TokenType::OP_ASSIGN)){
+                    error("Параметр ..." + par_name + 
+                        " не может иметь значения по умолчанию");
+                }
+                parameters.emplace_back(par_name, "auto", 
+                    nullptr, is_variadic, get_loc(par));
+                if (current().get_type() != TokenType::PAREN_R) {
+                    error("..." + par_name + " должен быть последним в списке");
                 }
                 break;
+            } else {
+                const Token& par = consume(TokenType::IDENTIFIER, 
+                    "Ожидалось имя параметра");
+                std::string par_name = par.get_value();
+                std::string par_type("auto");
+                if(match(TokenType::OP_ARROW)) {
+                    par_type = consume(TokenType::IDENTIFIER, 
+                        "Ожидался тип параметра после '->'").get_value();
+                }
+                std::unique_ptr<ExpressionNodeAST> par_default_val = nullptr;
+                if(match(TokenType::OP_ASSIGN)){
+                    par_default_val = parse_expression(
+                        static_cast<int>(Priorities::NONE));
+                }
+                if(!par_default_val && is_active_def){
+                    error("Параметры со значением по умолчанию должны "
+                        "идти в конце");
+                }
+                if(par_default_val && !is_active_def) is_active_def = true;
+                if(par_default_val) ++count_elem_default;
+                parameters.emplace_back(par_name, par_type, 
+                    std::move(par_default_val), is_variadic, get_loc(par));
             }
         } while (match(TokenType::COMMA));
         consume(TokenType::PAREN_R, "Ожидается закрывающая ')'"); 
@@ -451,7 +469,7 @@ std::unique_ptr<StatementNodeAST> Parser::parse_func(bool in_class) {
 
     return std::make_unique<FunctionNodeAST>(name, return_type,
         std::move(parameters), std::move(when_condition), 
-        std::move(body), loc);            
+        std::move(body), count_elem_default, loc);            
 }
 
 std::unique_ptr<StatementNodeAST> Parser::parse_return() {

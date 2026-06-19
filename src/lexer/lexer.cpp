@@ -189,7 +189,7 @@ void Lexer::handlerIN_IDENTIFIER(char c, size_t sl, size_t sc) {
 void Lexer::handlerIN_NUMBER(char c, size_t sl, size_t sc) {
     if (std::isdigit(c)) {
         add_simvol(c);
-    } else if (c == '.' && std::isdigit(peek(1))) {
+    } else if (c == '.') {
         add_simvol(c);
         state = StateList::IN_NUMBER_DOT;
     } else {

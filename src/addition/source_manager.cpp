@@ -1,10 +1,12 @@
 #include "../../include/addition/source_manager.hpp"
 #include "../../include/addition/error_manager.hpp"
+#include "../../include/addition/program_manager.hpp"
 #include "../../include/semantics/symbol_table.hpp"
 #include "../../include/parser/ast.hpp"
 
 #include <filesystem>
 #include <string>
+#include <iomanip>
 
 SourceLocation::SourceLocation(
     size_t line, 
@@ -100,4 +102,67 @@ std::string SourceManager::get_line(
         return it->second.lines.back();
     }
     return it->second.lines[i - 1];
+}
+
+void SourceManager::print_tokens(const std::string& file, Module& mod){
+    if(is_print_tokens && !mod.tokens.empty()){
+        std::string file_name = "tokens_" + std::to_string(mod.index) + ".txt";
+        std::string file_path = dir_print / file_name;
+        files_print[file_path] = file;
+        PrintPhase::tokens(file_path, mod.tokens);
+    }
+    return;
+}
+
+void SourceManager::print_ast(const std::string& file, Module& mod, 
+    const std::string& type_ast){
+        if(is_print_ast && mod.ast){
+            std::string file_name = "ast_" + type_ast + "_" + 
+                std::to_string(mod.index) + ".md";
+            std::string file_path = dir_print / file_name;
+            files_print[file_path] = file;
+            PrintPhase::ast(file_path, mod.ast);
+        }
+        return;
+}
+
+void SourceManager::print_ir(const std::string& file, Module& mod){}
+
+void SourceManager::print_all_files() {
+    if (files_print.empty()) return;
+
+    auto utf8_length = [](const std::string& str) -> size_t {
+        size_t len = 0;
+        for (unsigned char c : str) {
+            if ((c & 0xC0) != 0x80) ++len;
+        }
+        return len;
+    };
+    
+    auto print_left = [&](const std::string& str, size_t width) {
+        std::cout << str;
+        size_t actual_len = utf8_length(str);
+        if (width > actual_len) {
+            std::cout << std::string(width - actual_len, ' ');
+        }
+    };
+
+    const size_t column_width = 35;
+
+    std::cout << "\n\033[1;36mСГЕНЕРИРОВАННЫЕ АРТЕФАКТЫ\033[0m\n";
+    std::cout << "-------------------------------------"
+        "---------------------------------\n";
+    print_left("ИСХОДНЫЙ ФАЙЛ", column_width);
+    std::cout << "| СГЕНЕРИРОВАННЫЙ ФАЙЛ\n";
+    std::cout << "--------------------------------------"
+        "--------------------------------\n";
+    for (const auto& [file_prog, source_file_path] : files_print) {
+        std::string rel_path = std::filesystem::relative(
+            source_file_path).string();
+        print_left(rel_path, column_width);
+        std::cout << "| \033[1;32m" << file_prog << "\033[0m\n";
+    }
+    
+    std::cout << "---------------------------------"
+        "-------------------------------------\n";
 }

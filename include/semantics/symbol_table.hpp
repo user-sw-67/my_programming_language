@@ -37,6 +37,7 @@ struct SymbolInfo{
     
     SymbolType type;
     uint8_t count_args;
+    uint8_t count_elem_default;
 
     bool is_built_in : 1 = false;
     bool is_std : 1 = false;

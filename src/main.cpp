@@ -8,7 +8,8 @@ int main(int argc, char const *argv[]){
         ProgramManager manager(argc, argv);
         manager.run();
     } catch(const std::exception& e) {
-        std::cerr << e.what() << "\n";
+        std::cerr << "\033[31m" << "КРИТИЧЕСКАЯ ОШИБКА STD: " 
+            << e.what() << "\033[0m" << "\n";
         return 1;
     }
     std::cout << std::endl;

@@ -19,12 +19,10 @@ void PrintPhase::tokens(const std::string& filename,
         for (const auto& token : tokens) {
             file << token.to_string() << std::endl;
         }
-        std::cout << "\n\033[1;34mСохранено " << tokens.size() 
-            << " токенов в " << filename << "\033[0m" << std::endl;
 }
 
 void PrintPhase::ast(const std::string& filename, 
-    const std::unique_ptr<ProgramNode>& program, const std::string& type) {
+    const std::unique_ptr<ProgramNode>& program) {
         std::ofstream file(filename);
         if (!file.is_open()) {
             std::cerr << "Ошибка: не удалось создать файл " 
@@ -37,8 +35,6 @@ void PrintPhase::ast(const std::string& filename,
         program->accept(visualizer);
         file << "```\n";
         file.close();
-        std::cout << "\n\033[1;34m" + type + " AST дерево сохранено в " 
-            << filename << "\033[0m" << std::endl;
 }
 
 void PrintPhase::launch(const CompilerConfig& config) {
@@ -53,21 +49,21 @@ void PrintPhase::launch(const CompilerConfig& config) {
     std::cout << "------------------------------------------------" 
         << std::endl;
 
-    auto print_info = [](std::string label, bool enabled, std::string path){
+    auto print_info = [](std::string label, bool enabled){
         std::cout << label + ": ";
         if (enabled) {
-            std::cout << "\033[1;32mДА\033[0m -> " << path << std::endl;
+            std::cout << "\033[1;32mДА\033[0m" << std::endl;
         } else {
             std::cout << "\033[1;31mНЕТ\033[0m" << std::endl;
         }
     };
 
-    print_info("Вывод токенов", config.print_tokens, config.tokens_path);
-    print_info("Вывод предварительного AST", 
-        config.print_ast, config.ast_path_pre);
-    print_info("Вывод финального AST", 
-        config.print_ast, config.ast_path_post);
-    print_info("Вывод LLVM IR", config.print_ir, config.ir_path);
+    print_info("Вывод токенов", config.print_tokens);
+    print_info("Вывод предварительного AST", config.print_ast);
+    print_info("Вывод финального AST", config.print_ast);
+    print_info("Вывод LLVM IR", config.print_ir);
+    if(!config.dir_for_files.empty()) std::cout << 
+        "Сохранение файлов в директорию: " + config.dir_for_files << "\n";
 
     std::cout << "------------------------------------------------" 
               << std::endl;
@@ -76,41 +72,26 @@ void PrintPhase::launch(const CompilerConfig& config) {
 }
 
 void ProgramManager::parse_config_flags(int argc, char const *argv[]) {
-    auto insert_before_extension = [](const std::string& filename, 
-        const std::string& suffix) {
-            std::filesystem::path path(filename);
-
-            std::filesystem::path parent = path.parent_path();
-            std::string stem = path.stem().string();
-            std::string ext = path.extension().string();
-
-            std::filesystem::path result = parent / (stem + suffix + ext);
-            return result.string();
-    };
-
     for (int i = 2; i < argc; ++i) {
         std::string arg = argv[i];
 
         if (arg == "-t" || arg == "--generate-tokens") {
             config.print_tokens = true;
-            if (i + 1 < argc && argv[i + 1][0] != '-') {
-                std::string name = argv[++i];
-                config.tokens_path = name;
-            }
             
         } else if (arg == "-a" || arg == "--generate-ast") {
             config.print_ast = true;
-            if (i + 1 < argc && argv[i+1][0] != '-') {
-                std::string name = argv[++i];
-                config.ast_path_post = insert_before_extension(name, "_post");
-                config.ast_path_pre = insert_before_extension(name, "_pre");
-            }
 
         } else if (arg == "-i" || arg == "--generate-ir") {
             config.print_ir = true;
-            if (i + 1 < argc && argv[i+1][0] != '-') {
-                std::string name = argv[++i];
-                config.ir_path = name;
+        
+        } else if (arg == "-dir" || arg == "--directory") {
+            if (i + 1 < argc && argv[i + 1][0] != '-') {
+                std::string dir = argv[++i];
+                std::filesystem::create_directories(dir);
+                config.dir_for_files = dir;
+            } else {
+                throw std::runtime_error("После флага -dir или --directory "
+                    "укажите путь до директории для сохраняемых файлов");
             }
 
         } else if (arg == "-C") {
@@ -124,58 +105,53 @@ void ProgramManager::parse_config_flags(int argc, char const *argv[]) {
                       << arg << "\n";
         }
     }
+    if(config.dir_for_files.empty() && 
+        (config.print_ast || config.print_ir || config.print_tokens)){
+            throw std::runtime_error("Укажите флаг -dir или --directory");
+    }
 }
 
 ProgramManager::ProgramManager(int argc, char const *argv[]){
-        if (argc < 2) {
-            throw std::runtime_error("Не указан файл с исходным кодом");
-        }
-        config.input_file = argv[1];
-        parse_config_flags(argc, argv);
-        PrintPhase::launch(config);
+    if (argc < 2) {
+        throw std::runtime_error("Не указан файл с исходным кодом");
+    }
+    config.input_file = argv[1];
+    parse_config_flags(argc, argv);
+    PrintPhase::launch(config);
 }
 
 void ProgramManager::run() {
     try{
+        managers.source.is_print_tokens = config.print_tokens;
+        managers.source.is_print_ast = config.print_ast;
+        managers.source.is_print_ir = config.print_ir;
+        managers.source.dir_print = config.dir_for_files;
+
         std::string file_path = managers.source.load_file(config.input_file);
-        const auto& lines = managers.source.get_file_content(file_path);
         Module& mod = managers.source.modules[file_path];
         mod.is_root = true;
 
-        Lexer lexer(lines, file_path, managers);
-        std::vector<Token> tokens = lexer.get_tokens();
-
-        managers.error.printAll(managers.source);
-        if(!managers.error.ok()) return;
-
-        if(config.print_tokens) {
-            PrintPhase::tokens(config.tokens_path, tokens);
-        }
-
-        Parser parser(tokens, file_path, managers);
+        Lexer lexer(mod.lines, file_path, managers);
+        mod.tokens = lexer.get_tokens();
+        Parser parser(mod.tokens, file_path, managers);
         mod.ast = parser.parse();
-
-        managers.error.printAll(managers.source);
-        if(!managers.error.ok()) return;
-
-        if(config.print_ast) {
-            PrintPhase::ast(config.ast_path_pre, mod.ast, "Предварительное");
-        }
 
         SemanticsManager semantics_manager(mod.ast, file_path, managers);
         semantics_manager.run();
 
+        managers.source.print_all_files();
+
         managers.error.printAll(managers.source);
         if(!managers.error.ok()) return;
 
-        if(config.print_ast) {
-            PrintPhase::ast(config.ast_path_post, mod.ast, "Финальное");
-        }
+        
 
     } catch(const RuntimeError& e) {
-        std::cerr << e.what() << "\n";
+        std::cerr << "\033[31m" << "КРИТИЧЕСКАЯ ОШИБКА RNT: " 
+            << e.what() << "\033[0m" << "\n";
     } catch(const CompilerError& e) {
-        std::cerr << e.to_string() << "\n";
+        std::cerr << "\033[31m" << "КРИТИЧЕСКАЯ ОШИБКА CML: " 
+            << e.to_string() << "\033[0m" << "\n";
     } catch(const std::exception& e) {
         throw;
     }

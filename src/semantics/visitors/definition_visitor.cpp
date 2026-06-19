@@ -128,8 +128,8 @@ void DefinitionVisitor::visit(UseNodeAST& node) {
 
     if(!mod.ast){
         Lexer lexer(mod.lines, node.path_lib, managers);
-        std::vector<Token> tokens = lexer.get_tokens();
-        Parser parser(tokens, node.path_lib, managers);
+        mod.tokens = lexer.get_tokens();
+        Parser parser(mod.tokens, node.path_lib, managers);
         mod.ast = parser.parse();
     }
 
@@ -217,6 +217,7 @@ std::shared_ptr<Scope> DefinitionVisitor::get_class_scope(ClassNodeAST& node) {
         symbol->is_built_in = true;
         symbol->in_class = true;
         symbol->count_args = 0;
+        symbol->count_elem_default = 0;
         symbol->is_ellipsis_args = false;
         symbol->built_in_func = nullptr;
         symbol->type_name = "Null";
@@ -232,6 +233,12 @@ std::shared_ptr<Scope> DefinitionVisitor::get_class_scope(ClassNodeAST& node) {
     if(!del_ptr){
         del_ptr = define_method("delete");
     }
+
+    if(del_ptr->type != SymbolType::FUNCTION || new_ptr->type != SymbolType::FUNCTION){
+        managers.error.add("Обьявлять поля с именем new или delete запрещено", 
+            node.location, Severity::ERROR);
+    }
+
     if(del_ptr && del_ptr->count_args != 0){
         managers.error.add("Деструктор класса " + node.name + 
             " не должен иметь параметров", node.location, Severity::ERROR);
