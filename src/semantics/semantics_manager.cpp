@@ -12,22 +12,22 @@ void SemanticsManager::validate_entry_point(
     std::shared_ptr<Scope> scope, const std::string& filename) const {
         auto it = scope->symbols.find("main");
         if (it == scope->symbols.end()) {
-            managers.error.add("Не найдена точка входа (функция main)", 
-                {0, 0, filename}, Severity::ERROR);
+            managers.error.add("Не найдена точка входа (функция main)",
+                {0, 0, filename}, Severity::ERROR, error_code::SEM_1501);
             return;
         }
 
         auto main_symbol = it->second;
         if (main_symbol->type != SymbolType::FUNCTION) {
-            managers.error.add("Идентификатор main должен быть функцией", 
-                {0, 0, filename}, Severity::ERROR);
+            managers.error.add("Идентификатор main должен быть функцией",
+                {0, 0, filename}, Severity::ERROR, error_code::SEM_1502);
             return;
         }
 
         if (main_symbol->count_args != 0) {
             managers.error.add(
-                "Функция 'main' не должна принимать аргументов", 
-                    {0, 0, filename}, Severity::ERROR);
+                "Функция 'main' не должна принимать аргументов",
+                    {0, 0, filename}, Severity::ERROR, error_code::SEM_1503);
         }
         return;
 }

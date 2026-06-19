@@ -47,9 +47,8 @@ struct SymbolInfo{
     bool is_has_parent : 1 = false;
     bool in_class : 1 = false;
     bool is_static : 1 = false;
-    bool is_getter : 1 = false;
-    bool is_setter : 1 = false;
     bool is_test : 1 = false;
+    bool is_iter_obj : 1 = false;
 };
 
 

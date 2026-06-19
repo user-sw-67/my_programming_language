@@ -47,13 +47,13 @@ std::string SourceManager::load_file(const std::string& file_atm) {
         try{
             file_path = std::filesystem::canonical(file_atm).string();
         }catch(...){
-            throw PreparationError("Файл не существует: " + file_path, 
-                SourceLocation(0, 0, file_path), *this);
+            throw PreparationError("Файл не существует: " + file_path,
+                SourceLocation(0, 0, file_path), *this, error_code::PRE_0001);
         }
 
         if (std::filesystem::path(file_path).extension() != ".atm") {
-            throw PreparationError("Расширение файла должно быть .atm", 
-                SourceLocation(0, 0, file_path), *this);
+            throw PreparationError("Расширение файла должно быть .atm",
+                SourceLocation(0, 0, file_path), *this, error_code::PRE_0002);
         }
 
         if (modules.find(file_path) != modules.end()) {
@@ -62,9 +62,10 @@ std::string SourceManager::load_file(const std::string& file_atm) {
 
         std::ifstream file(file_path);
         if (!file.is_open()) {
-            throw PreparationError("Файл " + file_path + 
-                " не удалось прочитать", 
-                    SourceLocation(0, 0, file_path), *this);
+            throw PreparationError("Файл " + file_path +
+                " не удалось прочитать",
+                    SourceLocation(0, 0, file_path), *this,
+                        error_code::PRE_0003);
         }
 
         std::string line;

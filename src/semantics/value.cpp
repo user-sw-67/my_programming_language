@@ -28,6 +28,8 @@ Value::Value(const ValueTypeList::OBJECT_V& data) : data(data) {}
 
 Value::Value(const ValueTypeList::FUNCTION_V& data) : data(data) {}
 
+Value::Value(const ValueTypeList::TYPE_V& data) : data(data) {}
+
 ValueTypeList::INT_V Value::as_int() const {
     return std::get<ValueTypeList::INT_V>(data);
 }
@@ -50,6 +52,10 @@ ValueTypeList::OBJECT_V Value::as_object() const {
 
 ValueTypeList::FUNCTION_V Value::as_function() const {
     return std::get<ValueTypeList::FUNCTION_V>(data);
+}
+
+ValueTypeList::TYPE_V Value::as_type() const {
+    return std::get<ValueTypeList::TYPE_V>(data);
 }
 
 bool Value::is_null() const {
@@ -80,6 +86,10 @@ bool Value::is_function() const {
     return std::holds_alternative<ValueTypeList::FUNCTION_V>(data);
 }
 
+bool Value::is_type() const {
+    return std::holds_alternative<ValueTypeList::TYPE_V>(data);
+}
+
 std::string Value::type_to_string() const {
     return std::visit([](auto&& arg) -> std::string {
         using T = std::decay_t<decltype(arg)>;
@@ -97,10 +107,14 @@ std::string Value::type_to_string() const {
         } else if constexpr (IsStr<T>) {
             return "Str";
         } else if constexpr (IsFunction<T>) {
-            if (arg) return "Function(" + arg->name + ")";
+            if (arg.info) return "Function(" + arg.info->name + ")";
             else return "Function(invalid)";
+        } else if constexpr (IsType<T>) {
+            if (arg.info) return "Type(" + arg.info->name + ")";
+            else return "Type(invalid)";
         }
 
+        return "unknown";
     }, data);
 }
 
@@ -139,8 +153,11 @@ std::ostream& operator<<(std::ostream& os, const Value& val) {
         } else if constexpr (IsObject<T>) {
             os << "object(" + arg->get_name() + ")" ;
         } else if constexpr (IsFunction<T>) {
-            if (arg) os << "function(" << arg->name << ")";
+            if (arg.info) os << "function(" << arg.info->name << ")";
             else os << "function(invalid)";
+        } else if constexpr (IsType<T>) {
+            if (arg.info) os << "type(" << arg.info->name << ")";
+            else os << "type(invalid)";
         } else {
             os << "unknown";
         }
@@ -173,8 +190,9 @@ Value operator+(const Value& v1, const Value& v2) {
         } else if constexpr (IsStr<T1> && IsStr<T2>) {
             return Value(a + b);
         } 
-        throw TypeError("Операция '+' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
+        throw TypeError("Операция '+' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1001);
 
     }, v1.data, v2.data);
 }
@@ -193,8 +211,9 @@ Value operator-(const Value& v1, const Value& v2) {
                 return Value(static_cast<ValueTypeList::BOOL_V>(a - b));
             }
         }
-        throw TypeError("Операция '-' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
+        throw TypeError("Операция '-' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1002);
 
     }, v1.data, v2.data);
 }
@@ -205,8 +224,9 @@ Value operator/(const Value& v1, const Value& v2) {
         using T2 = std::decay_t<decltype(b)>;
 
         if constexpr (IsArithmetic<T1> && IsArithmetic<T2>){
-            if (b == 0 || b == 0.0) 
-                throw TypeError("Деление на ноль запрещено");
+            if (b == 0 || b == 0.0)
+                throw TypeError("Деление на ноль запрещено",
+                    error_code::RUN_1003);
             if constexpr (IsDouble<T1> || IsDouble<T2> || 
                 IsInt<T1> || IsInt<T2>){
                     return Value(static_cast<ValueTypeList::DOUBLE_V>(a) / 
@@ -216,8 +236,9 @@ Value operator/(const Value& v1, const Value& v2) {
             }
 
         }
-        throw TypeError("Операция '/' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
+        throw TypeError("Операция '/' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1004);
 
     }, v1.data, v2.data);
 }
@@ -237,8 +258,9 @@ Value operator*(const Value& v1, const Value& v2) {
             }
 
         }
-        throw TypeError("Операция '*' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
+        throw TypeError("Операция '*' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1005);
 
     }, v1.data, v2.data);
 }
@@ -252,8 +274,9 @@ Value operator<(const Value& v1, const Value& v2){
             (IsStr<T1> && IsStr<T2>)){
                 return Value(static_cast<ValueTypeList::BOOL_V>(a < b));
         }
-        throw TypeError("Операция '<' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
+        throw TypeError("Операция '<' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1006);
 
     }, v1.data, v2.data);
 }
@@ -267,8 +290,9 @@ Value operator>(const Value& v1, const Value& v2){
             (IsStr<T1> && IsStr<T2>)){
                 return Value(static_cast<ValueTypeList::BOOL_V>(a > b));
         }
-        throw TypeError("Операция '>' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
+        throw TypeError("Операция '>' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1007);
 
     }, v1.data, v2.data);
 }
@@ -278,13 +302,16 @@ Value operator==(const Value& v1, const Value& v2){
         using T1 = std::decay_t<decltype(a)>;
         using T2 = std::decay_t<decltype(b)>;
 
-        if constexpr ((IsArithmetic<T1> && IsArithmetic<T2>) || 
-            (IsStr<T1> && IsStr<T2>)){
+        if constexpr ((IsArithmetic<T1> && IsArithmetic<T2>) ||
+            (IsStr<T1> && IsStr<T2>) ||
+            (IsType<T1> && IsType<T2>) ||
+            (IsFunction<T1> && IsFunction<T2>)){
                 return Value(static_cast<ValueTypeList::BOOL_V>(a == b));
         }
-        throw TypeError("Операция '==' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
-        
+        throw TypeError("Операция '==' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1008);
+
     }, v1.data, v2.data);
 }
 
@@ -293,12 +320,15 @@ Value operator!=(const Value& v1, const Value& v2){
         using T1 = std::decay_t<decltype(a)>;
         using T2 = std::decay_t<decltype(b)>;
 
-        if constexpr ((IsArithmetic<T1> && IsArithmetic<T2>) || 
-            (IsStr<T1> && IsStr<T2>)){
+        if constexpr ((IsArithmetic<T1> && IsArithmetic<T2>) ||
+            (IsStr<T1> && IsStr<T2>) ||
+            (IsType<T1> && IsType<T2>) ||
+            (IsFunction<T1> && IsFunction<T2>)){
                 return Value(static_cast<ValueTypeList::BOOL_V>(a != b));
         }
-        throw TypeError("Операция '!=' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
+        throw TypeError("Операция '!=' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1009);
 
     }, v1.data, v2.data);
 }
@@ -312,8 +342,9 @@ Value operator<=(const Value& v1, const Value& v2){
             (IsStr<T1> && IsStr<T2>)){
                 return Value(static_cast<ValueTypeList::BOOL_V>(a <= b));
         }
-        throw TypeError("Операция '<=' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
+        throw TypeError("Операция '<=' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1010);
 
     }, v1.data, v2.data);
 }
@@ -327,8 +358,9 @@ Value operator>=(const Value& v1, const Value& v2){
             (IsStr<T1> && IsStr<T2>)){
                 return Value(static_cast<ValueTypeList::BOOL_V>(a >= b));
         }
-        throw TypeError("Операция '>=' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
+        throw TypeError("Операция '>=' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1011);
         
     }, v1.data, v2.data);
 }
@@ -340,7 +372,8 @@ Value operator!(const Value& v1){
         if constexpr (IsArithmetic<T>){
             return Value(!static_cast<ValueTypeList::BOOL_V>(a));
         }
-        throw TypeError("Операция '!' запрещена над " + v1.type_to_string());
+        throw TypeError("Операция '!' запрещена над " + v1.type_to_string(),
+            error_code::RUN_1012);
 
     }, v1.data);
 }
@@ -354,8 +387,9 @@ Value operator&&(const Value& v1, const Value& v2){
             return Value(static_cast<ValueTypeList::BOOL_V>(a) && 
                 static_cast<ValueTypeList::BOOL_V>(b));
         }
-        throw TypeError("Операция '&&' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
+        throw TypeError("Операция '&&' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1013);
 
     }, v1.data, v2.data);
 }
@@ -369,8 +403,9 @@ Value operator||(const Value& v1, const Value& v2){
             return Value(static_cast<ValueTypeList::BOOL_V>(a) || 
                 static_cast<ValueTypeList::BOOL_V>(b));
         }
-        throw TypeError("Операция '||' запрещена над " + 
-            v1.type_to_string() + " и " + v2.type_to_string());
+        throw TypeError("Операция '||' запрещена над " +
+            v1.type_to_string() + " и " + v2.type_to_string(),
+                error_code::RUN_1014);
 
     }, v1.data, v2.data);
 }

@@ -37,16 +37,14 @@ enum class TokenType {
     KW_PROTECTED, // protected
     KW_PUBLIC, // public
     KW_STATIC, // static
-    KW_GETTER, // getter
-    KW_SETTER, // setter
     KW_MATCH, // match
     KW_CASE, // case
     KW_DEFAULT, // default
     KW_TEST, // test
     KW_ASSERT, // assert
     
-    LIT_INT, // 42, -17, 0, 255
-    LIT_DOUBLE, // 3.14, -0.5, 2.0, 1e-5
+    LIT_INT, // 42, 0, 255 (отрицательные числа -- унарный минус + LIT_INT)
+    LIT_DOUBLE, // 3.14, 2.0 (экспоненциальная запись вида 1e-5 не поддерживается)
     LIT_STR, // "hello", "world", "John"
     LIT_BOOL, // true, false
     LIT_NULL, // null
@@ -129,8 +127,6 @@ inline std::string token_to_string(TokenType type,
             case TokenType::KW_PROTECTED: return "PROTECTED";
             case TokenType::KW_PUBLIC: return "PUBLIC";
             case TokenType::KW_STATIC: return "STATIC";
-            case TokenType::KW_GETTER: return "GETTER";
-            case TokenType::KW_SETTER: return "SETTER";
             case TokenType::KW_MATCH: return "MATCH";
             case TokenType::KW_CASE: return "CASE";
             case TokenType::KW_DEFAULT: return "DEFAULT";
@@ -219,8 +215,6 @@ inline const std::unordered_map<std::string, TokenType> keyword_map = {
     {"protected", TokenType::KW_PROTECTED},
     {"public", TokenType::KW_PUBLIC},
     {"static", TokenType::KW_STATIC},
-    {"getter", TokenType::KW_GETTER},
-    {"setter", TokenType::KW_SETTER},
     {"match", TokenType::KW_MATCH},
     {"case", TokenType::KW_CASE},
     {"default", TokenType::KW_DEFAULT},

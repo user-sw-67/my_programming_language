@@ -1,0 +1,235 @@
+# ============================================================
+# Файл спецификации языка программирования ATOM (.atm)
+# Эталонный, проверенный пример: реально компилируется как
+# единая программа через build/atm specifier.atm
+# ============================================================
+
+use "@io";
+use "@array";
+use "../math.atm";
+
+# ----- ФУНКЦИИ ВЕРХНЕГО УРОВНЯ -----
+
+func add(a -> Int, b -> Int) -> Int { return a + b; }
+
+func greet(name, greeting = "Hello") -> greeting + ", " + name;
+
+func sum_all(...args) -> Int {
+    make total -> Int = 0;
+    for (item in args) {
+        total += item;
+    }
+    return total;
+}
+
+func safe_div(a -> Int, b -> Int) when (b != 0) -> a / b;
+
+# ----- КЛАССЫ И ООП -----
+
+class Person {
+    private name -> Str = "";
+    public age -> Int = 0;
+
+    new(name -> Str, age -> Int) {
+        this.name = name;
+        this.age = age;
+    }
+
+    get_name() -> Str { return this.name; }
+
+    public greet() -> "Hello, I'm " + this.name;
+}
+
+class Student extends Person {
+    private static student_count -> Int = 0;
+
+    new(name -> Str, age -> Int) {
+        super(name, age);
+    }
+}
+
+func main() {
+    # ----- ПРИМИТИВНЫЕ ТИПЫ И ПЕРЕМЕННЫЕ -----
+    make x -> Int = 10;
+    make y -> Double = 10.9;
+    make name -> Str = "string";
+    make flag -> Bool = true;
+    make empty -> Null;
+
+    # ----- ОБЫЧНЫЕ (auto) ПЕРЕМЕННЫЕ -----
+    make name_var0;
+    make name_var1 = 999;
+
+    # ----- КОНСТАНТНЫЕ ПЕРЕМЕННЫЕ -----
+    make const a = 1;
+
+    # ----- МНОЖЕСТВЕННОЕ ПРИСВАИВАНИЕ -----
+    make m1, m2, m3 = 1, 2, 3;
+    make const c1, c2, c3 = 1, 2, 3;
+
+    # ----- СОСТАВНОЕ ПРИСВАИВАНИЕ -----
+    make z = 5;
+    z += 3;
+    z -= 2;
+    z *= 4;
+    z /= 2;
+
+    # ----- ПЕРЕНАЗНАЧЕНИЕ ПЕРЕМЕННОЙ (auto) -----
+    make x1 = 8.9;
+    x1 = 10;
+    x1 = "hello";
+
+    # ----- ОБЛАСТЬ ВИДИМОСТИ -----
+    {
+        make scoped = 0;
+        print(scoped);
+    }
+
+    make outer = 0;
+    {
+        print(outer);
+        {
+            make outer = 1;
+            print(outer);
+        }
+    }
+
+    # ----- УСЛОВНЫЕ КОНСТРУКЦИИ -----
+    if (x > 10) {
+        print("больше");
+    } elif (x > 5) {
+        print("средний");
+    } else {
+        print("маленький");
+    }
+
+    # ----- ТЕРНАРНЫЙ ОПЕРАТОР -----
+    make status = (x >= 18) ? "взрослый" : "ребёнок";
+
+    # ----- АРИФМЕТИЧЕСКИЕ ОПЕРАТОРЫ -----
+    make result = 3 * 4 / 2 + 4 - 8 % 5;
+
+    # ----- ОПЕРАТОРЫ СРАВНЕНИЯ -----
+    make cmp = (3 == 4) != (2 > 4);
+
+    # ----- ЛОГИЧЕСКИЕ ОПЕРАТОРЫ -----
+    make logic = flag & (!flag) | flag;
+
+    # ----- ЦИКЛЫ -----
+    make i = 0;
+    while (i < 10) {
+        print(i);
+        i = i + 1;
+    }
+
+    make k = 0;
+    do {
+        print("хотя бы раз");
+        k += 1;
+    } while (k < 1);
+
+    # ----- ДИАПАЗОНЫ -----
+    make numbers = 1..10;
+    make stepped = 0..100 step 10;
+
+    for (j in 0..10) {
+        print(j);
+    }
+
+    for (j in 0..100 step 10) {
+        print(j);
+    }
+
+    make items = Array();
+    items.push(1);
+    items.push(2);
+    items.push(3);
+    for (item in items) {
+        print(item);
+    }
+
+    break_continue_demo();
+
+    # ----- ФУНКЦИИ: ВЫЗОВЫ -----
+    print(add(2, 2));
+    print(greet("Alice"));
+    print(sum_all(1, 2, 3, 4));
+    print(safe_div(10, 2));
+
+    # ----- ОБРАБОТКА ОШИБОК -----
+    # ВНИМАНИЕ: catch(...) синтаксически разбирает выражение в скобках, но
+    # семантика пока НЕ связывает его с пойманным исключением как с новой
+    # переменной (см. docs/construct_rules.txt, раздел 13) -- поэтому здесь
+    # используется уже объявленная переменная-плейсхолдер, а не новое имя.
+    make caught -> Null;
+    try {
+        throw_demo();
+    } catch (caught) {
+        print("исключение поймано");
+    } finally {
+        print("always");
+    }
+
+    # ----- КЛАССЫ И ООП -----
+    make john = Person("John", 25);
+    make jane = Student("Jane", 20);
+    print(john.greet());
+    print(john.get_name());
+
+    # ----- ДОСТУП К ПОЛЯМ -----
+    print(john.age);
+
+    # ----- БЕЗОПАСНАЯ НАВИГАЦИЯ И ЭЛВИС -----
+    make city = john?.get_name() ?: "Unknown";
+    print(city);
+
+    # ----- PIPE -----
+    # ВНИМАНИЕ: |> разбирается парсером (есть приоритет PIPE), но семантика
+    # пока не "прокачивает" левый операнд как первый аргумент правого
+    # вызова -- это обычная двухместная операция без подстановки аргумента
+    # (см. docs/construct_rules.txt, раздел 13). Полноценный pipe -- TODO
+    # будущего рантайма.
+    make piped = add(1, 2) |> add(3, 4);
+    print(piped);
+
+    # ----- PATTERN MATCHING -----
+    make value = 5;
+    match (value) {
+        case 0: { print("zero"); }
+        case 1..9: { print("digit"); }
+        case "hello": { print("greeting"); }
+        default: { print("other"); }
+    }
+}
+
+func break_continue_demo() {
+    make i = 0;
+    while (i < 5) {
+        i = i + 1;
+        if (i == 2) { continue; }
+        if (i == 4) { break; }
+        print(i);
+    }
+}
+
+func throw_demo() {
+    throw "demo error";
+}
+
+# ----- ТЕСТЫ -----
+test AddWork {
+    assert add(2, 2) == 4;
+    assert add(-1, 1) == 0;
+}
+
+test StringConcat {
+    assert "hello" + "world" == "helloworld";
+}
+
+# ----- КОММЕНТАРИИ -----
+# Однострочный комментарий
+
+/*
+   Многострочный
+   комментарий
+*/

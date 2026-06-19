@@ -296,8 +296,6 @@ void MermaidVisitor::visit(ClassNodeAST& node) {
         auto* func = dynamic_cast<FunctionNodeAST*>(member.member_node.get());
         if (func) {
             m_label += "МЕТОД: " + func->name;
-            if (member.is_getter) m_label += " «get»";
-            if (member.is_setter) m_label += " «set»";
             add_node(m_id, m_label, func->location, "(( ))", "член_класса");
             out << "  class " << m_id << " func_style\n";
             visit_child(*func, m_id, "реализация");

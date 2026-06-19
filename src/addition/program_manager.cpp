@@ -90,7 +90,8 @@ void ProgramManager::parse_config_flags(int argc, char const *argv[]) {
                 std::filesystem::create_directories(dir);
                 config.dir_for_files = dir;
             } else {
-                throw std::runtime_error("После флага -dir или --directory "
+                throw std::runtime_error("[" + error_code::CFG_0001 +
+                    "] После флага -dir или --directory "
                     "укажите путь до директории для сохраняемых файлов");
             }
 
@@ -105,15 +106,17 @@ void ProgramManager::parse_config_flags(int argc, char const *argv[]) {
                       << arg << "\n";
         }
     }
-    if(config.dir_for_files.empty() && 
+    if(config.dir_for_files.empty() &&
         (config.print_ast || config.print_ir || config.print_tokens)){
-            throw std::runtime_error("Укажите флаг -dir или --directory");
+            throw std::runtime_error("[" + error_code::CFG_0002 +
+                "] Укажите флаг -dir или --directory");
     }
 }
 
 ProgramManager::ProgramManager(int argc, char const *argv[]){
     if (argc < 2) {
-        throw std::runtime_error("Не указан файл с исходным кодом");
+        throw std::runtime_error("[" + error_code::CFG_0003 +
+            "] Не указан файл с исходным кодом");
     }
     config.input_file = argv[1];
     parse_config_flags(argc, argv);

@@ -3,6 +3,15 @@
 
 #include "base.hpp"
 
+#include <string>
+#include <unordered_map>
+
+
+class ExpressionNodeAST;
+class StatementNodeAST;
+class SymbolInfo;
+struct SourceLocation;
+
 
 class AnalysisVisitor : public BaseVisitorSemantics{
 private:
@@ -10,7 +19,24 @@ private:
     bool in_cycle = false;
     bool in_test = false;
 
+    std::unordered_map<ExpressionNodeAST*, std::string> type_cache;
+
     bool can_cast(const std::string& expected, const std::string& actual);
+
+    std::string infer_type_expression(ExpressionNodeAST* node);
+    std::string infer_binary_type(BinaryOperationNodeAST* node);
+    std::string infer_member_type(BinaryOperationNodeAST* node);
+    std::string infer_call_type(CallOperationNodeAST* node);
+    SymbolInfo* find_class_member(SymbolInfo* class_sym,
+        const std::string& name, SymbolInfo** owner_out = nullptr);
+    bool check_member_access(SymbolInfo* member, SymbolInfo* owner,
+        const SourceLocation& loc);
+    SymbolInfo* resolve_member_symbol(BinaryOperationNodeAST* node);
+    void check_call(SymbolInfo* symbol, CallOperationNodeAST& node,
+        const std::string& err);
+    void check_condition_type(ExpressionNodeAST* node);
+    static bool is_terminating_statement(StatementNodeAST* stmt);
+    static bool always_returns(StatementNodeAST* stmt);
 
 public:
     AnalysisVisitor(SymbolTable& table, Managers& managers);

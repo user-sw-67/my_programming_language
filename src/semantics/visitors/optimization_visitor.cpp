@@ -100,13 +100,13 @@ std::unique_ptr<NodeAST> OptimizationVisitor::visit(
         if(cond_ptr){
             if(literal_cast(cond_ptr)){
                 managers.error.add("Условие if constant-true, все ветки будут"
-                    " удалены и подставлен блок true", node->location, 
-                        Severity::NOTE);
+                    " удалены и подставлен блок true", node->location,
+                        Severity::NOTE, error_code::SEM_3101);
                 return std::move(node->then_branch);
             } else {
                 managers.error.add("Условие if constant-false, все ветки будут"
-                    " удалены и подставлен блок false", node->location, 
-                        Severity::NOTE);
+                    " удалены и подставлен блок false", node->location,
+                        Severity::NOTE, error_code::SEM_3102);
                 auto el_br = dispatch(std::move(node->else_branch));
                 node->else_branch= std::unique_ptr<StatementNodeAST>(
                     static_cast<StatementNodeAST*>(el_br.release()));
@@ -170,12 +170,13 @@ std::unique_ptr<NodeAST> OptimizationVisitor::visit(
             if(when_ptr){
                 if(literal_cast(when_ptr)){
                     managers.error.add("Условие when constant-true, ветка "
-                        "when будет удалена", node->location, Severity::NOTE);
+                        "when будет удалена", node->location, Severity::NOTE,
+                            error_code::SEM_3103);
                     node->when_condition = nullptr;
                 } else {
                     managers.error.add("Условие when constant-false, тело "
-                        "функции и ветка when будут удалены", node->location, 
-                            Severity::NOTE);
+                        "функции и ветка when будут удалены", node->location,
+                            Severity::NOTE, error_code::SEM_3104);
                     node->when_condition = nullptr;
                     node->body = std::make_unique<BlockNodeAST>(
                         node->body->location);
@@ -223,7 +224,8 @@ std::unique_ptr<NodeAST> OptimizationVisitor::visit(
         auto* cond_ptr = dynamic_cast<LiteralNodeAST*>(node->condition.get());
         if(cond_ptr && !literal_cast(cond_ptr)){
             managers.error.add("Условие while constant-false тело цикла "
-                "будет удалено", node->location, Severity::NOTE);
+                "будет удалено", node->location, Severity::NOTE,
+                    error_code::SEM_3105);
             node->body = std::make_unique<BlockNodeAST>(node->body->location);
             return node;
         }

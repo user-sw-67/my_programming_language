@@ -141,6 +141,7 @@ SymbolInfo* SymbolTable::define_class(const std::string& name,
         const std::string& parent_name) {
             SymbolInfo* symbol = define(name, SymbolType::CLASS);
             symbol->parent_name = parent_name;
+            symbol->is_has_parent = is_has_parent;
             symbol->class_scope = class_scope;
             return symbol;
 }

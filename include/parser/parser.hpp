@@ -35,9 +35,10 @@ protected:
 
     bool match(TokenType type);
 
-    const Token& consume(TokenType type, const std::string& msg);
+    const Token& consume(TokenType type, const std::string& msg,
+        const std::string& code);
 
-    void error(const std::string& msg);
+    void error(const std::string& msg, const std::string& code);
 
     SourceLocation get_loc(const Token& token);
 };

@@ -23,8 +23,8 @@ void FiniteAutomaton::add_token(TokenType type,
         state = StateList::START;
 }
 
-void FiniteAutomaton::error(const std::string& msg) {
-    managers.error.add(msg, {line, column, filename}, Severity::ERROR);
+void FiniteAutomaton::error(const std::string& msg, const std::string& code) {
+    managers.error.add(msg, {line, column, filename}, Severity::ERROR, code);
     buffer.clear();
     state = StateList::START;
 }
@@ -166,14 +166,14 @@ void Lexer::handlerSTART(char c, size_t& sl, size_t& sc) {
         if (it != punctuation_map.end()) {
             add_token(it->second, sl, sc);
         } else {
-            error("Неизвестный знак пунктуации '" + 
-                std::string(1, c) + "'");
+            error("Неизвестный знак пунктуации '" +
+                std::string(1, c) + "'", error_code::LEX_1001);
         }
     } else if (is_operator_char(c)) {
         state = StateList::IN_OPERATOR;
         add_simvol(c);
     } else {
-        error("Неизвестный символ");
+        error("Неизвестный символ", error_code::LEX_1002);
     }
 }
 
@@ -189,7 +189,7 @@ void Lexer::handlerIN_IDENTIFIER(char c, size_t sl, size_t sc) {
 void Lexer::handlerIN_NUMBER(char c, size_t sl, size_t sc) {
     if (std::isdigit(c)) {
         add_simvol(c);
-    } else if (c == '.') {
+    } else if (c == '.' && peek(1) != '.') {
         add_simvol(c);
         state = StateList::IN_NUMBER_DOT;
     } else {
@@ -203,7 +203,7 @@ void Lexer::handlerIN_NUMBER_DOT(char c, size_t sl, size_t sc) {
         add_simvol(c);
         state = StateList::IN_NUMBER_FRACTION;
     } else {
-        error("Ожидалась цифра после точки");
+        error("Ожидалась цифра после точки", error_code::LEX_3001);
     }
 }
 
@@ -220,7 +220,7 @@ void Lexer::handlerIN_STRING(char c, size_t sl, size_t sc) {
     if (c == '"') {
         add_token(TokenType::LIT_STR, sl, sc);
     } else if (c == '\n' || c == '\0') {
-        error("Незакрытая строка");
+        error("Незакрытая строка", error_code::LEX_2001);
     } else {
         add_simvol(c);
     }
@@ -271,13 +271,15 @@ void Lexer::handlerEND(size_t sl, size_t sc) {
             state = StateList::START; 
             break;
         case StateList::IN_NUMBER_DOT:
-            error("Незаконченная дробная часть числа в конце файла");
+            error("Незаконченная дробная часть числа в конце файла",
+                error_code::LEX_3002);
             break;
         case StateList::IN_STRING:
-            error("Незакрытая строка в конце файла");
+            error("Незакрытая строка в конце файла", error_code::LEX_2002);
             break;
         case StateList::IN_COMMENT_BLOCK:
-            error("Незакрытый многострочный комментарий в конце файла");
+            error("Незакрытый многострочный комментарий в конце файла",
+                error_code::LEX_2003);
             break;
         case StateList::ERROR: case StateList::START: default:
             break;
@@ -294,5 +296,5 @@ void Lexer::process_identifier(size_t sl, size_t sc) {
 void Lexer::process_operator(size_t sl, size_t sc) {
     auto it = operator_map.find(buffer);
     if (it != operator_map.end()) add_token(it->second, sl, sc);
-    else error("Неизвестный оператор: " + buffer);
+    else error("Неизвестный оператор: " + buffer, error_code::LEX_4001);
 }

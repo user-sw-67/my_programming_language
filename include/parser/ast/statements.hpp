@@ -3,6 +3,8 @@
 
 #include "base.hpp"
 
+#include <cstdint>
+
 
 class BlockNodeAST : public StatementNodeAST {
 public:
@@ -140,8 +142,8 @@ public:
 
     void accept(Visitor& v) override { v.visit(*this); }
 
-    int get_cout_parameters() const {
-        return static_cast<int>(parameters.size());
+    uint8_t get_cout_parameters() const {
+        return static_cast<uint8_t>(parameters.size());
     }
 
     bool is_variadic_parameters() const {
@@ -304,22 +306,16 @@ struct ClassMember {
     SourceLocation location;
     std::string access_modifier;
     bool is_static;
-    bool is_getter;
-    bool is_setter;
     std::unique_ptr<StatementNodeAST> member_node;
 
     ClassMember(
         const std::string& access_modifier,
         bool is_static,
-        bool is_getter,
-        bool is_setter,
         std::unique_ptr<StatementNodeAST>&& member_node,
         const SourceLocation& location) :
             location(location),
             access_modifier(access_modifier),
             is_static(is_static),
-            is_getter(is_getter),
-            is_setter(is_setter),
             member_node(std::move(member_node)) {}
 
     ClassMember(const ClassMember&) = delete;

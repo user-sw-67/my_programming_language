@@ -42,16 +42,17 @@ bool ParserBase::match(TokenType type) {
     return false;
 }
 
-const Token& ParserBase::consume(TokenType type, const std::string& err_msg) {
-    if(current().get_type() == type) {
-        return advance();
-    }
-    error(err_msg);
-    return current();
+const Token& ParserBase::consume(TokenType type, const std::string& err_msg,
+    const std::string& code) {
+        if(current().get_type() == type) {
+            return advance();
+        }
+        error(err_msg, code);
+        return current();
 }
 
-void ParserBase::error(const std::string& msg) {
-    managers.error.add(msg, get_loc(current()), Severity::ERROR);
+void ParserBase::error(const std::string& msg, const std::string& code) {
+    managers.error.add(msg, get_loc(current()), Severity::ERROR, code);
     throw ParseError();
 }
 
@@ -72,12 +73,21 @@ void Parser::synchronize() {
         switch (peek().get_type()) {
             case TokenType::KW_CLASS:
             case TokenType::KW_FUNC:
+            case TokenType::KW_USE:
+            case TokenType::KW_TEST:
             case TokenType::KW_MAKE:
             case TokenType::KW_FOR:
             case TokenType::KW_WHILE:
+            case TokenType::KW_DO:
             case TokenType::KW_IF:
             case TokenType::KW_RETURN:
             case TokenType::KW_MATCH:
+            case TokenType::KW_TRY:
+            case TokenType::KW_THROW:
+            case TokenType::KW_ASSERT:
+            case TokenType::KW_BREAK:
+            case TokenType::KW_CONTINUE:
+            case TokenType::BRACE_L:
             case TokenType::BRACE_R:
                 return;
             default:
@@ -105,7 +115,8 @@ std::unique_ptr<ProgramNode> Parser::parse() {
                 program->statements.push_back(parse_test());
             } else {
                 error("Исполняемый код вне функций запрещен. "
-                "Разрешены только объявления (use, func, class, make, test).");
+                "Разрешены только объявления (use, func, class, make, test).",
+                    error_code::PAR_1001);
             }
         }catch(const ParseError&){
             synchronize();
@@ -180,12 +191,13 @@ std::unique_ptr<ExpressionNodeAST> Parser::get_prefix() {
     if (match(TokenType::PAREN_L)) {
         auto expr = parse_expression(static_cast<int>(Priorities::NONE));
         if (!match(TokenType::PAREN_R)) {
-            error("Ожидалась закрывающая скобка ')' после выражения");
+            error("Ожидалась закрывающая скобка ')' после выражения",
+                error_code::PAR_2001);
         }
         return expr;
     }
 
-    error("Ожидалось выражение");
+    error("Ожидалось выражение", error_code::PAR_2002);
     return nullptr;
 }
 
@@ -194,7 +206,7 @@ std::unique_ptr<StatementNodeAST> Parser::parse_statement() {
     if(match(TokenType::KW_MAKE)) return parse_make();
     if(match(TokenType::KW_IF)) return parse_if();
     if(match(TokenType::KW_FUNC)) error("Объявления функций разрешены только "
-        "в глобальной области видимости или в классе");
+        "в глобальной области видимости или в классе", error_code::PAR_1002);
     if(match(TokenType::KW_RETURN)) return parse_return();
     if(match(TokenType::KW_WHILE)) return parse_while(false);
     if(match(TokenType::KW_DO)) return parse_while(true);
@@ -203,26 +215,32 @@ std::unique_ptr<StatementNodeAST> Parser::parse_statement() {
     if(match(TokenType::KW_THROW)) return parse_throw();
     if(match(TokenType::KW_MATCH)) return parse_match();
     if(match(TokenType::KW_USE)) error(
-        "usе-импорты разрешены только в глобальной области видимости");
+        "usе-импорты разрешены только в глобальной области видимости",
+            error_code::PAR_1003);
     if(match(TokenType::KW_CLASS)) error(
-        "Объявления классов разрешены только в глобальной области видимости");
+        "Объявления классов разрешены только в глобальной области видимости",
+            error_code::PAR_1004);
     if(match(TokenType::KW_TEST)) error(
-        "Объявления тестов разрешены только в глобальной области видимости");
+        "Объявления тестов разрешены только в глобальной области видимости",
+            error_code::PAR_1005);
     if(match(TokenType::KW_ASSERT)) return parse_assert();
     if (match(TokenType::KW_BREAK)) {
         SourceLocation break_loc = get_loc(peek(-1));
-        consume(TokenType::SEMICOLON, "Ожидалась ';' после break");
+        consume(TokenType::SEMICOLON, "Ожидалась ';' после break",
+            error_code::PAR_2003);
         return std::make_unique<BreakNodeAST>(break_loc);
     }
     if (match(TokenType::KW_CONTINUE)) {
         SourceLocation continue_loc = get_loc(peek(-1));
-        consume(TokenType::SEMICOLON, "Ожидалась ';' после continue");
+        consume(TokenType::SEMICOLON, "Ожидалась ';' после continue",
+            error_code::PAR_2004);
         return std::make_unique<ContinueNodeAST>(continue_loc);
     }
 
     auto expr = parse_expression(static_cast<int>(Priorities::NONE));
     auto loc = expr->location;
-    consume(TokenType::SEMICOLON, "Ожидалась ';' после выражения");
+    consume(TokenType::SEMICOLON, "Ожидалась ';' после выражения",
+        error_code::PAR_2005);
     return std::make_unique<ExpressionStatementNodeAST>(
         std::move(expr), loc);
 }
@@ -244,7 +262,8 @@ std::unique_ptr<ExpressionNodeAST> Parser::parse_expression(int priority) {
                     args.push_back(std::move(arg));
                 } while (match(TokenType::COMMA));
             }
-            consume(TokenType::PAREN_R, "Ожидалась закрывающая скобка ')'");
+            consume(TokenType::PAREN_R, "Ожидалась закрывающая скобка ')'",
+                error_code::PAR_2006);
             left = std::make_unique<CallOperationNodeAST>(
                 std::move(left), std::move(args), loc);
             continue;
@@ -272,8 +291,8 @@ std::unique_ptr<ExpressionNodeAST> Parser::parse_expression(int priority) {
         if (op == TokenType::OP_QUEST) {
             auto true_expr = parse_expression(
                 static_cast<int>(Priorities::NONE));
-            consume(TokenType::OP_COLON, 
-                "Ожидалось ':' в тернарном операторе");
+            consume(TokenType::OP_COLON,
+                "Ожидалось ':' в тернарном операторе", error_code::PAR_2007);
             auto false_expr = parse_expression(
                 static_cast<int>(Priorities::TERNARY) - 1);
             left = std::make_unique<TernaryOperationNodeAST>(
@@ -292,7 +311,8 @@ std::unique_ptr<ExpressionNodeAST> Parser::parse_expression(int priority) {
 std::unique_ptr<StatementNodeAST> Parser::parse_block() {
     SourceLocation loc = get_loc(current());
     auto block = std::make_unique<BlockNodeAST>(loc);
-    consume(TokenType::BRACE_L, "Ожидалась '{' в начале блока");
+    consume(TokenType::BRACE_L, "Ожидалась '{' в начале блока",
+        error_code::PAR_1006);
 
     while (!is_end() && current().get_type() != TokenType::BRACE_R) {
         try {
@@ -305,7 +325,8 @@ std::unique_ptr<StatementNodeAST> Parser::parse_block() {
         }
     }
 
-    consume(TokenType::BRACE_R, "Ожидалась '}' в конце блока");
+    consume(TokenType::BRACE_R, "Ожидалась '}' в конце блока",
+        error_code::PAR_1007);
     return block;
 }
 
@@ -319,15 +340,17 @@ std::unique_ptr<StatementNodeAST> Parser::parse_make(bool in_class) {
     std::vector<std::string> names;
     std::vector<std::string> type_names;
     do{
-        names.push_back(consume(TokenType::IDENTIFIER, 
-            "Отсутствует идентификатор (имя переменной)").get_value());
+        names.push_back(consume(TokenType::IDENTIFIER,
+            "Отсутствует идентификатор (имя переменной)",
+                error_code::PAR_3001).get_value());
         if(in_class && loc == SourceLocation(0, 0)){
             loc = get_loc(peek(-1));
         }
         std::string type_name_current("auto");
         if(match(TokenType::OP_ARROW)) {
-            type_name_current = consume(TokenType::IDENTIFIER, 
-                "Ожидался идентификатор типа после '->'").get_value();
+            type_name_current = consume(TokenType::IDENTIFIER,
+                "Ожидался идентификатор типа после '->'",
+                    error_code::PAR_3002).get_value();
         }
         type_names.push_back(type_name_current);
     } while (match(TokenType::COMMA));
@@ -341,15 +364,16 @@ std::unique_ptr<StatementNodeAST> Parser::parse_make(bool in_class) {
     }
 
     if (!in_class && is_const && initializers.empty()) {
-        error("Константа должна быть инициализирована");
+        error("Константа должна быть инициализирована", error_code::PAR_3003);
     }
 
-    consume(TokenType::SEMICOLON, "Ожидалась ';'");
+    consume(TokenType::SEMICOLON, "Ожидалась ';'", error_code::PAR_3004);
     if (!initializers.empty() && names.size() != initializers.size()) {
-        error("Количество переменных (" 
-            + std::to_string(names.size()) + 
-                ") не совпадает с количеством значений (" + 
-                    std::to_string(initializers.size()) + ")");
+        error("Количество переменных ("
+            + std::to_string(names.size()) +
+                ") не совпадает с количеством значений (" +
+                    std::to_string(initializers.size()) + ")",
+                        error_code::PAR_3005);
     }
 
     return std::make_unique<MakeNodeAST>(
@@ -359,10 +383,12 @@ std::unique_ptr<StatementNodeAST> Parser::parse_make(bool in_class) {
 
 std::unique_ptr<StatementNodeAST> Parser::parse_if() {
     SourceLocation loc = get_loc(peek(-1));
-    consume(TokenType::PAREN_L, "Ожидается условие в '()'");
-    std::unique_ptr<ExpressionNodeAST> condition = 
+    consume(TokenType::PAREN_L, "Ожидается условие в '()'",
+        error_code::PAR_5001);
+    std::unique_ptr<ExpressionNodeAST> condition =
         parse_expression(static_cast<int>(Priorities::NONE));
-    consume(TokenType::PAREN_R, "Ожидается закрывающая ')'");
+    consume(TokenType::PAREN_R, "Ожидается закрывающая ')'",
+        error_code::PAR_5002);
 
     std::unique_ptr<StatementNodeAST> then_branch = parse_block();
     std::unique_ptr<StatementNodeAST> else_branch = nullptr;
@@ -382,12 +408,14 @@ std::unique_ptr<StatementNodeAST> Parser::parse_func(bool in_class) {
         loc = get_loc(peek(-1));
     }
     std::string name = consume(
-        TokenType::IDENTIFIER, 
-            "Ожидается идентификатор (имя функции)").get_value();
+        TokenType::IDENTIFIER,
+            "Ожидается идентификатор (имя функции)",
+                error_code::PAR_4001).get_value();
     if(in_class) {
         loc = get_loc(peek(-1));
     }
-    consume(TokenType::PAREN_L, "Ожидается '(' после идентификатора");
+    consume(TokenType::PAREN_L, "Ожидается '(' после идентификатора",
+        error_code::PAR_4002);
 
     std::vector<Parameter> parameters;
     bool is_active_def = false;
@@ -396,30 +424,34 @@ std::unique_ptr<StatementNodeAST> Parser::parse_func(bool in_class) {
         do{
             bool is_variadic = match(TokenType::OP_ELLIPSIS);
             if(is_variadic){
-                const Token& par = consume(TokenType::IDENTIFIER, 
-                    "Ожидалось имя параметра");
+                const Token& par = consume(TokenType::IDENTIFIER,
+                    "Ожидалось имя параметра", error_code::PAR_4003);
                 std::string par_name = par.get_value();
                 if(match(TokenType::OP_ARROW)) {
-                    error("Параметр ..." + par_name + " не может иметь типа");
+                    error("Параметр ..." + par_name + " не может иметь типа",
+                        error_code::PAR_4004);
                 }
                 if(match(TokenType::OP_ASSIGN)){
-                    error("Параметр ..." + par_name + 
-                        " не может иметь значения по умолчанию");
+                    error("Параметр ..." + par_name +
+                        " не может иметь значения по умолчанию",
+                            error_code::PAR_4005);
                 }
-                parameters.emplace_back(par_name, "auto", 
+                parameters.emplace_back(par_name, "auto",
                     nullptr, is_variadic, get_loc(par));
                 if (current().get_type() != TokenType::PAREN_R) {
-                    error("..." + par_name + " должен быть последним в списке");
+                    error("..." + par_name + " должен быть последним в списке",
+                        error_code::PAR_4006);
                 }
                 break;
             } else {
-                const Token& par = consume(TokenType::IDENTIFIER, 
-                    "Ожидалось имя параметра");
+                const Token& par = consume(TokenType::IDENTIFIER,
+                    "Ожидалось имя параметра", error_code::PAR_4007);
                 std::string par_name = par.get_value();
                 std::string par_type("auto");
                 if(match(TokenType::OP_ARROW)) {
-                    par_type = consume(TokenType::IDENTIFIER, 
-                        "Ожидался тип параметра после '->'").get_value();
+                    par_type = consume(TokenType::IDENTIFIER,
+                        "Ожидался тип параметра после '->'",
+                            error_code::PAR_4008).get_value();
                 }
                 std::unique_ptr<ExpressionNodeAST> par_default_val = nullptr;
                 if(match(TokenType::OP_ASSIGN)){
@@ -428,7 +460,7 @@ std::unique_ptr<StatementNodeAST> Parser::parse_func(bool in_class) {
                 }
                 if(!par_default_val && is_active_def){
                     error("Параметры со значением по умолчанию должны "
-                        "идти в конце");
+                        "идти в конце", error_code::PAR_4009);
                 }
                 if(par_default_val && !is_active_def) is_active_def = true;
                 if(par_default_val) ++count_elem_default;
@@ -436,7 +468,8 @@ std::unique_ptr<StatementNodeAST> Parser::parse_func(bool in_class) {
                     std::move(par_default_val), is_variadic, get_loc(par));
             }
         } while (match(TokenType::COMMA));
-        consume(TokenType::PAREN_R, "Ожидается закрывающая ')'"); 
+        consume(TokenType::PAREN_R, "Ожидается закрывающая ')'",
+            error_code::PAR_4010);
     }
 
     std::string return_type("auto");
@@ -451,17 +484,20 @@ std::unique_ptr<StatementNodeAST> Parser::parse_func(bool in_class) {
 
     std::unique_ptr<ExpressionNodeAST> when_condition = nullptr;
     if(match(TokenType::KW_WHEN)) {
-        consume(TokenType::PAREN_L, "Ожидалась '(' после when");
+        consume(TokenType::PAREN_L, "Ожидалась '(' после when",
+            error_code::PAR_4011);
         when_condition = parse_expression(
             static_cast<int>(Priorities::NONE));
-        consume(TokenType::PAREN_R, "Ожидалась ')' после условия when");
+        consume(TokenType::PAREN_R, "Ожидалась ')' после условия when",
+            error_code::PAR_4012);
     }
 
     std::unique_ptr<StatementNodeAST> body;
     if(match(TokenType::OP_ARROW)){
         SourceLocation arrow_loc = get_loc(peek(-1));
         auto expr = parse_expression(static_cast<int>(Priorities::NONE));
-        consume(TokenType::SEMICOLON, "Ожидалась ';' после выражения");
+        consume(TokenType::SEMICOLON, "Ожидалась ';' после выражения",
+            error_code::PAR_4013);
         body = std::make_unique<ReturnNodeAST>(std::move(expr), arrow_loc);
     } else {
         body = parse_block();
@@ -477,7 +513,7 @@ std::unique_ptr<StatementNodeAST> Parser::parse_return() {
     std::unique_ptr<ExpressionNodeAST> value = nullptr;
     if(!match(TokenType::SEMICOLON)){
         value = parse_expression(static_cast<int>(Priorities::NONE));
-        consume(TokenType::SEMICOLON, "Ожидалась ';'");
+        consume(TokenType::SEMICOLON, "Ожидалась ';'", error_code::PAR_5003);
     }
     return std::make_unique<ReturnNodeAST>(std::move(value), loc);
 }
@@ -489,17 +525,19 @@ std::unique_ptr<StatementNodeAST> Parser::parse_while(bool is_do_while) {
 
     if(is_do_while){
         body = parse_block();
-        consume(TokenType::KW_WHILE, "Ожидается 'while'");
-        consume(TokenType::PAREN_L, "Ожидалась '(' после while");
+        consume(TokenType::KW_WHILE, "Ожидается 'while'", error_code::PAR_5004);
+        consume(TokenType::PAREN_L, "Ожидалась '(' после while",
+            error_code::PAR_5005);
         condition = parse_expression(
                 static_cast<int>(Priorities::NONE));
-        consume(TokenType::PAREN_R, "Ожидалась ')'");
-        consume(TokenType::SEMICOLON, "Ожидалась ';'");
+        consume(TokenType::PAREN_R, "Ожидалась ')'", error_code::PAR_5006);
+        consume(TokenType::SEMICOLON, "Ожидалась ';'", error_code::PAR_5007);
     } else {
-        consume(TokenType::PAREN_L, "Ожидалась '(' после while");
+        consume(TokenType::PAREN_L, "Ожидалась '(' после while",
+            error_code::PAR_5008);
         condition = parse_expression(
                 static_cast<int>(Priorities::NONE));
-        consume(TokenType::PAREN_R, "Ожидалась ')'");
+        consume(TokenType::PAREN_R, "Ожидалась ')'", error_code::PAR_5009);
         body = parse_block();
     }
 
@@ -509,12 +547,12 @@ std::unique_ptr<StatementNodeAST> Parser::parse_while(bool is_do_while) {
 
 std::unique_ptr<StatementNodeAST> Parser::parse_for() {
     SourceLocation loc = get_loc(peek(-1));
-    consume(TokenType::PAREN_L, "Ожидалась '(' после for");
-    std::string name_var = consume(TokenType::IDENTIFIER, 
-        "Ожидается идентификатор").get_value();
-    consume(TokenType::KW_IN, "Ожидается 'in'");
+    consume(TokenType::PAREN_L, "Ожидалась '(' после for", error_code::PAR_5010);
+    std::string name_var = consume(TokenType::IDENTIFIER,
+        "Ожидается идентификатор", error_code::PAR_5011).get_value();
+    consume(TokenType::KW_IN, "Ожидается 'in'", error_code::PAR_5012);
     auto iterable = parse_expression(static_cast<int>(Priorities::NONE));
-    consume(TokenType::PAREN_R, "Ожидалась ')'");
+    consume(TokenType::PAREN_R, "Ожидалась ')'", error_code::PAR_5013);
     auto body = parse_block();
     return std::make_unique<ForNodeAST>(name_var, 
         std::move(iterable), std::move(body), loc);
@@ -524,10 +562,12 @@ std::unique_ptr<StatementNodeAST> Parser::parse_try() {
     SourceLocation loc = get_loc(peek(-1));
     auto try_block = parse_block();
 
-    consume(TokenType::KW_CATCH, "Необходим блок 'catch'");
-    consume(TokenType::PAREN_L, "Ожидалась '(' после catch");
+    consume(TokenType::KW_CATCH, "Необходим блок 'catch'",
+        error_code::PAR_5014);
+    consume(TokenType::PAREN_L, "Ожидалась '(' после catch",
+        error_code::PAR_5015);
     auto catch_expr = parse_expression(static_cast<int>(Priorities::NONE));
-    consume(TokenType::PAREN_R, "Ожидалась ')'");
+    consume(TokenType::PAREN_R, "Ожидалась ')'", error_code::PAR_5016);
     auto catch_block = parse_block();
 
     std::unique_ptr<StatementNodeAST> finally_block = nullptr;
@@ -545,7 +585,7 @@ std::unique_ptr<StatementNodeAST> Parser::parse_throw() {
     std::unique_ptr<ExpressionNodeAST> value = nullptr;
     if(!match(TokenType::SEMICOLON)){
         value = parse_expression(static_cast<int>(Priorities::NONE));
-        consume(TokenType::SEMICOLON, "Ожидалась ';'");
+        consume(TokenType::SEMICOLON, "Ожидалась ';'", error_code::PAR_5017);
     }
     return std::make_unique<ThrowNodeAST>(std::move(value), loc);
 }
@@ -558,23 +598,24 @@ std::unique_ptr<StatementNodeAST> Parser::parse_use() {
 
     if(match(TokenType::BRACE_L)){
         do{
-            const Token& token = consume(TokenType::IDENTIFIER, 
-                "Ожидается идентификатор объекта");
+            const Token& token = consume(TokenType::IDENTIFIER,
+                "Ожидается идентификатор объекта", error_code::PAR_6001);
             std::string internal_name = token.get_value();
             std::string alias("");
             if(match(TokenType::KW_AS)){
-                alias = consume(TokenType::IDENTIFIER, 
-                    "Ожидается новый идентификатор объекта").get_value();
+                alias = consume(TokenType::IDENTIFIER,
+                    "Ожидается новый идентификатор объекта",
+                        error_code::PAR_6002).get_value();
             }
             objects.emplace_back(internal_name, alias, get_loc(token));
         } while (match(TokenType::COMMA));
-        consume(TokenType::BRACE_R, "Ожидалась '}'");
-        consume(TokenType::KW_FROM, "Требуется 'from'");
-        path_lib = consume(TokenType::LIT_STR, 
-            "Требуется имя файла").get_value();
+        consume(TokenType::BRACE_R, "Ожидалась '}'", error_code::PAR_6003);
+        consume(TokenType::KW_FROM, "Требуется 'from'", error_code::PAR_6004);
+        path_lib = consume(TokenType::LIT_STR,
+            "Требуется имя файла", error_code::PAR_6005).get_value();
     } else {
-        path_lib = consume(TokenType::LIT_STR, 
-            "Требуется имя файла").get_value();
+        path_lib = consume(TokenType::LIT_STR,
+            "Требуется имя файла", error_code::PAR_6006).get_value();
     }
 
     std::string path_lib_canonical;
@@ -586,30 +627,32 @@ std::unique_ptr<StatementNodeAST> Parser::parse_use() {
         path_lib_canonical = managers.source.resolve_canonical_path(
             path_lib, filename);
         if(path_lib_canonical.empty()){
-            error("Не удалось разрешить путь импорта: " + path_lib_canonical);
+            error("Не удалось разрешить путь импорта: " + path_lib_canonical,
+                error_code::PAR_6007);
         }
         try {
             managers.source.load_file(path_lib_canonical);
         } catch (const PreparationError& e) {
-            error(e.what());
+            error(e.what(), error_code::PAR_6008);
         }
     }
 
-    consume(TokenType::SEMICOLON, "Ожидалась ';'");
+    consume(TokenType::SEMICOLON, "Ожидалась ';'", error_code::PAR_6009);
     return std::make_unique<UseNodeAST>(
         path_lib_canonical, std::move(objects), is_build_in, loc);
 }
 
 std::unique_ptr<StatementNodeAST> Parser::parse_class() {
     SourceLocation loc = get_loc(peek(-1));
-    std::string name = consume(TokenType::IDENTIFIER, 
-        "Ожидается имя класса").get_value();
+    std::string name = consume(TokenType::IDENTIFIER,
+        "Ожидается имя класса", error_code::PAR_7001).get_value();
     std::string base_class_name;
     if(match(TokenType::KW_EXTENDS)){
-        base_class_name = consume(TokenType::IDENTIFIER, 
-        "Ожидается имя класса наследника").get_value();
+        base_class_name = consume(TokenType::IDENTIFIER,
+        "Ожидается имя класса наследника", error_code::PAR_7002).get_value();
     }
-    consume(TokenType::BRACE_L, "Ожидается тело класса '{'");
+    consume(TokenType::BRACE_L, "Ожидается тело класса '{'",
+        error_code::PAR_7003);
 
     std::vector<ClassMember> members;
 
@@ -617,16 +660,10 @@ std::unique_ptr<StatementNodeAST> Parser::parse_class() {
 
         std::string access_modifier = "public";
         bool is_static = false;
-        bool is_getter = false;
-        bool is_setter = false;
 
         while(true){
             if (match(TokenType::KW_STATIC)) {
                 is_static = true;
-            } else if (match(TokenType::KW_GETTER)) {
-                is_getter = true;
-            } else if (match(TokenType::KW_SETTER)) {
-                is_setter = true;
             } else if (match(TokenType::KW_PRIVATE)) {
                 access_modifier = "private";
             } else if (match(TokenType::KW_PROTECTED)) {
@@ -634,31 +671,31 @@ std::unique_ptr<StatementNodeAST> Parser::parse_class() {
             } else if (match(TokenType::KW_PUBLIC)) {
                 access_modifier = "public";
             } else {
-                break; 
+                break;
             }
         }
 
         if(current().get_type() == TokenType::KW_CONST) {
             auto statement_make = parse_make(true);
             auto loc = statement_make->location;
-            members.emplace_back(access_modifier, is_static, 
-                is_getter, is_setter, std::move(statement_make), loc);
+            members.emplace_back(access_modifier, is_static,
+                std::move(statement_make), loc);
         } else {
             if(current().get_type() == TokenType::IDENTIFIER) {
                 if(peek(1).get_type() == TokenType::PAREN_L){
                     auto func = parse_func(true);
                     auto loc = func->location;
-                    members.emplace_back(access_modifier, is_static, 
-                        is_getter, is_setter, std::move(func), loc);
+                    members.emplace_back(access_modifier, is_static,
+                        std::move(func), loc);
                 } else {
                     auto statement_make = parse_make(true);
                     auto loc = statement_make->location;
-                    members.emplace_back(access_modifier, is_static, 
-                            is_getter, is_setter, 
+                    members.emplace_back(access_modifier, is_static,
                                 std::move(statement_make), loc);
                 }
             } else {
-                error("Ожидается идентификатор (имя метода или поля)");
+                error("Ожидается идентификатор (имя метода или поля)",
+                    error_code::PAR_7004);
             }
         }
     }
@@ -673,45 +710,52 @@ std::unique_ptr<StatementNodeAST> Parser::parse_match() {
     std::vector<Case> cases;
     bool exists_default = false;
 
-    consume(TokenType::PAREN_L, "Ожидалась '(' после match");
+    consume(TokenType::PAREN_L, "Ожидалась '(' после match",
+        error_code::PAR_8001);
     value = parse_expression(static_cast<int>(Priorities::NONE));
-    consume(TokenType::PAREN_R, "Ожидалась ')'");
-    consume(TokenType::BRACE_L, "Ожидалась '{' тело match");
+    consume(TokenType::PAREN_R, "Ожидалась ')'", error_code::PAR_8002);
+    consume(TokenType::BRACE_L, "Ожидалась '{' тело match",
+        error_code::PAR_8003);
 
-    while (current().get_type() != TokenType::BRACE_R && 
+    while (current().get_type() != TokenType::BRACE_R &&
         current().get_type() != TokenType::END_OF_FILE){
             if(match(TokenType::KW_CASE)){
                 auto case_expr = parse_expression(static_cast<int>(
                     Priorities::NONE));
-                consume(TokenType::OP_COLON, "Требуется ':'");
+                consume(TokenType::OP_COLON, "Требуется ':'",
+                    error_code::PAR_8004);
                 auto body = parse_block();
-                cases.emplace_back(std::move(case_expr), std::move(body), 
+                cases.emplace_back(std::move(case_expr), std::move(body),
                     body->location);
 
             } else if(match(TokenType::KW_DEFAULT)){
-                if(exists_default) error("Допустим только один default");
+                if(exists_default) error("Допустим только один default",
+                    error_code::PAR_8005);
                 exists_default = true;
-                consume(TokenType::OP_COLON, "Требуется ':'");
+                consume(TokenType::OP_COLON, "Требуется ':'",
+                    error_code::PAR_8006);
                 auto body = parse_block();
-                cases.emplace_back(nullptr, std::move(body), 
+                cases.emplace_back(nullptr, std::move(body),
                     body->location);
             } else {
-                error("В match доступны блоки только case и default");
+                error("В match доступны блоки только case и default",
+                    error_code::PAR_8007);
             }
     }
-        
+
     if (cases.empty()) {
-        error("match должен содержать хотя бы один case или default");
+        error("match должен содержать хотя бы один case или default",
+            error_code::PAR_8008);
     }
-    consume(TokenType::BRACE_R, "Ожидалась '}'");
+    consume(TokenType::BRACE_R, "Ожидалась '}'", error_code::PAR_8009);
     return std::make_unique<MatchNodeAST>(
         std::move(value), std::move(cases), loc);
 }
 
 std::unique_ptr<StatementNodeAST> Parser::parse_test() {
     SourceLocation loc = get_loc(peek(-1));
-    std::string name = consume(TokenType::IDENTIFIER, 
-        "Ожидается имя теста").get_value();
+    std::string name = consume(TokenType::IDENTIFIER,
+        "Ожидается имя теста", error_code::PAR_9001).get_value();
     auto body = parse_block();
     return std::make_unique<TestNodeAST>(name, std::move(body), loc);
 }
@@ -719,6 +763,6 @@ std::unique_ptr<StatementNodeAST> Parser::parse_test() {
 std::unique_ptr<StatementNodeAST> Parser::parse_assert() {
     SourceLocation loc = get_loc(peek(-1));
     auto value = parse_expression(static_cast<int>(Priorities::NONE));
-    consume(TokenType::SEMICOLON, "Ожидалась ';'");
+    consume(TokenType::SEMICOLON, "Ожидалась ';'", error_code::PAR_9002);
     return std::make_unique<AssertNodeAST>(std::move(value), loc);
 }

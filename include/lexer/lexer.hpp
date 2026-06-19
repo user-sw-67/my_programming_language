@@ -47,7 +47,7 @@ protected:
 
     void add_token(TokenType type, size_t start_line, size_t start_column);
     
-    void error(const std::string& msg);
+    void error(const std::string& msg, const std::string& code);
 
     char next();
     void retreat();

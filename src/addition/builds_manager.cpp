@@ -17,6 +17,7 @@ BuildInClass& BuildInClass::add_method(const std::string& name,
             std::function<Value(const std::vector<Value>&)> func, 
                 const std::string& modif, bool is_std){
                     auto sym = std::make_shared<SymbolInfo>();
+                    sym->name = name;
                     sym->type = SymbolType::FUNCTION;
                     sym->type_name = ret_type;
                     sym->count_args = count_args;
@@ -31,10 +32,11 @@ BuildInClass& BuildInClass::add_method(const std::string& name,
                     return *this;
 }
 
-BuildInClass& BuildInClass::add_field(const std::string& name, 
-    const std::string& type, bool is_const, bool is_init, 
+BuildInClass& BuildInClass::add_field(const std::string& name,
+    const std::string& type, bool is_const, bool is_init,
         const std::string& modif,bool is_std){
             auto sym = std::make_shared<SymbolInfo>();
+            sym->name = name;
             sym->type = SymbolType::VARIABLE;
             sym->type_name = type;
             sym->is_const = is_const;
@@ -57,6 +59,7 @@ BuildInModule::BuildInModule(const std::string& module_name,
 
 BuildInClass BuildInModule::add_class(const std::string& name, bool is_std){
     auto sym = std::make_shared<SymbolInfo>();
+    sym->name = name;
     sym->type = SymbolType::CLASS;
     sym->is_built_in = true;
     sym->is_std = is_std;
@@ -65,11 +68,12 @@ BuildInClass BuildInModule::add_class(const std::string& name, bool is_std){
     return BuildInClass(name, *this, sym->class_scope);
 }
 
-BuildInModule& BuildInModule::add_function(const std::string& name, 
-    uint8_t count_args, bool is_ellipsis_args, uint8_t count_elem_default, 
-        const std::string& ret_type, 
+BuildInModule& BuildInModule::add_function(const std::string& name,
+    uint8_t count_args, bool is_ellipsis_args, uint8_t count_elem_default,
+        const std::string& ret_type,
             std::function<Value(const std::vector<Value>&)> func, bool is_std){
                 auto sym = std::make_shared<SymbolInfo>();
+                sym->name = name;
                 sym->type = SymbolType::FUNCTION;
                 sym->type_name = ret_type;
                 sym->count_args = count_args;
@@ -82,9 +86,10 @@ BuildInModule& BuildInModule::add_function(const std::string& name,
                 return *this;
 }
 
-BuildInModule& BuildInModule::add_variable(const std::string& name, 
+BuildInModule& BuildInModule::add_variable(const std::string& name,
     const std::string& type, bool is_const, bool is_std){
         auto sym = std::make_shared<SymbolInfo>();
+        sym->name = name;
         sym->type = SymbolType::VARIABLE;
         sym->type_name = type;
         sym->is_const = is_const;
@@ -116,7 +121,8 @@ std::shared_ptr<Scope> BuildInManager::get_standard_module(
             it_all_mod->second();
             return modules[name];
         }
-        throw RuntimeError("Стандартный модуль " + name + " не найден");
+        throw RuntimeError("Стандартный модуль " + name + " не найден",
+            error_code::RUN_2001);
 }
 
 bool BuildInManager::is_module_standard(const std::string& name) const {
@@ -147,32 +153,91 @@ void BuildInManager::register_std(){
             .end_class()
         .add_class("Null", true)
             .end_class()
-        .add_function("type", 1, false, 0, "Str", 
+        .add_class("Function", true)
+            .end_class()
+        .add_class("Type", true)
+            .end_class()
+        .add_class("Range", true)
+            .add_method("new", 3, false, 1, "Range",
+                [](std::vector<Value> values) -> Value {
+                    return values.at(0);
+                })
+            .add_method("delete", 0, false, 0, "Null",
+                [](std::vector<Value>) -> Value {
+                    return Value();
+                })
+            .add_method("iter", 0, false, 0, "Range",
+                [](std::vector<Value> values) -> Value {
+                    return values.at(0);
+                })
+            .end_class()
+        .add_function("type", 1, false, 0, "Str",
             [](std::vector<Value> values) -> Value {
                 return Value(values.back().type_to_string());
             }, true)
         .add_variable("__module__", "Str", true, true)
-        .add_function("is_primitive", 1, false, 0, "Bool", 
+        .add_function("is_primitive", 1, false, 0, "Bool",
             [](std::vector<Value> values) -> Value {
                 if(values.size() < 1 || values.size() > 1){
                     throw RuntimeError(
-                        "Метод is_primitive(object) ожидает 1 аргумент");
+                        "Метод is_primitive(object) ожидает 1 аргумент",
+                            error_code::RUN_2002);
                 }
                 Value v = values.back();
-                if(v.is_bool() || v.is_double() || 
+                if(v.is_bool() || v.is_double() ||
                     v.is_int() || v.is_str() || v.is_null()){
                         return Value(true);
                 }
                 return Value(false);
             }, true)
-        .add_function("primitive_cast", 2, false, 0, "auto", 
-            [](std::vector<Value> values) -> Value {
-                if(values.size() < 2 || values.size() > 2){
-                    throw RuntimeError("Метод primitive_cast(type_name, object)"
-                        " ожидает 2 аргумента");
+        .add_function("typeof", 1, false, 0, "Type",
+            [this](std::vector<Value> values) -> Value {
+                if(values.size() != 1){
+                    throw RuntimeError("Метод typeof(object) ожидает 1 аргумент",
+                        error_code::RUN_2003);
                 }
+                const Value& v = values.back();
+                auto std_scope = modules["std"];
+                auto lookup_std = [&std_scope](
+                    const std::string& name) -> SymbolInfo* {
+                        auto it = std_scope->symbols.find(name);
+                        return it != std_scope->symbols.end() ?
+                            it->second.get() : nullptr;
+                };
+
+                SymbolInfo* class_sym = nullptr;
+                if(v.is_int()) class_sym = lookup_std("Int");
+                else if(v.is_double()) class_sym = lookup_std("Double");
+                else if(v.is_bool()) class_sym = lookup_std("Bool");
+                else if(v.is_str()) class_sym = lookup_std("Str");
+                else if(v.is_null()) class_sym = lookup_std("Null");
+                else if(v.is_function()) class_sym = lookup_std("Function");
+                else if(v.is_type()) class_sym = lookup_std("Type");
+                else if(v.is_object()) class_sym = v.as_object()->
+                    class_definition.get();
+
+                if(!class_sym){
+                    throw RuntimeError(
+                        "Не удалось определить тип переданного объекта",
+                            error_code::RUN_2004);
+                }
+                return Value(ValueTypeList::TYPE_V{class_sym});
+            }, true)
+        .add_function("primitive_cast", 2, false, 0, "auto",
+            [](std::vector<Value> values) -> Value {
+                if(values.size() != 2){
+                    throw RuntimeError("Метод primitive_cast(type, object) "
+                        "ожидает 2 аргумента", error_code::RUN_2005);
+                }
+                if(!values[0].is_type() || !values[0].as_type().info){
+                    throw TypeError("Первый аргумент primitive_cast(type, "
+                        "object) должен быть значением типа Type",
+                            error_code::RUN_4001);
+                }
+
                 Value v = values[1];
-                std::string type = values[0].as_str();
+                const std::string& type = values[0].as_type().info->name;
+
                 if(v.is_bool()){
                     if(type == "Int"){
                         return Value(
@@ -184,12 +249,14 @@ void BuildInManager::register_std(){
                         return Value(
                             static_cast<ValueTypeList::BOOL_V>(v.as_bool()));
                     } else if (type == "Str") {
-                        throw TypeError(
-                            "Каст обьекта типа Bool к типу Str невозможен");
+                        return Value(static_cast<ValueTypeList::STR_V>(
+                            v.as_bool() ? "true" : "false"));
                     } else if (type == "Null") {
                         return Value();
                     }
-                    throw TypeError("Переданный тип не является примитивным");
+                    throw TypeError(
+                        "Тип " + type + " не является примитивным",
+                            error_code::RUN_4002);
 
                 } else if(v.is_int()) {
                     if(type == "Int"){
@@ -199,15 +266,17 @@ void BuildInManager::register_std(){
                         return Value(
                             static_cast<ValueTypeList::DOUBLE_V>(v.as_int()));
                     } else if (type == "Bool") {
-                        return Value(
-                            static_cast<ValueTypeList::BOOL_V>(v.as_int()));
+                        return Value(static_cast<ValueTypeList::BOOL_V>(
+                            v.as_int() != 0));
                     } else if (type == "Str") {
-                        throw Value(static_cast<ValueTypeList::STR_V>(
+                        return Value(static_cast<ValueTypeList::STR_V>(
                             std::to_string(v.as_int())));
                     } else if (type == "Null") {
                         return Value();
                     }
-                    throw TypeError("Переданный тип не является примитивным");
+                    throw TypeError(
+                        "Тип " + type + " не является примитивным",
+                            error_code::RUN_4003);
 
                 } else if(v.is_double()) {
                     if(type == "Int"){
@@ -217,43 +286,49 @@ void BuildInManager::register_std(){
                         return Value(static_cast<ValueTypeList::DOUBLE_V>(
                             v.as_double()));
                     } else if (type == "Bool") {
-                        return Value(
-                            static_cast<ValueTypeList::BOOL_V>(v.as_double()));
+                        return Value(static_cast<ValueTypeList::BOOL_V>(
+                            v.as_double() != 0.0));
                     } else if (type == "Str") {
-                        throw Value(static_cast<ValueTypeList::STR_V>(
+                        return Value(static_cast<ValueTypeList::STR_V>(
                             std::to_string(v.as_double())));
                     } else if (type == "Null") {
                         return Value();
                     }
-                    throw TypeError("Переданный тип не является примитивным");
+                    throw TypeError(
+                        "Тип " + type + " не является примитивным",
+                            error_code::RUN_4004);
 
                 } else if(v.is_str()) {
                     if(type == "Int"){
                         try {
                             return Value(static_cast<ValueTypeList::INT_V>(
-                                std::stoi(v.as_str())));
+                                std::stoll(v.as_str())));
                         } catch (...) {
-                            throw TypeError("Каст данного обьекта типа Str к "
-                                "типу Int невозможен");
+                            throw TypeError("Каст строки \"" + v.as_str() +
+                                "\" к типу Int невозможен",
+                                    error_code::RUN_4005);
                         }
                     } else if (type == "Double") {
                         try {
                             return Value(static_cast<ValueTypeList::DOUBLE_V>(
                                 std::stod(v.as_str())));
                         } catch (...) {
-                            throw TypeError("Каст данного обьекта типа Str к "
-                                "типу Double невозможен");
+                            throw TypeError("Каст строки \"" + v.as_str() +
+                                "\" к типу Double невозможен",
+                                    error_code::RUN_4006);
                         }
                     } else if (type == "Bool") {
                         return Value(static_cast<ValueTypeList::BOOL_V>(
                             !v.as_str().empty()));
                     } else if (type == "Str") {
-                        throw Value(
+                        return Value(
                             static_cast<ValueTypeList::STR_V>(v.as_str()));
                     } else if (type == "Null") {
                         return Value();
                     }
-                    throw TypeError("Переданный тип не является примитивным");
+                    throw TypeError(
+                        "Тип " + type + " не является примитивным",
+                            error_code::RUN_4007);
 
                 } else if(v.is_null()) {
                     if(type == "Int"){
@@ -263,15 +338,22 @@ void BuildInManager::register_std(){
                     } else if (type == "Bool") {
                         return Value(static_cast<ValueTypeList::BOOL_V>(false));
                     } else if (type == "Str") {
-                        throw Value(static_cast<ValueTypeList::STR_V>(""));
+                        return Value(
+                            static_cast<ValueTypeList::STR_V>("null"));
                     } else if (type == "Null") {
                         return Value();
                     }
-                    throw TypeError("Переданный тип не является примитивным");
+                    throw TypeError(
+                        "Тип " + type + " не является примитивным",
+                            error_code::RUN_4008);
 
                 }
-                throw TypeError("Объект не примитивного типа");
+                throw TypeError("primitive_cast применим только к "
+                    "примитивным значениям (Int, Double, Bool, Str, Null)",
+                        error_code::RUN_4009);
             }, true);
+
+    modules["std"]->symbols["Range"]->is_iter_obj = true;
 }
 
 void BuildInManager::register_io(){
@@ -317,68 +399,76 @@ void BuildInManager::register_array(){
                 [](std::vector<Value>) -> Value {
                     return Value();
                 })
-            .add_method("push", 1, false, 0, "Null", 
+            .add_method("push", 1, false, 0, "Null",
                 [](std::vector<Value> values) -> Value {
                     auto arr = std::dynamic_pointer_cast<ArrayObject>(
                         values.at(0).as_object());
                     if (!arr) {
-                        throw RuntimeError("Ожидался объект класса Array");
+                        throw RuntimeError("Ожидался объект класса Array",
+                            error_code::RUN_3001);
                     }
                     if(values.size() < 2){
                         throw RuntimeError(
-                            "Метод push(value) ожидает 1 аргумент");
+                            "Метод push(value) ожидает 1 аргумент",
+                                error_code::RUN_3002);
                     }
                     arr->elements.push_back(values[1]);
                     return Value();
                 })
-            .add_method("pop", 0, false, 0, "auto", 
+            .add_method("pop", 0, false, 0, "auto",
                 [](std::vector<Value> values) -> Value{
                     auto arr = std::dynamic_pointer_cast<ArrayObject>(
                         values.at(0).as_object());
                     if (!arr) {
-                        throw RuntimeError("Ожидался объект класса Array");
+                        throw RuntimeError("Ожидался объект класса Array",
+                            error_code::RUN_3003);
                     }
                     if(arr->elements.empty()){
-                        throw RuntimeError("Объект Array пуст");
+                        throw RuntimeError("Объект Array пуст",
+                            error_code::RUN_3004);
                     }
                     auto val = arr->elements.back();
                     arr->elements.pop_back();
                     return val;
                 })
-            .add_method("at", 1, false, 0, "auto", 
+            .add_method("at", 1, false, 0, "auto",
                 [](std::vector<Value> values) -> Value {
                     auto arr = std::dynamic_pointer_cast<ArrayObject>(
                         values.at(0).as_object());
                     if (!arr) {
-                        throw RuntimeError("Ожидался объект класса Array");
+                        throw RuntimeError("Ожидался объект класса Array",
+                            error_code::RUN_3005);
                     }
                     if(values.size() < 2){
                         throw RuntimeError(
-                            "Метод at(index) ожидает 1 аргумент");
+                            "Метод at(index) ожидает 1 аргумент",
+                                error_code::RUN_3006);
                     }
                     auto index = values[1].as_int();
                     if (index < 0 || static_cast<size_t>(index) >= arr->elements.size()) {
-                        throw RuntimeError("Индекс " + std::to_string(index) + 
-                            " вышел за пределы массива");
+                        throw RuntimeError("Индекс " + std::to_string(index) +
+                            " вышел за пределы массива", error_code::RUN_3007);
                     }
                     return arr->elements[index];
                 })
-            .add_method("insert", 2, false, 0, "Null", 
+            .add_method("insert", 2, false, 0, "Null",
                 [](std::vector<Value> values) -> Value {
                     auto arr = std::dynamic_pointer_cast<ArrayObject>(
                         values.at(0).as_object());
                     if (!arr) {
-                        throw RuntimeError("Ожидался объект класса Array");
+                        throw RuntimeError("Ожидался объект класса Array",
+                            error_code::RUN_3008);
                     }
                     if(values.size() < 3){
                         throw RuntimeError(
-                            "Метод insert(index, value) ожидает 2 аргументa");
+                            "Метод insert(index, value) ожидает 2 аргументa",
+                                error_code::RUN_3009);
                     }
 
                     auto index = values[1].as_int();
                     if (index < 0) {
-                        throw RuntimeError("Индекс " + std::to_string(index) + 
-                            " не может быть меньше нуля");
+                        throw RuntimeError("Индекс " + std::to_string(index) +
+                            " не может быть меньше нуля", error_code::RUN_3010);
                     }
                     size_t size = arr->elements.size();
                     if (size == 0) {
@@ -391,26 +481,29 @@ void BuildInManager::register_array(){
                     arr->elements.insert(it, values[2]);
                     return Value();
                 })
-            .add_method("erase", 1, false, 0, "auto", 
+            .add_method("erase", 1, false, 0, "auto",
                 [](std::vector<Value> values) -> Value {
                     auto arr = std::dynamic_pointer_cast<ArrayObject>(
                         values.at(0).as_object());
                     if (!arr) {
-                        throw RuntimeError("Ожидался объект класса Array");
+                        throw RuntimeError("Ожидался объект класса Array",
+                            error_code::RUN_3011);
                     }
                     if(values.size() < 2){
                         throw RuntimeError(
-                            "Метод erase(index) ожидает 1 аргумент");
+                            "Метод erase(index) ожидает 1 аргумент",
+                                error_code::RUN_3012);
                     }
                     if (arr->elements.empty()) {
                         throw RuntimeError(
-                            "Невозможно удалить элемент: массив пуст");
+                            "Невозможно удалить элемент: массив пуст",
+                                error_code::RUN_3013);
                     }
 
                     auto index = values[1].as_int();
                     if (index < 0) {
-                        throw RuntimeError("Индекс " + std::to_string(index) + 
-                            " не может быть меньше нуля");
+                        throw RuntimeError("Индекс " + std::to_string(index) +
+                            " не может быть меньше нуля", error_code::RUN_3014);
                     }
                     size_t size = arr->elements.size();
                     if (static_cast<size_t>(index) >= size) {
@@ -422,42 +515,46 @@ void BuildInManager::register_array(){
                     arr->elements.erase(it);
                     return val;
                 })
-            .add_method("size", 0, false, 0, "Int", 
+            .add_method("size", 0, false, 0, "Int",
                 [](std::vector<Value> values) -> Value{
                     auto arr = std::dynamic_pointer_cast<ArrayObject>(
                         values.at(0).as_object());
                     if (!arr) {
-                        throw RuntimeError("Ожидался объект класса Array");
+                        throw RuntimeError("Ожидался объект класса Array",
+                            error_code::RUN_3015);
                     }
                     return Value(static_cast<ValueTypeList::INT_V>(
                         arr->elements.size()));
                 })
-            .add_method("is_empty", 0, false, 0, "Bool", 
+            .add_method("is_empty", 0, false, 0, "Bool",
                 [](std::vector<Value> values) -> Value{
                     auto arr = std::dynamic_pointer_cast<ArrayObject>(
                         values.at(0).as_object());
                     if (!arr) {
-                        throw RuntimeError("Ожидался объект класса Array");
+                        throw RuntimeError("Ожидался объект класса Array",
+                            error_code::RUN_3016);
                     }
                     return Value(static_cast<ValueTypeList::BOOL_V>(
                         arr->elements.empty()));
                 })
-            .add_method("clear", 0, false, 0, "Null", 
+            .add_method("clear", 0, false, 0, "Null",
                 [](std::vector<Value> values) -> Value {
                     auto arr = std::dynamic_pointer_cast<ArrayObject>(
                         values.at(0).as_object());
                     if (!arr) {
-                        throw RuntimeError("Ожидался объект класса Array");
+                        throw RuntimeError("Ожидался объект класса Array",
+                            error_code::RUN_3017);
                     }
                     arr->elements.clear();
                     return Value();
                 })
-            .add_method("sort", 1, false, 1, "Null", 
+            .add_method("sort", 1, false, 1, "Null",
                 [](std::vector<Value> values) -> Value {
                     auto arr = std::dynamic_pointer_cast<ArrayObject>(
                         values.at(0).as_object());
                     if (!arr) {
-                        throw RuntimeError("Ожидался объект класса Array");
+                        throw RuntimeError("Ожидался объект класса Array",
+                            error_code::RUN_3018);
                     }
                     if (values.size() == 1) {
                         std::sort(arr->elements.begin(), arr->elements.end(), 
@@ -468,13 +565,15 @@ void BuildInManager::register_array(){
                     } else if (values.size() == 2) {
                         if(!values[1].is_function()){
                             throw RuntimeError(
-                                "predicate должен быть функцией");
+                                "predicate должен быть функцией",
+                                    error_code::RUN_3019);
                         }
-                        ValueTypeList::FUNCTION_V predicate = 
+                        ValueTypeList::FUNCTION_V predicate =
                             values[1].as_function();
-                        if(predicate->count_args != 2){
+                        if(predicate.info->count_args != 2){
                             throw RuntimeError(
-                                "predicate должен принимать 2 аргумента");
+                                "predicate должен принимать 2 аргумента",
+                                    error_code::RUN_3020);
                         }
                         std::sort(arr->elements.begin(), arr->elements.end(), 
                             [&predicate](const Value& a, const Value& b){
@@ -484,9 +583,16 @@ void BuildInManager::register_array(){
                         );
                     } else {
                         throw RuntimeError(
-                            "Метод sort(predicate) ожидает 0 или 1 аргумент");
+                            "Метод sort(predicate) ожидает 0 или 1 аргумент",
+                                error_code::RUN_3021);
                     }
                     return Value();
                 })
+            .add_method("iter", 0, false, 0, "Array",
+                [](std::vector<Value> values) -> Value {
+                    return values.at(0);
+                })
             .end_class();
+
+    modules["array"]->symbols["Array"]->is_iter_obj = true;
 }

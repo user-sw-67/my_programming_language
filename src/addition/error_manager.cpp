@@ -3,10 +3,11 @@
 
 #include <sstream>
 #include <iostream>
+#include <algorithm>
 
 CompilerError::CompilerError(const std::string& msg, const SourceLocation& loc,
-    SourceManager& source_manager)
-        : message(msg), loc(loc), source_manager(source_manager) {}
+    SourceManager& source_manager, const std::string& code)
+        : message(msg), loc(loc), source_manager(source_manager), code(code) {}
 
 const char* CompilerError::what() const noexcept {
     return message.c_str();
@@ -15,6 +16,8 @@ const char* CompilerError::what() const noexcept {
 int CompilerError::get_line() const {return loc.line;}
 
 int CompilerError::get_column() const {return loc.column;}
+
+const std::string& CompilerError::get_code() const {return code;}
 
 std::string CompilerError::to_string() const {
     std::string line_code = source_manager.get_line(loc.file_path, loc.line);
@@ -26,7 +29,8 @@ std::string CompilerError::to_string() const {
     ss << "\033[1;31m├─\033[0m \033[1;31mФайл:\033[0m " 
        << loc.file_path << ":" << loc.line << ":" << loc.column << "\n";
     
-    ss << "\033[1;31m├─\033[0m \033[1;31m" << message << "\033[0m\n";
+    ss << "\033[1;31m├─\033[0m \033[1;31m" << message << "\033[0m"
+       << " \033[90m[" << code << "]\033[0m\n";
     
     if (!line_code.empty()) {
         ss << "\033[1;31m├─\033[0m \033[1;31mКод:\033[0m\n";
@@ -44,10 +48,11 @@ std::string CompilerError::to_string() const {
     return ss.str();
 }
 
-PreparationError::PreparationError(const std::string& msg, 
-    const SourceLocation& loc, SourceManager& source_manager) : 
-        CompilerError("Ошибка подготовки запуска: " + msg, 
-            loc, source_manager) {}
+PreparationError::PreparationError(const std::string& msg,
+    const SourceLocation& loc, SourceManager& source_manager,
+        const std::string& code) :
+        CompilerError("Ошибка подготовки запуска: " + msg,
+            loc, source_manager, code) {}
 
 void ErrorManager::format_error(const Error& err, 
     const SourceManager& source_manager) const {
@@ -96,13 +101,36 @@ bool ErrorManager::ok() const {
 }
 
 void ErrorManager::printAll(const SourceManager& source_manager) const {
-    for(const auto& err : errors) {
+    std::vector<Error> sorted_errors = errors;
+
+    auto file_rank = [&source_manager](const std::string& file_path) {
+        auto it = source_manager.modules.find(file_path);
+        if (it == source_manager.modules.end()) return SIZE_MAX;
+        if (it->second.is_root) return static_cast<size_t>(0);
+        return it->second.index + 1;
+    };
+
+    std::stable_sort(sorted_errors.begin(), sorted_errors.end(),
+        [&file_rank](const Error& a, const Error& b) {
+            size_t rank_a = file_rank(a.location.file_path);
+            size_t rank_b = file_rank(b.location.file_path);
+            if (rank_a != rank_b) return rank_a < rank_b;
+            if (a.location.line != b.location.line)
+                return a.location.line < b.location.line;
+            return a.location.column < b.location.column;
+        });
+
+    for(const auto& err : sorted_errors) {
         format_error(err, source_manager);
     }
 }
 
-RuntimeError::RuntimeError(const std::string& msg) : msg(msg) {}
+RuntimeError::RuntimeError(const std::string& msg, const std::string& code) :
+    msg(msg), code(code) {}
 
 const char* RuntimeError::what() const noexcept {return msg.c_str();}
 
-TypeError::TypeError(const std::string& msg) : RuntimeError(msg) {}
+const std::string& RuntimeError::get_code() const {return code;}
+
+TypeError::TypeError(const std::string& msg, const std::string& code) :
+    RuntimeError(msg, code) {}
