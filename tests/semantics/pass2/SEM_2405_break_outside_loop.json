@@ -1,0 +1,5 @@
+{
+  "description": "Оператор break внутри функции, но вне цикла (while/for/do)",
+  "codes": ["SEM_2405"],
+  "code_prefixes": ["SEM_2"]
+}

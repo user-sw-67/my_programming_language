@@ -45,8 +45,14 @@ void SemanticsManager::run() {
     managers.source.active_index(mod);
     validate_entry_point(mod.scope, filename);
 
-    managers.source.sort_moduls.resize(managers.source.modules.size());
+    size_t loaded_modules_count = 0;
     for(const auto& [path, mod]: managers.source.modules){
+        if(mod.status == ModuleStatus::LOADED) ++loaded_modules_count;
+    }
+
+    managers.source.sort_moduls.assign(loaded_modules_count, ModuleReference{nullptr, nullptr});
+    for(const auto& [path, mod]: managers.source.modules){
+        if(mod.status != ModuleStatus::LOADED) continue;
         managers.source.sort_moduls[mod.index] = {&path, &mod};
     }
     

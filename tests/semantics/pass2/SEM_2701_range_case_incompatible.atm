@@ -1,0 +1,12 @@
+func main() {
+    make value -> Str = "hi";
+    match (value) {
+        case 1..9: {
+            return;
+        }
+        default: {
+            return;
+        }
+    }
+    return;
+}

@@ -1,0 +1,5 @@
+{
+  "description": "Деструктор delete() класса Foo не должен иметь параметров",
+  "codes": ["SEM_1208"],
+  "code_prefixes": ["SEM_1"]
+}

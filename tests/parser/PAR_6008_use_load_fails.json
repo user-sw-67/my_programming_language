@@ -1,0 +1,5 @@
+{
+  "description": "Импортируемый путь существует и резолвится через resolve_canonical_path (PAR_6007 не срабатывает), но у файла нет расширения .atm - load_file бросает PreparationError(PRE_0002), перехватывается и оборачивается в PAR_6008",
+  "codes": ["PAR_6008"],
+  "code_prefixes": ["PAR_"]
+}

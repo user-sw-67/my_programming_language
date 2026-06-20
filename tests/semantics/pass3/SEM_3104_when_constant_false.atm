@@ -1,0 +1,7 @@
+use "@io";
+
+func safe_div(a -> Int, b -> Int) when (1 == 2) -> a / b;
+
+func main(){
+    print(safe_div(10, 2));
+}

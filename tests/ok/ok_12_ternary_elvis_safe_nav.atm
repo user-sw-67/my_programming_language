@@ -1,0 +1,13 @@
+class Person {
+    private name -> Str = "";
+    new(name -> Str){ this.name = name; }
+    get_name() -> Str { return this.name; }
+}
+
+func main(){
+    make x -> Int = 20;
+    make status = (x >= 18) ? "взрослый" : "ребёнок";
+
+    make john = Person("John");
+    make city = john?.get_name() ?: "Unknown";
+}

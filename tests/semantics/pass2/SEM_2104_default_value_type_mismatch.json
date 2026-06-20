@@ -1,0 +1,5 @@
+{
+  "description": "Значение по умолчанию параметра x -> Int = \"hello\" имеет несовместимый тип Str",
+  "codes": ["SEM_2104"],
+  "code_prefixes": ["SEM_2"]
+}

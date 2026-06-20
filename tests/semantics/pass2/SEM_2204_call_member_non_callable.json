@@ -1,0 +1,5 @@
+{
+  "description": "f.value() пытается вызвать поле value (не метод) класса Foo как функцию",
+  "codes": ["SEM_2204"],
+  "code_prefixes": ["SEM_2"]
+}

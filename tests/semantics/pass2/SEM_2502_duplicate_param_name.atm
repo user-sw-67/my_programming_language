@@ -1,0 +1,7 @@
+func foo(a -> Int, a -> Int) {
+    return;
+}
+
+func main() {
+    return;
+}

@@ -1,0 +1,15 @@
+use "@io";
+
+func main(){
+    make value -> Int = 5;
+    match (value) {
+        case 1..9: { print("digit"); }
+        default: { print("other"); }
+    }
+
+    make ratio -> Double = 2.5;
+    match (ratio) {
+        case 0..10: { print("in range"); }
+        default: { print("other"); }
+    }
+}

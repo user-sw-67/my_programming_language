@@ -1,0 +1,5 @@
+{
+  "description": "Класс Foo не может наследоваться от самого себя (extends Foo)",
+  "codes": ["SEM_1201", "SEM_1202"],
+  "code_prefixes": ["SEM_1"]
+}

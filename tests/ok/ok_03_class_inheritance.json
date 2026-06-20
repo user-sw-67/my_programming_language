@@ -1,0 +1,4 @@
+{
+  "description": "class extends + super() в конструкторе + методы/поля с модификаторами доступа",
+  "expect_ok": true
+}

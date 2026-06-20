@@ -1,0 +1,8 @@
+use "@math";
+use "@io";
+
+func main(){
+    make a -> Double = 2.0;
+    make b -> Double = 8.0;
+    print(a + b);
+}

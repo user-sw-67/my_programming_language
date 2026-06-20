@@ -30,7 +30,12 @@ const Token& ParserBase::peek(size_t n) const {
 }
 
 const Token& ParserBase::advance() {
-    if(!is_end()) ++pos_tokens;
+    if(!is_end()) {
+        TokenType consumed = tokens[pos_tokens].get_type();
+        ++pos_tokens;
+        if (consumed == TokenType::BRACE_L) ++brace_depth;
+        else if (consumed == TokenType::BRACE_R) --brace_depth;
+    }
     return tokens[pos_tokens - 1];
 }
 
@@ -64,34 +69,47 @@ Parser::Parser(const std::vector<Token>& tokens, const std::string& filename,
     Managers& managers) : 
         ParserBase(tokens, filename, managers) {}
 
-void Parser::synchronize() {
+bool Parser::is_sync_point(TokenType type) const {
+    switch (type) {
+        case TokenType::KW_CLASS:
+        case TokenType::KW_FUNC:
+        case TokenType::KW_USE:
+        case TokenType::KW_TEST:
+        case TokenType::KW_MAKE:
+        case TokenType::KW_FOR:
+        case TokenType::KW_WHILE:
+        case TokenType::KW_DO:
+        case TokenType::KW_IF:
+        case TokenType::KW_RETURN:
+        case TokenType::KW_MATCH:
+        case TokenType::KW_TRY:
+        case TokenType::KW_THROW:
+        case TokenType::KW_ASSERT:
+        case TokenType::KW_BREAK:
+        case TokenType::KW_CONTINUE:
+        case TokenType::BRACE_L:
+            return true;
+        default:
+            return false;
+    }
+}
+
+void Parser::synchronize(bool in_block, int target_depth) {
+    if (in_block && !is_end() &&
+        peek().get_type() == TokenType::BRACE_R &&
+        brace_depth == target_depth) {
+        return;
+    }
+
     advance();
 
     while (!is_end()) {
         if (peek(-1).get_type() == TokenType::SEMICOLON) return;
 
-        switch (peek().get_type()) {
-            case TokenType::KW_CLASS:
-            case TokenType::KW_FUNC:
-            case TokenType::KW_USE:
-            case TokenType::KW_TEST:
-            case TokenType::KW_MAKE:
-            case TokenType::KW_FOR:
-            case TokenType::KW_WHILE:
-            case TokenType::KW_DO:
-            case TokenType::KW_IF:
-            case TokenType::KW_RETURN:
-            case TokenType::KW_MATCH:
-            case TokenType::KW_TRY:
-            case TokenType::KW_THROW:
-            case TokenType::KW_ASSERT:
-            case TokenType::KW_BREAK:
-            case TokenType::KW_CONTINUE:
-            case TokenType::BRACE_L:
-            case TokenType::BRACE_R:
-                return;
-            default:
-                break;
+        if (peek().get_type() == TokenType::BRACE_R) {
+            if (in_block && brace_depth == target_depth) return;
+        } else if (is_sync_point(peek().get_type())) {
+            return;
         }
         advance();
     }
@@ -313,6 +331,7 @@ std::unique_ptr<StatementNodeAST> Parser::parse_block() {
     auto block = std::make_unique<BlockNodeAST>(loc);
     consume(TokenType::BRACE_L, "Ожидалась '{' в начале блока",
         error_code::PAR_1006);
+    int my_depth = brace_depth;
 
     while (!is_end() && current().get_type() != TokenType::BRACE_R) {
         try {
@@ -321,7 +340,7 @@ std::unique_ptr<StatementNodeAST> Parser::parse_block() {
                 block->add_statement(std::move(stmt));
             }
         } catch (const ParseError&) {
-            synchronize();
+            synchronize(true, my_depth);
         }
     }
 
@@ -618,6 +637,8 @@ std::unique_ptr<StatementNodeAST> Parser::parse_use() {
             "Требуется имя файла", error_code::PAR_6006).get_value();
     }
 
+    consume(TokenType::SEMICOLON, "Ожидалась ';'", error_code::PAR_6009);
+
     std::string path_lib_canonical;
     if (!path_lib.empty() && path_lib[0] == '@') {
         path_lib_canonical = path_lib.erase(0, 1);
@@ -637,7 +658,6 @@ std::unique_ptr<StatementNodeAST> Parser::parse_use() {
         }
     }
 
-    consume(TokenType::SEMICOLON, "Ожидалась ';'", error_code::PAR_6009);
     return std::make_unique<UseNodeAST>(
         path_lib_canonical, std::move(objects), is_build_in, loc);
 }

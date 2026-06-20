@@ -1,0 +1,4 @@
+{
+  "description": "break внутри case/default match допустим (C++-подобное проваливание по умолчанию без break) даже когда match не вложен в цикл; continue внутри match по-прежнему относится к окружающему циклу, а не к match",
+  "expect_ok": true
+}

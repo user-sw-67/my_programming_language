@@ -1,0 +1,5 @@
+{
+  "description": "Файл существует, но расширение не .atm (.txt) -> PreparationError PRE_0002",
+  "codes": ["PRE_0002"],
+  "file": "PRE_0002_wrong_extension.txt"
+}

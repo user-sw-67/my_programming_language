@@ -1,0 +1,5 @@
+{
+  "description": "match (value) со value -> Int и case \"hello\" - тип значения case (Str) несовместим с типом сопоставляемого выражения (Int)",
+  "codes": ["SEM_2701"],
+  "code_prefixes": ["SEM_2"]
+}

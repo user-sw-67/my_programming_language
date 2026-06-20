@@ -1,0 +1,5 @@
+{
+  "description": "make x -> Int = \"hello\": строковый литерал нельзя присвоить переменной строгого типа Int",
+  "codes": ["SEM_2102"],
+  "code_prefixes": ["SEM_2"]
+}

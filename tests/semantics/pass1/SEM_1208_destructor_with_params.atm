@@ -1,0 +1,8 @@
+class Foo {
+    new(){}
+    delete(x){}
+}
+
+func main() {
+    return;
+}

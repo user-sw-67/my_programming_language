@@ -1,0 +1,7 @@
+class Foo {
+    private new(){}
+}
+
+func main() {
+    return;
+}

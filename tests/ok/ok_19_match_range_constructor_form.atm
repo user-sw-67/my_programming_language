@@ -1,0 +1,17 @@
+use "@io";
+
+func main(){
+    # конструкторная форма Range(start, end[, step]) -- то же самое,
+    # что и сахар a..b, поэтому должна работать симметрично и в роли
+    # сопоставляемого выражения, и в роли case.
+    match (Range(0, 0)) {
+        case 0: { print(0); break; }
+        default: { print("other"); }
+    }
+
+    make x -> Int = 5;
+    match (x) {
+        case Range(1, 9): { print("digit"); break; }
+        default: { print("other"); }
+    }
+}

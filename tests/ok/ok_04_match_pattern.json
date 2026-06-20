@@ -1,0 +1,4 @@
+{
+  "description": "match/case с несколькими литеральными ветками и default, тип case совпадает с типом значения (Int)",
+  "expect_ok": true
+}

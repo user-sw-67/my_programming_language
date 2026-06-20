@@ -1,0 +1,6 @@
+{
+  "description": "Запуск компилятора на несуществующем файле: std::filesystem::canonical бросает исключение -> PreparationError PRE_0001",
+  "codes": ["PRE_0001"],
+  "file": "no_such_file_at_all.atm",
+  "missing_file": true
+}

@@ -130,10 +130,36 @@ void AnalysisVisitor::visit(BinaryOperationNodeAST& node) {
                                     error_code::SEM_2303);
                     }
             }
+
+            if (node.right) {
+                std::string left_type;
+                if (left_id && left_id->resolved_symbol) {
+                    left_type = left_id->resolved_symbol->type_name;
+                } else if (left_bin && (left_bin->op == TokenType::OP_DOT ||
+                    left_bin->op == TokenType::OP_SAFE_NAV)) {
+                        SymbolInfo* member = resolve_member_symbol(left_bin);
+                        if (member && member->type != SymbolType::FUNCTION) {
+                            left_type = member->type_name;
+                        }
+                }
+
+                if (!left_type.empty() && left_type != "auto") {
+                    std::string right_type =
+                        infer_type_expression(node.right.get());
+                    if (!can_cast(left_type, right_type)) {
+                        managers.error.add("Невозможно присвоить значение "
+                            "типа " + right_type + " переменной с типом " +
+                                left_type, node.location, Severity::ERROR,
+                                    error_code::SEM_2304);
+                    }
+                }
+            }
     }
 
     if (node.op != TokenType::OP_DOT && node.op != TokenType::OP_SAFE_NAV) {
         if(node.right) node.right->accept(*this);
+    } else {
+        resolve_member_symbol(&node);
     }
 }
 
@@ -402,9 +428,10 @@ void AnalysisVisitor::visit(ForNodeAST& node) {
 }
 
 void AnalysisVisitor::visit(BreakNodeAST& node) {
-    if(!in_cycle){
-        managers.error.add("Конструкция break невозможна вне цикла",
-            node.location, Severity::ERROR, error_code::SEM_2405);
+    if(!in_cycle && !in_switch){
+        managers.error.add("Конструкция break невозможна вне цикла "
+            "или match", node.location, Severity::ERROR,
+                error_code::SEM_2405);
     }
 }
 
@@ -435,7 +462,9 @@ void AnalysisVisitor::visit(UseNodeAST& node) {}
 void AnalysisVisitor::visit(ClassNodeAST& node) {
     SymbolInfo* class_symbol = table.lookup(node.name);
 
-    if(!class_symbol || class_symbol->is_std) return;
+    if(!class_symbol || !class_symbol->class_scope ||
+        class_symbol->class_scope->parent.lock() != table.get_current_scope())
+            return;
 
     table.enter_existing_scope(class_symbol->class_scope);
     table.set_current_class(class_symbol);
@@ -454,6 +483,10 @@ void AnalysisVisitor::visit(MatchNodeAST& node) {
     if(node.value) node.value->accept(*this);
     std::string value_type = infer_type_expression(node.value.get());
 
+    std::string value_element_type;
+    bool value_is_range = try_get_range_element_type(node.value.get(), value_element_type);
+    if (value_is_range) value_type = value_element_type;
+
     table.enter_scope();
 
     std::vector<std::pair<TokenType, std::string>> seen_literals;
@@ -462,7 +495,19 @@ void AnalysisVisitor::visit(MatchNodeAST& node) {
             c.value->accept(*this);
 
             std::string case_type = infer_type_expression(c.value.get());
-            if (value_type != "auto" && case_type != "auto" &&
+
+            std::string case_element_type;
+            if (try_get_range_element_type(c.value.get(), case_element_type)) {
+                if (value_type != "auto" && case_element_type != "auto" &&
+                    !can_cast(value_type, case_element_type) &&
+                    !can_cast(case_element_type, value_type)) {
+                        managers.error.add("Тип значения case (" +
+                            case_element_type + ") несовместим с типом "
+                            "сопоставляемого выражения (" + value_type + ")",
+                            c.location, Severity::ERROR,
+                                error_code::SEM_2701);
+                }
+            } else if (value_type != "auto" && case_type != "auto" &&
                 !can_cast(value_type, case_type) &&
                 !can_cast(case_type, value_type)) {
                     managers.error.add("Тип значения case (" + case_type +
@@ -489,7 +534,10 @@ void AnalysisVisitor::visit(MatchNodeAST& node) {
                 }
             }
         }
+        bool old_in_switch = in_switch;
+        in_switch = true;
         if(c.body) c.body->accept(*this);
+        in_switch = old_in_switch;
     }
 
     table.exit_scope();
@@ -498,7 +546,9 @@ void AnalysisVisitor::visit(MatchNodeAST& node) {
 void AnalysisVisitor::visit(TestNodeAST& node) {
     SymbolInfo* test_symbol = table.lookup(node.name);
 
-    if(!test_symbol || test_symbol->is_std) return;
+    if(!test_symbol || !test_symbol->test_scope ||
+        test_symbol->test_scope->parent.lock() != table.get_current_scope())
+            return;
 
     table.enter_existing_scope(test_symbol->test_scope);
     in_test = true;
@@ -653,22 +703,44 @@ bool AnalysisVisitor::check_member_access(SymbolInfo* member,
 
 SymbolInfo* AnalysisVisitor::resolve_member_symbol(
     BinaryOperationNodeAST* node) {
+        auto cached = member_cache.find(node);
+        if (cached != member_cache.end()) return cached->second;
+
+        SymbolInfo* result = nullptr;
+
         std::string left_type = infer_type_expression(node->left.get());
-        if (left_type == "auto") return nullptr;
+        if (left_type != "auto") {
+            auto* class_sym = table.lookup(left_type);
+            if (class_sym && class_sym->type == SymbolType::CLASS) {
+                auto* right_id =
+                    dynamic_cast<IdentifierNodeAST*>(node->right.get());
+                if (right_id) {
+                    SymbolInfo* owner = nullptr;
+                    SymbolInfo* member = find_class_member(
+                        class_sym, right_id->name, &owner);
+                    if (member) {
+                        auto* left_id =
+                            dynamic_cast<IdentifierNodeAST*>(node->left.get());
+                        bool is_this_access =
+                            left_id && left_id->name == "this";
+                        if (is_this_access && !member->is_static &&
+                            current_method_is_static) {
+                                managers.error.add("Нельзя использовать "
+                                    "нестатическое поле или метод " +
+                                    member->name + " в статическом контексте",
+                                        node->location, Severity::ERROR,
+                                            error_code::SEM_2202);
+                        } else if (check_member_access(
+                            member, owner, node->location)) {
+                                result = member;
+                        }
+                    }
+                }
+            }
+        }
 
-        auto* class_sym = table.lookup(left_type);
-        if (!class_sym || class_sym->type != SymbolType::CLASS) return nullptr;
-
-        auto* right_id = dynamic_cast<IdentifierNodeAST*>(node->right.get());
-        if (!right_id) return nullptr;
-
-        SymbolInfo* owner = nullptr;
-        SymbolInfo* member = find_class_member(class_sym, right_id->name, &owner);
-        if (!member) return nullptr;
-
-        if (!check_member_access(member, owner, node->location)) return nullptr;
-
-        return member;
+        member_cache[node] = result;
+        return result;
 }
 
 std::string AnalysisVisitor::infer_member_type(BinaryOperationNodeAST* node) {
@@ -732,6 +804,31 @@ std::string AnalysisVisitor::infer_call_type(CallOperationNodeAST* node) {
     }
 
     return "auto";
+}
+
+bool AnalysisVisitor::try_get_range_element_type(ExpressionNodeAST* node,
+    std::string& out) {
+    if (auto* range = dynamic_cast<RangeOperationNodeAST*>(node)) {
+        out = range->start ? infer_type_expression(range->start.get()) :
+            (range->end ? infer_type_expression(range->end.get()) : "auto");
+        return true;
+    }
+
+    if (auto* call = dynamic_cast<CallOperationNodeAST*>(node)) {
+        auto* id = dynamic_cast<IdentifierNodeAST*>(call->callee.get());
+        if (id && id->name == "Range") {
+            auto* sym = table.lookup(id->name);
+            if (sym && sym->type == SymbolType::CLASS && !call->args.empty()) {
+                out = infer_type_expression(call->args[0].get());
+                if (out == "auto" && call->args.size() > 1) {
+                    out = infer_type_expression(call->args[1].get());
+                }
+                return true;
+            }
+        }
+    }
+
+    return false;
 }
 
 std::string AnalysisVisitor::infer_type_expression(ExpressionNodeAST* node) {

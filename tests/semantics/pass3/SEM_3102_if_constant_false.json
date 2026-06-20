@@ -1,0 +1,5 @@
+{
+  "description": "if (1 == 2): константно-ложное условие сворачивается в else-ветку (OptimizationVisitor)",
+  "codes": ["SEM_3102"],
+  "code_prefixes": ["SEM_3"]
+}

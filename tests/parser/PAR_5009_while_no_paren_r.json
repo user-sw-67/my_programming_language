@@ -1,0 +1,9 @@
+{
+  "description": "Условие while не закрыто ')'",
+  "codes": [
+    "PAR_5009"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

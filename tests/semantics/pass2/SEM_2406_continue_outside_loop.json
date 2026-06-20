@@ -1,0 +1,5 @@
+{
+  "description": "Оператор continue внутри функции, но вне цикла (while/for/do)",
+  "codes": ["SEM_2406"],
+  "code_prefixes": ["SEM_2"]
+}

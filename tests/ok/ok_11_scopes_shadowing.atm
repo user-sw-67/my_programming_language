@@ -1,0 +1,17 @@
+use "@io";
+
+func main(){
+    {
+        make scoped = 0;
+        print(scoped);
+    }
+
+    make outer = 0;
+    {
+        print(outer);
+        {
+            make outer = 1;
+            print(outer);
+        }
+    }
+}

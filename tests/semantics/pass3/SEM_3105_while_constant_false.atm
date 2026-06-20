@@ -1,0 +1,7 @@
+func print_ok(){ return; }
+
+func main(){
+    while (1 == 2) {
+        print_ok();
+    }
+}

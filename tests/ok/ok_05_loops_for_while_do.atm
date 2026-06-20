@@ -1,0 +1,23 @@
+use "@io";
+
+func main(){
+    make i = 0;
+    while (i < 10) {
+        print(i);
+        i = i + 1;
+    }
+
+    make k = 0;
+    do {
+        print("хотя бы раз");
+        k += 1;
+    } while (k < 1);
+
+    for (j in 0..10) {
+        print(j);
+    }
+
+    for (j in 0..100 step 10) {
+        print(j);
+    }
+}

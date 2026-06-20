@@ -1,0 +1,5 @@
+{
+  "description": "Импортируемый по относительному пути файл не существует - resolve_canonical_path возвращает пустую строку",
+  "codes": ["PAR_6007"],
+  "code_prefixes": ["PAR_"]
+}

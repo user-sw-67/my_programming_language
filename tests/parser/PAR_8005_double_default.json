@@ -1,0 +1,5 @@
+{
+  "description": "В match встречено более одного блока default - допустим только один",
+  "codes": ["PAR_8005", "PAR_1001"],
+  "code_prefixes": ["PAR_"]
+}

@@ -1,0 +1,6 @@
+use "@io";
+
+func main() {
+    print(undeclared_var);
+    return;
+}

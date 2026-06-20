@@ -272,7 +272,7 @@ std::shared_ptr<Scope> DefinitionVisitor::get_class_scope(ClassNodeAST& node) {
     }
 
     if(del_ptr->type != SymbolType::FUNCTION || new_ptr->type != SymbolType::FUNCTION){
-        managers.error.add("Обьявлять поля с именем new или delete запрещено",
+        managers.error.add("Объявлять поля с именем new или delete запрещено",
             node.location, Severity::ERROR, error_code::SEM_1207);
     }
 

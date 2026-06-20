@@ -1,0 +1,5 @@
+{
+  "description": "Флаг вывода (-t) указан без -dir/--directory -> CFG_0002",
+  "codes": ["CFG_0002"],
+  "args": ["-t"]
+}

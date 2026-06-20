@@ -1,0 +1,9 @@
+func real_func() {
+    return;
+}
+
+use { real_func } from "helper_1106.atm";
+
+func main() {
+    return;
+}

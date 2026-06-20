@@ -1,0 +1,11 @@
+class Foo {
+    value -> Int = 0;
+
+    new() {}
+}
+
+func main() {
+    make f -> Foo = Foo();
+    f.value();
+    return;
+}

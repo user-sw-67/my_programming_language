@@ -1,0 +1,6 @@
+func main(){
+    match (x {
+        default: {
+        }
+    }
+}

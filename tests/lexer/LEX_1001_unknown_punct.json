@@ -1,0 +1,9 @@
+{
+  "description": "Символы '[' и ']' являются bracket-char, но отсутствуют в punctuation_map лексера",
+  "codes": [
+    "LEX_1001"
+  ],
+  "code_prefixes": [
+    "LEX_"
+  ]
+}

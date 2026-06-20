@@ -17,9 +17,11 @@ class AnalysisVisitor : public BaseVisitorSemantics{
 private:
     bool current_method_is_static = false;
     bool in_cycle = false;
+    bool in_switch = false;
     bool in_test = false;
 
     std::unordered_map<ExpressionNodeAST*, std::string> type_cache;
+    std::unordered_map<BinaryOperationNodeAST*, SymbolInfo*> member_cache;
 
     bool can_cast(const std::string& expected, const std::string& actual);
 
@@ -27,6 +29,7 @@ private:
     std::string infer_binary_type(BinaryOperationNodeAST* node);
     std::string infer_member_type(BinaryOperationNodeAST* node);
     std::string infer_call_type(CallOperationNodeAST* node);
+    bool try_get_range_element_type(ExpressionNodeAST* node, std::string& out);
     SymbolInfo* find_class_member(SymbolInfo* class_sym,
         const std::string& name, SymbolInfo** owner_out = nullptr);
     bool check_member_access(SymbolInfo* member, SymbolInfo* owner,

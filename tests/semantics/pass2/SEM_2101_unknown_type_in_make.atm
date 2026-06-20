@@ -1,0 +1,4 @@
+func main() {
+    make x -> Foo;
+    return;
+}

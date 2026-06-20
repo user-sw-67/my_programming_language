@@ -1,0 +1,9 @@
+{
+  "description": "После выражения assert отсутствует завершающая ';'",
+  "codes": [
+    "PAR_9002"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

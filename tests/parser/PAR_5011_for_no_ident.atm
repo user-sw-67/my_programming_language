@@ -1,0 +1,4 @@
+func main(){
+    for (5 in arr) {
+    }
+}

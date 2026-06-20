@@ -1,0 +1,9 @@
+use "@array";
+
+func main() {
+    make items = Array();
+    for (Int in items) {
+        return;
+    }
+    return;
+}

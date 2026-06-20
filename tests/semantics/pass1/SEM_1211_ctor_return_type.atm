@@ -1,0 +1,7 @@
+class Foo {
+    new() -> Int {}
+}
+
+func main() {
+    return;
+}

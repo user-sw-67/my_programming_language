@@ -1,0 +1,9 @@
+{
+  "description": "После выражения case в match отсутствует ':'",
+  "codes": [
+    "PAR_8004"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

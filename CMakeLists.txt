@@ -72,6 +72,19 @@ if(CMAKE_BUILD_TYPE STREQUAL "Debug" AND ENABLE_SANITIZERS)
     )
 endif()
 
+enable_testing()
+find_package(Python3 COMPONENTS Interpreter)
+if(Python3_FOUND)
+    add_test(
+        NAME atm_compiler_tests
+        COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/tools/run_tests.py
+                --binary $<TARGET_FILE:atm>
+        WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+    )
+else()
+    message(WARNING "Python3 не найден, тест-таргет atm_compiler_tests не добавлен")
+endif()
+
 message(STATUS "----------------------------------------")
 message(STATUS "Проект: ${PROJECT_NAME} v${PROJECT_VERSION}")
 message(STATUS "Тип сборки: ${CMAKE_BUILD_TYPE}")

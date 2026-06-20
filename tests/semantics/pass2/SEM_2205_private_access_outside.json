@@ -1,0 +1,5 @@
+{
+  "description": "Доступ к приватному полю f.secret класса Foo снаружи класса запрещён",
+  "codes": ["SEM_2205"],
+  "code_prefixes": ["SEM_2"]
+}

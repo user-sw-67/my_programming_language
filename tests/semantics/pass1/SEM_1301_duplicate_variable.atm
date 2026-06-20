@@ -1,0 +1,6 @@
+make x = 1;
+make x = 2;
+
+func main() {
+    return;
+}

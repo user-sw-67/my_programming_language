@@ -1,0 +1,5 @@
+{
+  "description": "Полный импорт (use \"file\"; без {}) символа helper_func, который уже определён локально, вызывает RuntimeError в import_symbol",
+  "codes": ["SEM_1103"],
+  "code_prefixes": ["SEM_1"]
+}

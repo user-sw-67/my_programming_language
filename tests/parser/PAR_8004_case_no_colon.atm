@@ -1,0 +1,6 @@
+func main(){
+    match (x) {
+        case 1 {
+        }
+    }
+}

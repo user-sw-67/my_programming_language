@@ -195,8 +195,8 @@ func main() {
     # ----- PATTERN MATCHING -----
     make value = 5;
     match (value) {
-        case 0: { print("zero"); }
-        case 1..9: { print("digit"); }
+        case 0: { print("zero"); break; }
+        case 1..9: { print("digit"); break; }
         case "hello": { print("greeting"); }
         default: { print("other"); }
     }

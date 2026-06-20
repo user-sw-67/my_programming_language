@@ -1,0 +1,19 @@
+func greet(name, greeting = "Hello") -> greeting + ", " + name;
+
+func sum_all(...args) -> Int {
+    make total -> Int = 0;
+    for (item in args) {
+        total += item;
+    }
+    return total;
+}
+
+func complex(a -> Int = 0, ...others){
+    return;
+}
+
+func main(){
+    greet("Alice");
+    sum_all(1, 2, 3, 4);
+    complex(1, 2, 3);
+}

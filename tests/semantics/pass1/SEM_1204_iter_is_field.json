@@ -1,0 +1,5 @@
+{
+  "description": "iter объявлен как поле (iter -> Int = 0;), а не как метод -- запрещено",
+  "codes": ["SEM_1204"],
+  "code_prefixes": ["SEM_1"]
+}

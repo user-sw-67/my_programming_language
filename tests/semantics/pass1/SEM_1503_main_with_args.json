@@ -1,0 +1,5 @@
+{
+  "description": "Функция main не должна принимать аргументов",
+  "codes": ["SEM_1503"],
+  "code_prefixes": ["SEM_1"]
+}

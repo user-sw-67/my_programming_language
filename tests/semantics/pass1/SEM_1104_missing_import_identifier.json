@@ -1,0 +1,5 @@
+{
+  "description": "Частичный импорт несуществующего идентификатора no_such_func из модуля helper_1104.atm",
+  "codes": ["SEM_1104"],
+  "code_prefixes": ["SEM_1"]
+}

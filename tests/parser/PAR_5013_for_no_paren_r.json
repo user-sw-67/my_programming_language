@@ -1,0 +1,9 @@
+{
+  "description": "Заголовок for не закрыт ')'",
+  "codes": [
+    "PAR_5013"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

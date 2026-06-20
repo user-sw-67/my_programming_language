@@ -24,7 +24,7 @@ struct Module {
     std::unique_ptr<ProgramNode> ast;
     std::shared_ptr<Scope> scope;
     bool is_root = false;
-    size_t index;
+    size_t index = static_cast<size_t>(-1);
 
     ModuleStatus status = ModuleStatus::NOT_LOADED;
 };

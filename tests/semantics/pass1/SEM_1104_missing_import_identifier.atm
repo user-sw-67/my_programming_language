@@ -1,0 +1,5 @@
+use { no_such_func } from "helper_1104.atm";
+
+func main() {
+    return;
+}

@@ -1,0 +1,5 @@
+{
+  "description": "Оператор throw внутри тестового блока test - вне функции (тесты не считаются функциями для current_function)",
+  "codes": ["SEM_2407"],
+  "code_prefixes": ["SEM_2"]
+}

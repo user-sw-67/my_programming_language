@@ -1,0 +1,5 @@
+{
+  "description": "После match(...) отсутствует открывающая '{' тела match",
+  "codes": ["PAR_8003"],
+  "code_prefixes": ["PAR_"]
+}

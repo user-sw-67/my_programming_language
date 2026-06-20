@@ -1,0 +1,9 @@
+{
+  "description": "После выражения в return отсутствует завершающая ';'",
+  "codes": [
+    "PAR_5003"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

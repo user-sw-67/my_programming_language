@@ -1,0 +1,13 @@
+use "@io";
+
+class Foo {
+    protected guarded -> Int = 7;
+
+    new() {}
+}
+
+func main() {
+    make f -> Foo = Foo();
+    print(f.guarded);
+    return;
+}

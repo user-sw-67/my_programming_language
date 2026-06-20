@@ -1,0 +1,9 @@
+func helper_func() {
+    return;
+}
+
+use "helper_1103.atm";
+
+func main() {
+    return;
+}

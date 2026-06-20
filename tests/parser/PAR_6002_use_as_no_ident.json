@@ -1,0 +1,9 @@
+{
+  "description": "После 'as' в use {foo as ...} ожидается новый идентификатор-псевдоним",
+  "codes": [
+    "PAR_6002"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

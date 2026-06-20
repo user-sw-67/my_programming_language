@@ -1,0 +1,5 @@
+{
+  "description": "match (value) с двумя одинаковыми case 1 - повторяющееся значение литерала в case",
+  "codes": ["SEM_2702"],
+  "code_prefixes": ["SEM_2"]
+}

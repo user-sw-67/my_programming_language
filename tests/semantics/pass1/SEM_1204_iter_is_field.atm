@@ -1,0 +1,8 @@
+class Foo {
+    new(){}
+    iter -> Int = 0;
+}
+
+func main() {
+    return;
+}

@@ -1,0 +1,11 @@
+class Foo {
+    new() {}
+}
+
+func main() {
+    make f -> Foo = Foo();
+    for (item in f) {
+        return;
+    }
+    return;
+}

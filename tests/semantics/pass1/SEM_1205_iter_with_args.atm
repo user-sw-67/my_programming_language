@@ -1,0 +1,10 @@
+class Foo {
+    new(){}
+    iter(x){
+        return x;
+    }
+}
+
+func main() {
+    return;
+}

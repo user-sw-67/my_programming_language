@@ -1,0 +1,7 @@
+func main(){
+    make value -> Int = 1;
+    match (value) {
+        case 1: { continue; }
+        default: { }
+    }
+}

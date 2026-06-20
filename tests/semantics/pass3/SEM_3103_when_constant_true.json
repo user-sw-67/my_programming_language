@@ -1,0 +1,5 @@
+{
+  "description": "func ... when (1 == 1): константно-истинная guard-ветка when удаляется, тело функции сохраняется",
+  "codes": ["SEM_3103"],
+  "code_prefixes": ["SEM_3"]
+}

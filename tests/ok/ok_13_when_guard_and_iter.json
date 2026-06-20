@@ -1,0 +1,4 @@
+{
+  "description": "func ... when (нетривиальное условие) + класс с собственным public iter() без аргументов используется в for-in",
+  "expect_ok": true
+}

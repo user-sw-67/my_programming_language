@@ -1,0 +1,5 @@
+{
+  "description": "Оператор assert внутри обычной функции, вне тестового блока test",
+  "codes": ["SEM_2408"],
+  "code_prefixes": ["SEM_2"]
+}

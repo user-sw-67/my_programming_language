@@ -1,0 +1,29 @@
+use "@io";
+
+func main(){
+    make value -> Int = 1;
+
+    # break внутри case допустим (как в switch C/C++) и не требует
+    # окружающего цикла - завершает match, не давая провалиться дальше.
+    match (value) {
+        case 1: { print("one"); break; }
+        case 2: { print("two"); }
+        default: { print("other"); }
+    }
+
+    # без break case проваливается в следующий по порядку блок.
+    match (value) {
+        case 1: { print("falls through"); }
+        case 2: { print("then this runs too"); }
+        default: { print("other"); }
+    }
+
+    # break внутри match, вложенного в цикл, завершает именно match,
+    # а continue в той же ситуации относится к циклу, не к match.
+    for (i in 0..3) {
+        match (i) {
+            case 1: { break; }
+            default: { continue; }
+        }
+    }
+}

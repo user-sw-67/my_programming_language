@@ -1,0 +1,7 @@
+func main() {
+    make s -> Str = "hello";
+    if (s) {
+        return;
+    }
+    return;
+}

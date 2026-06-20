@@ -1,0 +1,11 @@
+class Foo {
+    new(){}
+}
+
+class Foo {
+    new(){}
+}
+
+func main() {
+    return;
+}

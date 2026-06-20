@@ -1,0 +1,5 @@
+func main() {
+    make x = 5;
+    x();
+    return;
+}

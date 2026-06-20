@@ -1,0 +1,4 @@
+{
+  "description": "функции и типы как значения первого класса: make f -> Function = print; make t -> Type = Int;",
+  "expect_ok": true
+}

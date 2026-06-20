@@ -1,0 +1,9 @@
+use "@array";
+
+class Foo extends Array {
+    new() {}
+}
+
+func main() {
+    return;
+}

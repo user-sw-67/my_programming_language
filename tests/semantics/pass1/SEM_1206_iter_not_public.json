@@ -1,0 +1,5 @@
+{
+  "description": "Метод iter() класса Foo объявлен private -- должен быть public",
+  "codes": ["SEM_1206"],
+  "code_prefixes": ["SEM_1"]
+}

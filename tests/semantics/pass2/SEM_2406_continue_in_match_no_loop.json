@@ -1,0 +1,5 @@
+{
+  "description": "continue внутри case match относится только к окружающему циклу - match сам по себе циклом не является, поэтому continue без охватывающего for/while/do недопустим",
+  "codes": ["SEM_2406"],
+  "code_prefixes": ["SEM_2"]
+}

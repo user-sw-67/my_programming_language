@@ -1,0 +1,5 @@
+{
+  "description": "Использование идентификатора undeclared_var без предварительного объявления через make",
+  "codes": ["SEM_2201"],
+  "code_prefixes": ["SEM_2"]
+}

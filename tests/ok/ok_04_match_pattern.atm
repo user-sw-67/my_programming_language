@@ -1,0 +1,10 @@
+use "@io";
+
+func main(){
+    make value -> Int = 5;
+    match (value) {
+        case 0: { print("zero"); }
+        case 5: { print("five"); }
+        default: { print("other"); }
+    }
+}

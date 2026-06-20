@@ -1,0 +1,5 @@
+{
+  "description": "Импорт несуществующего встроенного модуля (@no_such_module) вызывает ошибку в get_standard_module",
+  "codes": ["SEM_1101"],
+  "code_prefixes": ["SEM_1"]
+}

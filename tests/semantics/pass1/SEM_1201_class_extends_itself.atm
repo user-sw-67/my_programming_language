@@ -1,0 +1,7 @@
+class Foo extends Foo {
+    new() {}
+}
+
+func main() {
+    return;
+}

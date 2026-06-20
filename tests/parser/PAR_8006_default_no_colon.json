@@ -1,0 +1,9 @@
+{
+  "description": "После default в match отсутствует ':'",
+  "codes": [
+    "PAR_8006"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

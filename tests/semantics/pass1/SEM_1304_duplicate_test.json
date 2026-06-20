@@ -1,0 +1,5 @@
+{
+  "description": "Повторное объявление test-блока sample_test в одной области видимости запрещено",
+  "codes": ["SEM_1304"],
+  "code_prefixes": ["SEM_1"]
+}

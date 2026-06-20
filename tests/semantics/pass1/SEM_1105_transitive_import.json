@@ -1,0 +1,5 @@
+{
+  "description": "Транзитивный импорт origin_func через helper_1105_middle.atm (который сам импортировал его из helper_1105_origin.atm) -- предупреждение, символ определён не в helper_1105_middle.atm",
+  "codes": ["SEM_1105"],
+  "code_prefixes": ["SEM_1"]
+}

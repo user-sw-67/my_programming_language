@@ -1,0 +1,5 @@
+{
+  "description": "После when отсутствует открывающая '(' условия",
+  "codes": ["PAR_4011", "PAR_1001"],
+  "code_prefixes": ["PAR_"]
+}

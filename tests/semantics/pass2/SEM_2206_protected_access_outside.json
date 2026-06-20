@@ -1,0 +1,5 @@
+{
+  "description": "Доступ к protected-полю f.guarded класса Foo снаружи класса и его наследников запрещён",
+  "codes": ["SEM_2206"],
+  "code_prefixes": ["SEM_2"]
+}

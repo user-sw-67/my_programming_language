@@ -1,0 +1,5 @@
+{
+  "description": "После тела do-while отсутствует ключевое слово 'while'",
+  "codes": ["PAR_5004"],
+  "code_prefixes": ["PAR_"]
+}

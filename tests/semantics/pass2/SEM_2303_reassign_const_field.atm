@@ -1,0 +1,11 @@
+class Foo {
+    const fixed -> Int = 1;
+
+    new() {
+        this.fixed = 2;
+    }
+}
+
+func main() {
+    return;
+}

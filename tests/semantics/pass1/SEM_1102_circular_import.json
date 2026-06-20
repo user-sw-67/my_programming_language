@@ -1,0 +1,5 @@
+{
+  "description": "Циклический импорт между helper_1102_a.atm и helper_1102_b.atm обнаруживается через ModuleStatus::LOADING",
+  "codes": ["SEM_1102"],
+  "code_prefixes": ["SEM_1"]
+}

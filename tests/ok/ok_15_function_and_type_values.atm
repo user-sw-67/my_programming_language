@@ -1,0 +1,6 @@
+use "@io";
+
+func main(){
+    make f -> Function = print;
+    make t -> Type = Int;
+}

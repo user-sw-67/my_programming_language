@@ -1,0 +1,9 @@
+use "@io";
+
+func main(){
+    make s -> Str = "hello";
+    match (s) {
+        case Range(1, 9): { print("bad"); break; }
+        default: { print("other"); }
+    }
+}

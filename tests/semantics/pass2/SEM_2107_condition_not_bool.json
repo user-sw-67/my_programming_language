@@ -1,0 +1,5 @@
+{
+  "description": "if (s) с s строго типизированной как Str - условие должно быть Bool или приводимым к Bool",
+  "codes": ["SEM_2107"],
+  "code_prefixes": ["SEM_2"]
+}

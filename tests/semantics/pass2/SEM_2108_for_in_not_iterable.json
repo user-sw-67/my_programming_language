@@ -1,0 +1,5 @@
+{
+  "description": "for (item in f), где f - объект класса Foo без метода iter() - класс не итерируемый",
+  "codes": ["SEM_2108"],
+  "code_prefixes": ["SEM_2"]
+}

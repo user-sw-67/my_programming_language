@@ -1,0 +1,12 @@
+use "@array";
+use "@io";
+
+func main(){
+    make items = Array();
+    items.push(1);
+    items.push(2);
+    items.push(3);
+    for (item in items) {
+        print(item);
+    }
+}

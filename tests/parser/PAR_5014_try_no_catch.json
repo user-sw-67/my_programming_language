@@ -1,0 +1,9 @@
+{
+  "description": "После блока try отсутствует обязательный блок catch",
+  "codes": [
+    "PAR_5014"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

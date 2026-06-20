@@ -1,0 +1,5 @@
+{
+  "description": "После while отсутствует открывающая '(' условия",
+  "codes": ["PAR_5008"],
+  "code_prefixes": ["PAR_"]
+}

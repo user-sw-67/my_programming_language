@@ -1,0 +1,9 @@
+{
+  "description": "Условие if не закрыто ')'",
+  "codes": [
+    "PAR_5002"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

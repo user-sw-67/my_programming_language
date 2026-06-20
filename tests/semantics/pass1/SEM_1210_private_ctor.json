@@ -1,0 +1,5 @@
+{
+  "description": "Конструктор new() класса Foo объявлен private -- предупреждение, модификатор сбрасывается в public",
+  "codes": ["SEM_1210"],
+  "code_prefixes": ["SEM_1"]
+}

@@ -1,0 +1,5 @@
+{
+  "description": "Нельзя наследоваться от встроенного класса Array (модуль @array)",
+  "codes": ["SEM_1203"],
+  "code_prefixes": ["SEM_1"]
+}

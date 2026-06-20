@@ -1,0 +1,5 @@
+{
+  "description": "Условие в do-while не закрыто ')'",
+  "codes": ["PAR_5006"],
+  "code_prefixes": ["PAR_"]
+}

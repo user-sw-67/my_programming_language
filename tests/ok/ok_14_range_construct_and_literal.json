@@ -1,0 +1,4 @@
+{
+  "description": "Range: литеральный сахар a..b и явный вызов конструктора Range(a, b) / Range(a, b, step) - равнозначные формы",
+  "expect_ok": true
+}

@@ -1,0 +1,5 @@
+{
+  "description": "В тернарном операторе отсутствует ':' между ветками true/false",
+  "codes": ["PAR_2007"],
+  "code_prefixes": ["PAR_"]
+}

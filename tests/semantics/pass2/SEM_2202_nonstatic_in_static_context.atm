@@ -1,0 +1,13 @@
+class Counter {
+    value -> Int = 0;
+
+    static get_zero() -> Int {
+        return this.value;
+    }
+
+    new() {}
+}
+
+func main() {
+    return;
+}

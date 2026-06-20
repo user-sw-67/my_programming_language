@@ -1,0 +1,5 @@
+{
+  "description": "В теле match встречен блок, не начинающийся ни с case, ни с default",
+  "codes": ["PAR_8007", "PAR_1001"],
+  "code_prefixes": ["PAR_"]
+}

@@ -1,0 +1,10 @@
+class Foo {
+    new(){}
+    private iter(){
+        return this;
+    }
+}
+
+func main() {
+    return;
+}

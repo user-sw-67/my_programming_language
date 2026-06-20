@@ -1,0 +1,4 @@
+{
+  "description": "@array встроенный модуль: Array(), push() и итерация for-in по Array (есть iter())",
+  "expect_ok": true
+}

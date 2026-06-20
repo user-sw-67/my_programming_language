@@ -1,0 +1,4 @@
+{
+  "description": "break/continue внутри while-цикла - валидное использование управления потоком",
+  "expect_ok": true
+}

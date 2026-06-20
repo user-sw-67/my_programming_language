@@ -1,0 +1,4 @@
+{
+  "description": "три формы циклов: while, do-while, for-in по Range (обычный и с step)",
+  "expect_ok": true
+}

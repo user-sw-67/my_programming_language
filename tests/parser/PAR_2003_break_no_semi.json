@@ -1,0 +1,9 @@
+{
+  "description": "После break отсутствует завершающая ';'",
+  "codes": [
+    "PAR_2003"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

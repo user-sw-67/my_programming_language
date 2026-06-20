@@ -1,0 +1,17 @@
+use "@io";
+
+func safe_div(a -> Int, b -> Int) when (b != 0) -> a / b;
+
+class GoodIterable {
+    new(){}
+    iter(){
+        return this;
+    }
+}
+
+func main(){
+    print(safe_div(10, 2));
+
+    make obj -> GoodIterable = GoodIterable();
+    for (v in obj) { print(v); }
+}

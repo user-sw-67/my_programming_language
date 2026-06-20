@@ -1,0 +1,7 @@
+test ThrowMisuse {
+    throw "boom";
+}
+
+func main() {
+    return;
+}

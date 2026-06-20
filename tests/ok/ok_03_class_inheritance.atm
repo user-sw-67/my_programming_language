@@ -1,0 +1,29 @@
+class Person {
+    private name -> Str = "";
+    public age -> Int = 0;
+
+    new(name -> Str, age -> Int) {
+        this.name = name;
+        this.age = age;
+    }
+
+    get_name() -> Str { return this.name; }
+
+    public greet() -> "Hello, I'm " + this.name;
+}
+
+class Student extends Person {
+    private static student_count -> Int = 0;
+
+    new(name -> Str, age -> Int) {
+        super(name, age);
+    }
+}
+
+func main(){
+    make john = Person("John", 25);
+    make jane = Student("Jane", 20);
+    john.greet();
+    john.get_name();
+    john.age;
+}

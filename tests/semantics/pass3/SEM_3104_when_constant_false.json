@@ -1,0 +1,5 @@
+{
+  "description": "func ... when (1 == 2): константно-ложная guard-ветка when приводит к удалению тела функции",
+  "codes": ["SEM_3104"],
+  "code_prefixes": ["SEM_3"]
+}

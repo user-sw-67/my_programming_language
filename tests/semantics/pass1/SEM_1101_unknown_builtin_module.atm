@@ -1,0 +1,5 @@
+use "@no_such_module";
+
+func main() {
+    return;
+}

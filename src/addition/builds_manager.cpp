@@ -577,7 +577,6 @@ void BuildInManager::register_array(){
                         }
                         std::sort(arr->elements.begin(), arr->elements.end(), 
                             [&predicate](const Value& a, const Value& b){
-                                // Дописать когда появится запуск(пока сортировка по умолчанию) и добавить проверку на Bool
                                 return (a < b).as_bool();
                             }
                         );

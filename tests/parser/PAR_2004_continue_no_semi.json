@@ -1,0 +1,9 @@
+{
+  "description": "После continue отсутствует завершающая ';'",
+  "codes": [
+    "PAR_2004"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

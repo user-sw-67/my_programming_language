@@ -1,0 +1,16 @@
+use "@io";
+
+func throw_demo() {
+    throw "demo error";
+}
+
+func main(){
+    make caught -> Null;
+    try {
+        throw_demo();
+    } catch (caught) {
+        print("исключение поймано");
+    } finally {
+        print("always");
+    }
+}

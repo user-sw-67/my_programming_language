@@ -1,0 +1,9 @@
+func foo(x -> Bool) -> Int {
+    if (x) {
+        return 1;
+    }
+}
+
+func main() {
+    return;
+}

@@ -1,0 +1,7 @@
+test ReturnMisuse {
+    return 1;
+}
+
+func main() {
+    return;
+}

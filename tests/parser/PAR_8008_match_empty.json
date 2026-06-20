@@ -1,0 +1,5 @@
+{
+  "description": "match не содержит ни одного блока case или default",
+  "codes": ["PAR_8008"],
+  "code_prefixes": ["PAR_"]
+}

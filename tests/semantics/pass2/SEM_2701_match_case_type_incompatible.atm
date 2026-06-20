@@ -1,0 +1,12 @@
+func main() {
+    make value -> Int = 5;
+    match (value) {
+        case "hello": {
+            return;
+        }
+        default: {
+            return;
+        }
+    }
+    return;
+}

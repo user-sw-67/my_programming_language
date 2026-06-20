@@ -1,0 +1,17 @@
+func main(){
+    make a = 10;
+    make b -> Int = 20;
+    make c -> Double = 3.14;
+    make s -> Str = "hello";
+    make flag -> Bool = true;
+    make n -> Null;
+
+    make m1, m2, m3 = 1, 2, 3;
+    make const k1, k2 = 1, 2;
+
+    a = "теперь строка";
+    b += 1;
+    b -= 1;
+    b *= 2;
+    b /= 2;
+}

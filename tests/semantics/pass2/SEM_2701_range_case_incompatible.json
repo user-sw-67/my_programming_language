@@ -1,0 +1,5 @@
+{
+  "description": "match (value) со value -> Str и case 1..9 (Range<Int>) - тип границ диапазона (Int) несовместим с типом сопоставляемого выражения (Str)",
+  "codes": ["SEM_2701"],
+  "code_prefixes": ["SEM_2"]
+}

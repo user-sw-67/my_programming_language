@@ -9,87 +9,87 @@ enum class TokenType {
     IDENTIFIER,
     END_OF_FILE,
     
-    KW_MAKE, // make
-    KW_CONST, // const
-    KW_IF, // if
-    KW_ELIF, // elif
-    KW_ELSE, // else
-    KW_DO, // do
-    KW_WHILE, // while
-    KW_FOR, // for
-    KW_IN, // in
-    KW_STEP, // step
-    KW_BREAK, // break
-    KW_CONTINUE, // continue
-    KW_FUNC, // func
-    KW_RETURN, // return
-    KW_WHEN, // when
-    KW_TRY, // try
-    KW_CATCH, // catch
-    KW_FINALLY, // finally
-    KW_THROW, // throw
-    KW_USE, // use
-    KW_FROM, // from
-    KW_AS, // as
-    KW_CLASS, // class
-    KW_EXTENDS, // extends
-    KW_PRIVATE, // private
-    KW_PROTECTED, // protected
-    KW_PUBLIC, // public
-    KW_STATIC, // static
-    KW_MATCH, // match
-    KW_CASE, // case
-    KW_DEFAULT, // default
-    KW_TEST, // test
-    KW_ASSERT, // assert
+    KW_MAKE,
+    KW_CONST,
+    KW_IF,
+    KW_ELIF,
+    KW_ELSE,
+    KW_DO,
+    KW_WHILE,
+    KW_FOR,
+    KW_IN,
+    KW_STEP,
+    KW_BREAK,
+    KW_CONTINUE,
+    KW_FUNC,
+    KW_RETURN,
+    KW_WHEN,
+    KW_TRY,
+    KW_CATCH,
+    KW_FINALLY,
+    KW_THROW,
+    KW_USE,
+    KW_FROM,
+    KW_AS,
+    KW_CLASS,
+    KW_EXTENDS,
+    KW_PRIVATE,
+    KW_PROTECTED,
+    KW_PUBLIC,
+    KW_STATIC,
+    KW_MATCH,
+    KW_CASE,
+    KW_DEFAULT,
+    KW_TEST,
+    KW_ASSERT,
     
-    LIT_INT, // 42, 0, 255 (отрицательные числа -- унарный минус + LIT_INT)
-    LIT_DOUBLE, // 3.14, 2.0 (экспоненциальная запись вида 1e-5 не поддерживается)
-    LIT_STR, // "hello", "world", "John"
-    LIT_BOOL, // true, false
-    LIT_NULL, // null
+    LIT_INT,
+    LIT_DOUBLE,
+    LIT_STR,
+    LIT_BOOL,
+    LIT_NULL,
     
-    PAREN_L, // (
-    PAREN_R, // )
-    BRACE_L, // {
-    BRACE_R, // }
+    PAREN_L,
+    PAREN_R,
+    BRACE_L,
+    BRACE_R,
     
-    SEMICOLON, // ;
-    COMMA, // ,
+    SEMICOLON,
+    COMMA,
 
-    OP_ASSIGN, // =
-    OP_PLUS_ASSIGN, // +=
-    OP_MINUS_ASSIGN, // -=
-    OP_MUL_ASSIGN, // *=
-    OP_DIV_ASSIGN, // /=
-    OP_POW_ASSIGN, // ^=
-    OP_MOD_ASSIGN, // %=
-    OP_INT_DIV_ASSIGN, // //=
-    OP_PLUS, // +
-    OP_MINUS, // -
-    OP_MUL, // *
-    OP_DIV, // /
-    OP_INT_DIV, // //
-    OP_POW, // ^
-    OP_MOD, // %
-    OP_EQ, // ==
-    OP_NE, // !=
-    OP_LT, // <
-    OP_GT, // >
-    OP_LE, // <=
-    OP_GE, // >=
-    OP_AND, // &
-    OP_OR, // |
-    OP_NOT, // !
-    OP_DOT, // .
-    OP_SAFE_NAV, // ?.
-    OP_PIPE, // |>
-    OP_ELVIS, // ?:
-    OP_RANGE, // ..
-    OP_ARROW, // ->
-    OP_ELLIPSIS, // ...
-    OP_QUEST, // ?
-    OP_COLON, // :
+    OP_ASSIGN,
+    OP_PLUS_ASSIGN,
+    OP_MINUS_ASSIGN,
+    OP_MUL_ASSIGN,
+    OP_DIV_ASSIGN,
+    OP_POW_ASSIGN,
+    OP_MOD_ASSIGN,
+    OP_INT_DIV_ASSIGN,
+    OP_PLUS,
+    OP_MINUS,
+    OP_MUL,
+    OP_DIV,
+    OP_INT_DIV,
+    OP_POW,
+    OP_MOD,
+    OP_EQ,
+    OP_NE,
+    OP_LT,
+    OP_GT,
+    OP_LE,
+    OP_GE,
+    OP_AND,
+    OP_OR,
+    OP_NOT,
+    OP_DOT,
+    OP_SAFE_NAV,
+    OP_PIPE,
+    OP_ELVIS,
+    OP_RANGE,
+    OP_ARROW,
+    OP_ELLIPSIS,
+    OP_QUEST,
+    OP_COLON,
 };
 
 

@@ -1,0 +1,4 @@
+{
+  "description": "test { assert ... } - assert допустим только внутри test, два независимых test-блока",
+  "expect_ok": true
+}

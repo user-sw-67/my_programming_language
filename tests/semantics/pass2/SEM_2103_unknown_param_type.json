@@ -1,0 +1,5 @@
+{
+  "description": "Параметр функции foo(x -> Foo) использует необъявленный тип Foo",
+  "codes": ["SEM_2103"],
+  "code_prefixes": ["SEM_2"]
+}

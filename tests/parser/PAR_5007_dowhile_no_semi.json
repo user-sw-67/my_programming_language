@@ -1,0 +1,9 @@
+{
+  "description": "После 'while (cond)' в конструкции do-while отсутствует завершающая ';'",
+  "codes": [
+    "PAR_5007"
+  ],
+  "code_prefixes": [
+    "PAR_"
+  ]
+}

@@ -25,6 +25,8 @@ protected:
     size_t pos_tokens;
     Managers& managers;
 
+    int brace_depth = 0;
+
     bool is_end() const;
 
     const Token& current() const;
@@ -54,23 +56,24 @@ public:
 private:
     enum class Priorities {
         NONE = 0,
-        ASSIGN = 10, // =, +=, -= ...
-        PIPE = 20, // |> 
-        ELVIS = 30, // ?:
-        TERNARY = 40, // ?
-        LOGICAL_OR = 50, // |
-        LOGICAL_AND = 60, // &
-        EQUALS = 70, // ==, !=
-        COMPARE = 80, // <, >, <=, >=
-        SUM = 90, // +, -
-        PRODUCT = 100, // *, /, //, %
-        RANGE = 110, // ..
-        POW = 120, // ^
-        UNARY = 130, // -, ! 
-        CALL = 140 // . , ?. 
+        ASSIGN = 10,
+        PIPE = 20,
+        ELVIS = 30,
+        TERNARY = 40,
+        LOGICAL_OR = 50,
+        LOGICAL_AND = 60,
+        EQUALS = 70,
+        COMPARE = 80,
+        SUM = 90,
+        PRODUCT = 100,
+        RANGE = 110,
+        POW = 120,
+        UNARY = 130,
+        CALL = 140
     };
 
-    void synchronize();
+    void synchronize(bool in_block = false, int target_depth = 0);
+    bool is_sync_point(TokenType type) const;
 
     int get_priority(TokenType type) const;
 

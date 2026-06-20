@@ -1,0 +1,5 @@
+{
+  "description": "Частичный импорт real_func из helper_1106.atm конфликтует с уже определённой локально функцией real_func -- import_symbol бросает RuntimeError",
+  "codes": ["SEM_1106"],
+  "code_prefixes": ["SEM_1"]
+}

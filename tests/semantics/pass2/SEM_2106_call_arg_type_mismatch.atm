@@ -1,0 +1,8 @@
+func add(a -> Int, b -> Int) -> Int {
+    return a + b;
+}
+
+func main() {
+    add(1, "two");
+    return;
+}

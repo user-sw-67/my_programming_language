@@ -1,0 +1,13 @@
+use "@io";
+
+class Foo {
+    private secret -> Int = 42;
+
+    new() {}
+}
+
+func main() {
+    make f -> Foo = Foo();
+    print(f.secret);
+    return;
+}

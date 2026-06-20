@@ -1,0 +1,5 @@
+{
+  "description": "Функция foo() -> Int с if без else - не все пути выполнения завершаются return",
+  "codes": ["SEM_2404"],
+  "code_prefixes": ["SEM_2"]
+}
